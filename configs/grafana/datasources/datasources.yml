@@ -4,8 +4,10 @@
 # Automatically configures Prometheus and Loki as datasources when Grafana
 # starts. Mounted as a file in /etc/grafana/provisioning/datasources/.
 #
-# Environment variables are expanded by Grafana at startup using the
-# ${VAR:-default} syntax.
+# IMPORTANT: Grafana env var expansion (${VAR:-default}) requires the variable
+# to NOT be set in the container environment. If the env var exists (even with
+# a valid value), Grafana uses it directly. For Kubernetes, use Helm templating.
+# For Docker Compose PoC, literal Docker service names are used below.
 # =============================================================================
 
 apiVersion: 1
@@ -28,7 +30,7 @@ datasources:
     access: proxy
     orgId: 1
     uid: prometheus
-    url: ${PROMETHEUS_URL:-http://prometheus:9090}
+    url: http://prometheus:9090
     isDefault: true
     editable: false
 
@@ -56,7 +58,7 @@ datasources:
     access: proxy
     orgId: 1
     uid: loki
-    url: ${LOKI_URL:-http://loki:3100}
+    url: http://loki:3100
     isDefault: false
     editable: false
 
