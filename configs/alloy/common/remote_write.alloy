@@ -1,0 +1,44 @@
+// =============================================================================
+// Prometheus Remote Write Endpoint
+// =============================================================================
+// Central metrics destination for all scraped Prometheus metrics. All
+// OS-specific and role-specific configs forward metrics through
+// prometheus.relabel.add_standard_labels (defined in labels.alloy),
+// which then forwards here.
+//
+// Required environment variables:
+//   PROMETHEUS_REMOTE_WRITE_URL -- full remote write URL
+//     Phase 1 (Prometheus): http://prometheus:9090/api/v1/write
+//     Phase 2 (Mimir):      http://mimir:9009/api/v1/push
+//
+// Optional environment variables (uncomment basic_auth block if needed):
+//   PROMETHEUS_USERNAME -- basic auth username
+//   PROMETHEUS_PASSWORD -- basic auth password
+// =============================================================================
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = sys.env("PROMETHEUS_REMOTE_WRITE_URL")
+
+    // Uncomment for authenticated endpoints (Mimir, Grafana Cloud, etc.)
+    // basic_auth {
+    //   username = sys.env("PROMETHEUS_USERNAME")
+    //   password = sys.env("PROMETHEUS_PASSWORD")
+    // }
+
+    // Write-ahead log ensures metrics survive Alloy restarts.
+    // WAL is enabled by default; these settings tune batching behavior.
+    queue_config {
+      capacity          = 10000
+      max_shards        = 5
+      max_samples_per_send = 2000
+    }
+  }
+
+  // External labels applied to all metrics at the remote_write level.
+  // These supplement the relabel-based labels from labels.alloy and
+  // serve as fallback identification if relabel rules are bypassed.
+  external_labels = {
+    cluster = sys.env("ALLOY_DATACENTER"),
+  }
+}

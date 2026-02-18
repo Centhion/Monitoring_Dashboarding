@@ -1,0 +1,81 @@
+// =============================================================================
+// Linux Server -- Systemd Journal Log Collection
+// =============================================================================
+// Collects log entries from the systemd journal and forwards them to Loki.
+// Deployed to EVERY Linux server alongside base.alloy. Role-specific configs
+// may add additional file-based log sources (e.g., Docker container logs).
+//
+// The journal is the primary log aggregation point on modern Linux systems.
+// It captures: kernel messages, service stdout/stderr, syslog-forwarded
+// entries, and system events.
+//
+// Prerequisites:
+//   - The alloy user must be a member of the "systemd-journal" group
+//     (and optionally "adm") to read journal entries:
+//       sudo usermod -aG systemd-journal alloy
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Journal Relabel Rules
+// Extract structured metadata from journal fields into Loki labels.
+// This enables efficient queries like {unit="sshd.service"} or
+// {priority="3"} in Grafana.
+// ---------------------------------------------------------------------------
+loki.relabel "journal_labels" {
+  forward_to = []
+
+  // Map systemd unit name to a "unit" label
+  rule {
+    source_labels = ["__journal__systemd_unit"]
+    target_label  = "unit"
+  }
+
+  // Map syslog identifier (program name) to a "syslog_identifier" label
+  rule {
+    source_labels = ["__journal_syslog_identifier"]
+    target_label  = "syslog_identifier"
+  }
+
+  // Map journal priority (0=emerg through 7=debug) to a "priority" label
+  rule {
+    source_labels = ["__journal_priority"]
+    target_label  = "priority"
+  }
+
+  // Map transport (journal, syslog, kernel, stdout) to a "transport" label
+  rule {
+    source_labels = ["__journal__transport"]
+    target_label  = "transport"
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Journal Source
+// Reads from the local systemd journal. The max_age parameter limits how
+// far back Alloy reads on first start (default 7h). After the initial
+// read, it follows the journal cursor for real-time streaming.
+// ---------------------------------------------------------------------------
+loki.source.journal "default" {
+  forward_to    = [loki.process.journal_metadata.receiver]
+  relabel_rules = loki.relabel.journal_labels.rules
+  max_age       = "12h"
+
+  labels = {
+    source = "journal",
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Journal Metadata Processing
+// Adds the os=linux static label and forwards through the standard label
+// pipeline (common/labels.alloy) for environment/datacenter/role/hostname.
+// ---------------------------------------------------------------------------
+loki.process "journal_metadata" {
+  forward_to = [loki.process.add_standard_labels.receiver]
+
+  stage.static_labels {
+    values = {
+      os = "linux",
+    }
+  }
+}

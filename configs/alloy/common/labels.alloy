@@ -1,0 +1,58 @@
+// =============================================================================
+// Standard Label Taxonomy
+// =============================================================================
+// Applied to all metrics and logs across the fleet. These labels enable
+// consistent filtering, grouping, and routing in Grafana dashboards and
+// Alertmanager rules.
+//
+// Environment variables must be set on each server before Alloy starts:
+//   ALLOY_ENV        -- deployment environment (prod, staging, dev)
+//   ALLOY_DATACENTER -- physical or logical datacenter (us-east-1, denver-dc)
+//   ALLOY_ROLE       -- server role (dc, sql, iis, fileserver, docker, generic)
+//
+// The "os" label is set statically per OS-specific config (windows/base.alloy
+// or linux/base.alloy). The "hostname" label is auto-detected by Alloy.
+// =============================================================================
+
+// Relabel rules that inject standard labels into all Prometheus metrics.
+// OS-specific base configs forward their scraped metrics through this
+// component before sending to remote_write.
+prometheus.relabel "add_standard_labels" {
+  forward_to = [prometheus.remote_write.default.receiver]
+
+  rule {
+    target_label = "environment"
+    replacement  = sys.env("ALLOY_ENV")
+  }
+
+  rule {
+    target_label = "datacenter"
+    replacement  = sys.env("ALLOY_DATACENTER")
+  }
+
+  rule {
+    target_label = "role"
+    replacement  = sys.env("ALLOY_ROLE")
+  }
+
+  rule {
+    target_label = "hostname"
+    replacement  = constants.hostname
+  }
+}
+
+// Loki processing stage that injects standard labels into all log streams.
+// OS-specific log collectors forward through this component before sending
+// to the Loki write endpoint.
+loki.process "add_standard_labels" {
+  forward_to = [loki.write.default.receiver]
+
+  stage.static_labels {
+    values = {
+      environment = sys.env("ALLOY_ENV"),
+      datacenter  = sys.env("ALLOY_DATACENTER"),
+      role        = sys.env("ALLOY_ROLE"),
+      hostname    = constants.hostname,
+    }
+  }
+}

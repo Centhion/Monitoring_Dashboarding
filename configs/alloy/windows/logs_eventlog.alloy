@@ -1,0 +1,99 @@
+// =============================================================================
+// Windows Server -- Event Log Collection
+// =============================================================================
+// Collects Windows Event Logs from the three primary channels: System,
+// Application, and Security. Deployed to EVERY Windows server alongside
+// base.alloy. Role-specific configs may add additional event log channels
+// (e.g., Directory Service for DCs, SQL Server logs for SQL role).
+//
+// Logs are forwarded through loki.process.add_standard_labels (defined in
+// common/labels.alloy) which injects the standard label taxonomy before
+// pushing to Loki.
+//
+// Each event log channel gets its own source component so they can be
+// independently configured (poll interval, bookmark path, label overrides).
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// System Event Log
+// Captures OS-level events: driver failures, service state changes, hardware
+// errors, disk warnings, network adapter events.
+// ---------------------------------------------------------------------------
+loki.source.windowsevent "system" {
+  eventlog_name          = "System"
+  forward_to             = [loki.process.eventlog_metadata.receiver]
+  use_incoming_timestamp = true
+
+  labels = {
+    source  = "eventlog",
+    channel = "system",
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Application Event Log
+// Captures application-level events: .NET runtime errors, MSI installs,
+// application crashes, scheduled task results.
+// ---------------------------------------------------------------------------
+loki.source.windowsevent "application" {
+  eventlog_name          = "Application"
+  forward_to             = [loki.process.eventlog_metadata.receiver]
+  use_incoming_timestamp = true
+
+  labels = {
+    source  = "eventlog",
+    channel = "application",
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Security Event Log
+// Captures security audit events: logon/logoff, privilege use, object access,
+// policy changes. High volume on domain controllers -- role_dc.alloy may
+// apply additional filtering.
+// ---------------------------------------------------------------------------
+loki.source.windowsevent "security" {
+  eventlog_name          = "Security"
+  forward_to             = [loki.process.eventlog_metadata.receiver]
+  use_incoming_timestamp = true
+
+  labels = {
+    source  = "eventlog",
+    channel = "security",
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Event Log Metadata Processing
+// Extracts structured fields from Windows Event Log entries before forwarding
+// to the standard label pipeline. This adds the "os" label and extracts
+// the event ID and provider name as labels for efficient Loki queries.
+// ---------------------------------------------------------------------------
+loki.process "eventlog_metadata" {
+  forward_to = [loki.process.add_standard_labels.receiver]
+
+  // Tag all Windows event logs with os=windows
+  stage.static_labels {
+    values = {
+      os = "windows",
+    }
+  }
+
+  // Extract event_id and provider from the JSON event body.
+  // Windows Event Log entries are emitted as JSON by Alloy.
+  stage.json {
+    expressions = {
+      event_id = "event_id.id",
+      provider = "source.name",
+      level    = "level",
+    }
+  }
+
+  stage.labels {
+    values = {
+      event_id = "",
+      provider = "",
+      level    = "",
+    }
+  }
+}

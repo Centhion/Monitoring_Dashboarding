@@ -1,0 +1,64 @@
+// =============================================================================
+// Linux Server -- Base OS Metrics
+// =============================================================================
+// Collects fundamental Linux operating system metrics using the embedded
+// node_exporter (prometheus.exporter.unix). This config is deployed to
+// EVERY Linux server regardless of role. Role-specific configs
+// (role_docker.alloy, etc.) add additional collectors on top of this baseline.
+//
+// Collectors enabled here cover universal metrics: CPU, memory, disk,
+// network, filesystem, load average, and systemd service health.
+//
+// Metrics are forwarded through prometheus.relabel.add_standard_labels
+// (defined in common/labels.alloy) which injects the standard label
+// taxonomy before sending to Prometheus.
+// =============================================================================
+
+prometheus.exporter.unix "base" {
+  // The unix exporter enables a large set of collectors by default.
+  // We explicitly list the ones we want to ensure consistent behavior
+  // across Alloy version upgrades.
+  enable_collectors = [
+    "cpu",          // Per-CPU time in each mode (user, system, idle, iowait, etc.)
+    "diskstats",    // Per-block-device I/O: reads/writes, bytes, time, queue depth
+    "filesystem",   // Per-mount: total/available/used bytes, inode counts
+    "loadavg",      // System load averages (1m, 5m, 15m)
+    "meminfo",      // System memory: total, free, available, buffers, cached, swap
+    "netdev",       // Per-interface: bytes/packets sent/received, errors, drops
+    "os",           // OS release info: name, version, machine ID
+    "stat",         // Kernel stats: context switches, forks, interrupts, boot time
+    "time",         // System clock drift from NTP
+    "uname",        // Kernel version, hostname, machine architecture
+    "systemd",      // Systemd unit states: active, inactive, failed, enabled
+    "vmstat",       // Virtual memory: page faults, swaps, allocations
+    "conntrack",    // Netfilter connection tracking: entries, limit
+    "entropy",      // Available entropy (relevant for crypto operations)
+    "pressure",     // PSI (Pressure Stall Information) for CPU, memory, I/O
+  ]
+
+  // Systemd collector configuration: only report services (type "service"),
+  // not all unit types (socket, mount, timer, etc.) to reduce cardinality.
+  systemd {
+    enable_restarts_metrics = true
+    enable_start_time_metrics = true
+  }
+}
+
+prometheus.scrape "linux_base" {
+  targets         = prometheus.exporter.unix.base.targets
+  forward_to      = [prometheus.relabel.linux_os_label.receiver]
+  scrape_interval = "30s"
+  scrape_timeout  = "15s"
+  job_name        = "linux_base"
+}
+
+// Static "os" label for Linux servers. Mirrors the Windows equivalent
+// in windows/base.alloy.
+prometheus.relabel "linux_os_label" {
+  forward_to = [prometheus.relabel.add_standard_labels.receiver]
+
+  rule {
+    target_label = "os"
+    replacement  = "linux"
+  }
+}

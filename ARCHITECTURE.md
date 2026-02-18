@@ -70,8 +70,9 @@ Monitoring_Dashboarding/
 |   +-- rules/                  # Modular guidelines
 +-- configs/                     # All service configurations
 |   +-- alloy/                  # Grafana Alloy agent configs
-|   |   +-- windows/            # Windows-specific Alloy config
-|   |   +-- linux/              # Linux-specific Alloy config
+|   |   +-- common/             # Shared components (labels, remote_write, loki_push)
+|   |   +-- windows/            # Windows base + role configs (.alloy)
+|   |   +-- linux/              # Linux base + role configs (.alloy)
 |   +-- prometheus/             # Prometheus server config and recording rules
 |   +-- loki/                   # Loki server config
 |   +-- alertmanager/           # Alertmanager routing and receivers

@@ -1,0 +1,112 @@
+// =============================================================================
+// Linux Server Role -- Docker Host
+// =============================================================================
+// Additional metrics and log collection for Linux servers running Docker.
+// Deploy alongside base.alloy and logs_journal.alloy. This config adds:
+//
+//   Metrics:
+//   - Docker daemon metrics (scraped from Docker's built-in /metrics endpoint)
+//   - Container-level resource metrics via cAdvisor (if exposed)
+//
+//   Logs:
+//   - Container stdout/stderr logs via loki.source.docker
+//   - Docker daemon logs are already captured by the journal collector
+//     (logs_journal.alloy) since dockerd writes to systemd
+//
+// Prerequisites:
+//   - Docker daemon running with metrics endpoint enabled.
+//     Add to /etc/docker/daemon.json:
+//       { "metrics-addr": "127.0.0.1:9323" }
+//     Then restart Docker: sudo systemctl restart docker
+//   - Alloy user must have access to the Docker socket for log collection:
+//       sudo usermod -aG docker alloy
+//
+// Environment variables:
+//   DOCKER_METRICS_HOST -- Docker metrics endpoint (default: 127.0.0.1:9323)
+//   DOCKER_SOCKET_PATH  -- Docker socket path (default: unix:///var/run/docker.sock)
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Docker Daemon Metrics
+// Docker exposes Prometheus-format metrics at its metrics endpoint.
+// These include: container states, image counts, builder cache, engine
+// info, and Go runtime stats. For container-level CPU/memory/network,
+// cAdvisor or the Docker API is needed (addressed below).
+// ---------------------------------------------------------------------------
+prometheus.scrape "docker_daemon" {
+  targets = [{
+    __address__ = coalesce(sys.env("DOCKER_METRICS_HOST"), "127.0.0.1:9323"),
+  }]
+  forward_to      = [prometheus.relabel.linux_os_label.receiver]
+  scrape_interval = "30s"
+  scrape_timeout  = "10s"
+  job_name        = "docker_daemon"
+  metrics_path    = "/metrics"
+}
+
+// ---------------------------------------------------------------------------
+// cAdvisor Metrics (Optional)
+// If cAdvisor is running as a container or sidecar, scrape it for
+// per-container resource metrics: CPU usage, memory usage, network I/O,
+// filesystem reads/writes.
+//
+// Uncomment this block if cAdvisor is deployed on the host.
+// Default cAdvisor port: 8080
+// ---------------------------------------------------------------------------
+// prometheus.scrape "cadvisor" {
+//   targets = [{
+//     __address__ = "127.0.0.1:8080",
+//   }]
+//   forward_to      = [prometheus.relabel.linux_os_label.receiver]
+//   scrape_interval = "30s"
+//   scrape_timeout  = "10s"
+//   job_name        = "cadvisor"
+//   metrics_path    = "/metrics"
+// }
+
+// ---------------------------------------------------------------------------
+// Docker Container Logs
+// Collects stdout/stderr from all running containers via the Docker API.
+// Container name, image, and compose service are automatically added as
+// labels by loki.source.docker.
+//
+// This supplements the journal logs (which capture dockerd itself) with
+// per-container application logs.
+// ---------------------------------------------------------------------------
+discovery.docker "containers" {
+  host = coalesce(sys.env("DOCKER_SOCKET_PATH"), "unix:///var/run/docker.sock")
+}
+
+loki.source.docker "container_logs" {
+  host       = coalesce(sys.env("DOCKER_SOCKET_PATH"), "unix:///var/run/docker.sock")
+  targets    = discovery.docker.containers.targets
+  forward_to = [loki.process.docker_metadata.receiver]
+
+  labels = {
+    source = "docker",
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Docker Log Metadata Processing
+// Adds container-relevant labels and the os=linux tag before forwarding
+// through the standard label pipeline.
+// ---------------------------------------------------------------------------
+loki.process "docker_metadata" {
+  forward_to = [loki.process.add_standard_labels.receiver]
+
+  stage.static_labels {
+    values = {
+      os = "linux",
+    }
+  }
+
+  // Docker source automatically provides container_name and image labels.
+  // Add a "source" label to distinguish container logs from journal logs
+  // in Grafana Explore.
+  stage.static_labels {
+    values = {
+      log_type = "container",
+    }
+  }
+}

@@ -1,0 +1,33 @@
+// =============================================================================
+// Loki Write Endpoint
+// =============================================================================
+// Central log destination for all collected logs. All OS-specific and
+// role-specific log collectors forward through loki.process.add_standard_labels
+// (defined in labels.alloy), which then forwards here.
+//
+// Required environment variables:
+//   LOKI_WRITE_URL -- full Loki push API URL
+//     Example: http://loki:3100/loki/api/v1/push
+//
+// Optional environment variables (uncomment basic_auth block if needed):
+//   LOKI_USERNAME -- basic auth username (for Grafana Cloud or auth proxy)
+//   LOKI_PASSWORD -- basic auth password
+// =============================================================================
+
+loki.write "default" {
+  endpoint {
+    url = sys.env("LOKI_WRITE_URL")
+
+    // Uncomment for authenticated endpoints (Grafana Cloud, auth proxy, etc.)
+    // basic_auth {
+    //   username = sys.env("LOKI_USERNAME")
+    //   password = sys.env("LOKI_PASSWORD")
+    // }
+  }
+
+  // Tenant ID for multi-tenant Loki deployments. Leave empty for
+  // single-tenant setups. Set via env var when multi-tenancy is needed.
+  // external_labels = {
+  //   tenant_id = sys.env("LOKI_TENANT_ID"),
+  // }
+}

@@ -1,0 +1,109 @@
+// =============================================================================
+// Windows Server Role -- IIS Web Server
+// =============================================================================
+// Additional metrics and log collection for Internet Information Services.
+// Deploy alongside base.alloy and logs_eventlog.alloy. This config adds:
+//
+//   Metrics:
+//   - IIS performance counters via windows_exporter iis collector
+//   - Per-site: requests/sec, bytes transferred, connection counts
+//   - App pool health: worker process state, recycle counts
+//
+//   Logs:
+//   - IIS W3C access logs (per-site, file-based)
+//   - IIS application event log entries (captured by base logs_eventlog.alloy)
+//
+// Prerequisites:
+//   - IIS role installed with Management Tools
+//   - Alloy service account needs read access to IIS log directory
+//
+// Environment variables:
+//   IIS_LOG_PATH -- base path for IIS W3C log files
+//     Default: C:\inetpub\logs\LogFiles
+//     IIS stores logs per site in subdirectories (W3SVC1, W3SVC2, etc.)
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// IIS Metrics
+// The iis collector exposes per-site and server-wide counters:
+//   - Web Service: current connections, total requests (GET/POST/PUT/DELETE),
+//     bytes sent/received, not-found errors, anonymous/non-anonymous users
+//   - W3SVC_W3WP (App Pool): active requests, request wait time,
+//     worker process restarts, request queue length
+//   - HTTP Service Request Queues: arrival rate, rejection rate, queue length
+// ---------------------------------------------------------------------------
+prometheus.exporter.windows "iis" {
+  enabled_collectors = [
+    "iis",  // IIS Web Service and app pool counters
+  ]
+
+  // Monitor IIS-critical Windows services
+  service = {
+    where_clause = "Name LIKE 'W3SVC' OR Name LIKE 'WAS' OR Name LIKE 'IISADMIN' OR Name LIKE 'WMSVC'"
+  }
+}
+
+prometheus.scrape "iis_metrics" {
+  targets         = prometheus.exporter.windows.iis.targets
+  forward_to      = [prometheus.relabel.add_standard_labels.receiver]
+  scrape_interval = "30s"
+  scrape_timeout  = "15s"
+  job_name        = "windows_iis"
+}
+
+// ---------------------------------------------------------------------------
+// IIS W3C Access Logs
+// IIS writes W3C-format access logs to per-site subdirectories under the
+// configured log path. These contain request method, URI, status code,
+// response time, client IP, and user agent -- essential for HTTP error
+// rate monitoring and request latency analysis.
+//
+// The glob pattern captures all site log directories (W3SVC*).
+// ---------------------------------------------------------------------------
+local.file_match "iis_access_logs" {
+  path_targets = [{
+    __path__ = sys.env("IIS_LOG_PATH") + "\\W3SVC*\\*.log",
+    source   = "iis_access_log",
+    channel  = "iis_access",
+    os       = "windows",
+  }]
+}
+
+loki.source.file "iis_access_logs" {
+  targets    = local.file_match.iis_access_logs.targets
+  forward_to = [loki.process.iis_log_parser.receiver]
+}
+
+// ---------------------------------------------------------------------------
+// IIS Log Parser
+// W3C logs are space-delimited with a header row defining field order.
+// This stage extracts key fields as labels for efficient Loki filtering:
+// HTTP method, status code, and the site identifier from the directory name.
+// ---------------------------------------------------------------------------
+loki.process "iis_log_parser" {
+  forward_to = [loki.process.add_standard_labels.receiver]
+
+  // Skip comment lines (W3C headers start with #)
+  stage.drop {
+    expression = "^#.*"
+  }
+
+  // Extract HTTP status code from W3C log line for label-based filtering.
+  // W3C format varies by site config, but sc-status is typically present.
+  stage.regex {
+    expression = "\\s(?P<http_status>[1-5]\\d{2})\\s"
+  }
+
+  stage.labels {
+    values = {
+      http_status = "",
+    }
+  }
+
+  stage.static_labels {
+    values = {
+      source = "iis_access_log",
+      os     = "windows",
+    }
+  }
+}

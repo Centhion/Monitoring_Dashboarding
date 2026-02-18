@@ -1,0 +1,86 @@
+// =============================================================================
+// Windows Server Role -- File Server
+// =============================================================================
+// Additional metrics and log collection for Windows File Servers.
+// Deploy alongside base.alloy and logs_eventlog.alloy. This config adds:
+//
+//   Metrics:
+//   - SMB Server performance counters (sessions, open files, share access)
+//   - Per-physical-disk I/O metrics for storage performance analysis
+//   - DFS Namespace counters (if DFS-N role is installed)
+//
+//   Logs:
+//   - SMB Server event log (connectivity and access events)
+//   - DFS Replication event log (if DFS-R is configured)
+//
+// Prerequisites:
+//   - File Server role or file sharing enabled
+//   - DFS collectors only produce data if DFS roles are installed
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// File Server Metrics
+// SMB performance counters track share-level access patterns:
+//   - SMB Server Shares: current open files, tree connects, bytes read/written
+//   - Physical Disk: per-disk IOPS, latency, queue depth, throughput
+//     (goes beyond logical_disk in base.alloy for storage-focused servers)
+//
+// The smb collector requires Windows Server 2012 R2 or later.
+// ---------------------------------------------------------------------------
+prometheus.exporter.windows "fileserver" {
+  enabled_collectors = [
+    "smb",            // SMB Server: sessions, tree connects, bytes, open files per share
+    "smbclient",      // SMB Client: outbound connections (useful if server also accesses remote shares)
+    "physical_disk",  // Per-physical-disk: IOPS, latency, queue depth, bytes read/written
+    "fsrmquota",      // FSRM quotas: usage vs limits (if File Server Resource Manager is installed)
+  ]
+
+  // Monitor file-server-critical Windows services
+  service = {
+    where_clause = "Name LIKE 'LanmanServer' OR Name LIKE 'DFSR' OR Name LIKE 'DFS' OR Name LIKE 'SrmSvc' OR Name LIKE 'Dfs'"
+  }
+}
+
+prometheus.scrape "fileserver_metrics" {
+  targets         = prometheus.exporter.windows.fileserver.targets
+  forward_to      = [prometheus.relabel.add_standard_labels.receiver]
+  scrape_interval = "30s"
+  scrape_timeout  = "15s"
+  job_name        = "windows_fileserver"
+}
+
+// ---------------------------------------------------------------------------
+// SMB Server Event Log
+// Captures SMB connectivity events: client connection failures, share
+// access denied, session timeouts, protocol negotiation errors.
+// Channel name: Microsoft-Windows-SMBServer/Operational
+// ---------------------------------------------------------------------------
+loki.source.windowsevent "smb_server" {
+  xpath_query            = "Microsoft-Windows-SMBServer/Operational[*]"
+  forward_to             = [loki.process.eventlog_metadata.receiver]
+  use_incoming_timestamp = true
+
+  labels = {
+    source  = "eventlog",
+    channel = "smb_server",
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DFS Replication Event Log
+// Same channel as the DC role config. If both role_dc.alloy and
+// role_fileserver.alloy are deployed to the same server (unlikely but
+// possible), the component label "dfs_replication" would conflict.
+// The DC config uses that label, so this uses "dfs_replication_fs" to
+// ensure uniqueness in that edge case.
+// ---------------------------------------------------------------------------
+loki.source.windowsevent "dfs_replication_fs" {
+  eventlog_name          = "DFS Replication"
+  forward_to             = [loki.process.eventlog_metadata.receiver]
+  use_incoming_timestamp = true
+
+  labels = {
+    source  = "eventlog",
+    channel = "dfs_replication",
+  }
+}

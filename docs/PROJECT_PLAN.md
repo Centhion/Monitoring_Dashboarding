@@ -11,7 +11,7 @@
 | Phase | Status | Notes |
 |-------|--------|-------|
 | Phase 0: Project Setup | Completed | Template hydration and repo configuration |
-| Phase 1: Alloy Agent Configs | Pending | Windows and Linux agent configurations |
+| Phase 1: Alloy Agent Configs | Completed | 13 configs: common (3), Windows base+4 roles (6), Linux base+docker (3), deployment guide (1) |
 | Phase 2: Backend Configs (Prometheus + Loki) | Pending | Server-side metric and log storage configs |
 | Phase 3: Alerting Rules and Routing | Pending | SCOM parity alerts, Alertmanager routing, Teams integration |
 | Phase 4: Grafana Dashboards | Pending | Dashboard JSON definitions and provisioning |
@@ -52,25 +52,51 @@
 
 ## Phase 1: Alloy Agent Configurations
 
-**Goal**: Create production-ready Grafana Alloy configurations for both Windows and Linux servers that collect system metrics and forward logs.
+**Goal**: Create production-ready Grafana Alloy configurations for Windows and Linux servers with role-specific collection profiles, standard label taxonomy, and modular architecture.
 
-**Status**: Pending
+**Status**: Completed
 
-### Tasks
+**Architecture**: Modular directory-based configs. Alloy loads all `.alloy` files in a directory via `alloy run <dir>`. Deploy common/ + os/base + os/logs + role files per server.
 
-- [ ] Create base Alloy config with common components (remote_write, loki push)
-- [ ] Create Windows-specific Alloy config (windows_exporter integration, Windows Event Log)
-- [ ] Create Linux-specific Alloy config (node_exporter integration, journal/syslog)
-- [ ] Define standard label taxonomy (environment, datacenter, role, os, hostname)
-- [ ] Document Alloy deployment instructions for both OS types
-- [ ] Create config validation script for Alloy configs
+**Config Syntax**: Alloy syntax (HCL-inspired, formerly River). File extension: `.alloy`. Environment variables via `sys.env()`.
+
+### Tasks -- Common Components
+
+- [x] 1. Define standard label taxonomy (environment, datacenter, role, os, hostname) -- `configs/alloy/common/labels.alloy`
+- [x] 2. Create Prometheus remote_write endpoint -- `configs/alloy/common/remote_write.alloy`
+- [x] 3. Create Loki push endpoint -- `configs/alloy/common/loki_push.alloy`
+
+### Tasks -- Windows Configs
+
+- [x] 4. Create Windows base OS metrics (CPU, memory, disk, network, services) -- `configs/alloy/windows/base.alloy`
+- [x] 5. Create Windows Event Log collection (System, Application, Security) -- `configs/alloy/windows/logs_eventlog.alloy`
+- [x] 6. Create Windows role: Domain Controller (AD DS, replication, DNS, Kerberos) -- `configs/alloy/windows/role_dc.alloy`
+- [x] 7. Create Windows role: SQL Server (perf counters, database metrics, error logs) -- `configs/alloy/windows/role_sql.alloy`
+- [x] 8. Create Windows role: IIS Web Server (requests, app pools, error rates, IIS logs) -- `configs/alloy/windows/role_iis.alloy`
+- [x] 9. Create Windows role: File Server (SMB sessions, DFS, disk I/O) -- `configs/alloy/windows/role_fileserver.alloy`
+
+### Tasks -- Linux Configs
+
+- [x] 10. Create Linux base OS metrics (CPU, memory, disk, network, systemd) -- `configs/alloy/linux/base.alloy`
+- [x] 11. Create Linux journal log collection -- `configs/alloy/linux/logs_journal.alloy`
+- [x] 12. Create Linux role: Docker host (container metrics, container logs) -- `configs/alloy/linux/role_docker.alloy`
+
+### Tasks -- Documentation
+
+- [x] 13. Create Alloy deployment guide for Windows and Linux -- `docs/ALLOY_DEPLOYMENT.md`
+
+### Risks
+
+- SQL Server perf counters may need custom WMI queries if `prometheus.exporter.mssql` is unavailable in Alloy
+- DC metrics depend on AD DS role being installed on the target server
+- Component label uniqueness required across files loaded in same directory
 
 ### Human Actions Required
 
-- [ ] Deploy Alloy to test Windows server
-- [ ] Deploy Alloy to test Linux server
-- [ ] Verify metrics appear in Prometheus
-- [ ] Verify logs appear in Loki
+- [ ] Deploy Alloy to one test Windows server (any role)
+- [ ] Deploy Alloy to one test Linux server
+- [ ] Provide endpoint URLs for Prometheus and Loki (when Phase 2 backends are deployed)
+- [ ] Confirm list of Windows services to monitor per role (or accept defaults)
 
 ---
 
@@ -238,4 +264,4 @@
 ---
 
 *Document Version: 1.0*
-*Last Updated: 2026-02-17*
+*Last Updated: 2026-02-18*

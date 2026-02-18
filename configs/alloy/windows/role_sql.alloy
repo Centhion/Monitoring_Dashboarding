@@ -1,0 +1,82 @@
+// =============================================================================
+// Windows Server Role -- SQL Server
+// =============================================================================
+// Additional metrics and log collection for Microsoft SQL Server instances.
+// Deploy alongside base.alloy and logs_eventlog.alloy. This config adds:
+//
+//   Metrics:
+//   - SQL Server performance counters via windows_exporter mssql collector
+//   - Key health indicators: buffer cache, page life expectancy, batch
+//     requests, lock waits, deadlocks, database sizes
+//
+//   Logs:
+//   - SQL Server error log (file-based via loki.source.file)
+//   - SQL Server Agent event log
+//
+// Prerequisites:
+//   - SQL Server installed (any edition: Express, Standard, Enterprise)
+//   - Alloy service account needs read access to SQL error log directory
+//
+// Environment variables:
+//   SQL_ERROR_LOG_PATH -- path to SQL error log directory
+//     Default: C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\Log
+//     Adjust the version number (MSSQL16) to match your SQL Server version.
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// SQL Server Metrics
+// The mssql collector exposes SQL Server performance counters including:
+//   - Buffer Manager: buffer cache hit ratio, page life expectancy, checkpoint pages/sec
+//   - SQL Statistics: batch requests/sec, SQL compilations/sec, re-compilations/sec
+//   - Locks: lock waits/sec, deadlocks/sec, average wait time
+//   - Databases: active transactions, data file size, log file size, log flush waits
+//   - Memory Manager: total server memory, target server memory, memory grants pending
+//   - General Statistics: user connections, processes blocked
+//   - Access Methods: full scans/sec, index searches/sec, page splits/sec
+// ---------------------------------------------------------------------------
+prometheus.exporter.windows "sql" {
+  enabled_collectors = [
+    "mssql",  // All SQL Server performance counter sets
+  ]
+
+  // Monitor SQL-critical Windows services
+  service = {
+    where_clause = "Name LIKE 'MSSQLSERVER' OR Name LIKE 'MSSQL$%' OR Name LIKE 'SQLAgent$%' OR Name LIKE 'SQLSERVERAGENT' OR Name LIKE 'MSSQLFDLauncher%' OR Name LIKE 'SQLBrowser' OR Name LIKE 'SQLWriter'"
+  }
+}
+
+prometheus.scrape "sql_metrics" {
+  targets         = prometheus.exporter.windows.sql.targets
+  forward_to      = [prometheus.relabel.add_standard_labels.receiver]
+  scrape_interval = "30s"
+  scrape_timeout  = "15s"
+  job_name        = "windows_sql"
+}
+
+// ---------------------------------------------------------------------------
+// SQL Server Error Log
+// The SQL error log contains critical diagnostic information: startup
+// errors, recovery status, backup completion, integrity check results,
+// and security audit events. Rotated by SQL Server on restart or when
+// sp_cycle_errorlog is called.
+// ---------------------------------------------------------------------------
+local.file_match "sql_errorlog" {
+  path_targets = [{
+    __path__ = sys.env("SQL_ERROR_LOG_PATH") + "\\ERRORLOG*",
+    source   = "sql_errorlog",
+    channel  = "sql_errorlog",
+    os       = "windows",
+  }]
+}
+
+loki.source.file "sql_errorlog" {
+  targets    = local.file_match.sql_errorlog.targets
+  forward_to = [loki.process.add_standard_labels.receiver]
+}
+
+// ---------------------------------------------------------------------------
+// SQL Server Application Event Log
+// SQL Server also writes critical events to the Application log, but those
+// are already captured by logs_eventlog.alloy. This section captures the
+// dedicated SQL Server Agent log if it uses a separate channel.
+// ---------------------------------------------------------------------------

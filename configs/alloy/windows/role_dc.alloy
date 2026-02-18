@@ -1,0 +1,96 @@
+// =============================================================================
+// Windows Server Role -- Domain Controller
+// =============================================================================
+// Additional metrics and log collection for Active Directory Domain Controllers.
+// Deploy alongside base.alloy and logs_eventlog.alloy. This config adds:
+//
+//   Metrics:
+//   - AD DS performance counters (NTDS, LDAP, replication, Kerberos)
+//   - DNS Server counters (queries, recursion, zone transfers)
+//   - AD-specific Windows services health
+//
+//   Logs:
+//   - Directory Service event log channel
+//   - DNS Server event log channel
+//   - DFS Replication event log channel
+//
+// Prerequisites:
+//   - AD DS role installed on the target server
+//   - DNS Server role (typically co-located with DCs)
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// AD DS and DNS Metrics
+// The windows_exporter exposes AD/DNS performance counters through the
+// "ad" and "dns" collectors. These provide the same data SCOM collects
+// from the NTDS and DNS Server performance counter sets.
+// ---------------------------------------------------------------------------
+prometheus.exporter.windows "dc" {
+  enabled_collectors = [
+    "ad",    // AD DS: LDAP searches/sec, binds/sec, replication objects, DRA inbound/outbound
+    "dns",   // DNS: total queries, recursive queries, zone transfer requests, AXFR/IXFR
+    "dhcp",  // DHCP: if DHCP role is co-located (safe to enable, no-op if role absent)
+  ]
+
+  // Monitor AD-critical services. Combined with base.alloy service filter
+  // using OR semantics since each exporter instance reports independently.
+  service = {
+    where_clause = "Name LIKE 'NTDS' OR Name LIKE 'DNS' OR Name LIKE 'Netlogon' OR Name LIKE 'DFSR' OR Name LIKE 'IsmServ' OR Name LIKE 'KDC' OR Name LIKE 'ADWS' OR Name LIKE 'Kdc'"
+  }
+}
+
+prometheus.scrape "dc_metrics" {
+  targets         = prometheus.exporter.windows.dc.targets
+  forward_to      = [prometheus.relabel.add_standard_labels.receiver]
+  scrape_interval = "30s"
+  scrape_timeout  = "15s"
+  job_name        = "windows_dc"
+}
+
+// ---------------------------------------------------------------------------
+// Directory Service Event Log
+// Captures AD-specific events: replication failures, schema changes,
+// SYSVOL issues, group policy processing errors.
+// ---------------------------------------------------------------------------
+loki.source.windowsevent "directory_service" {
+  eventlog_name          = "Directory Service"
+  forward_to             = [loki.process.eventlog_metadata.receiver]
+  use_incoming_timestamp = true
+
+  labels = {
+    source  = "eventlog",
+    channel = "directory_service",
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DNS Server Event Log
+// Captures DNS-specific events: zone load failures, recursion errors,
+// scavenging activity, dynamic update failures.
+// ---------------------------------------------------------------------------
+loki.source.windowsevent "dns_server" {
+  eventlog_name          = "DNS Server"
+  forward_to             = [loki.process.eventlog_metadata.receiver]
+  use_incoming_timestamp = true
+
+  labels = {
+    source  = "eventlog",
+    channel = "dns_server",
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DFS Replication Event Log
+// Captures DFS-R events: replication backlog, staging folder cleanup,
+// conflict resolution, connection failures between replication partners.
+// ---------------------------------------------------------------------------
+loki.source.windowsevent "dfs_replication" {
+  eventlog_name          = "DFS Replication"
+  forward_to             = [loki.process.eventlog_metadata.receiver]
+  use_incoming_timestamp = true
+
+  labels = {
+    source  = "eventlog",
+    channel = "dfs_replication",
+  }
+}

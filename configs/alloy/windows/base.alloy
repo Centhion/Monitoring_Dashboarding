@@ -1,0 +1,61 @@
+// =============================================================================
+// Windows Server -- Base OS Metrics
+// =============================================================================
+// Collects fundamental Windows operating system metrics using the embedded
+// windows_exporter. This config is deployed to EVERY Windows server regardless
+// of role. Role-specific configs (role_dc.alloy, role_sql.alloy, etc.) add
+// additional collectors on top of this baseline.
+//
+// Collectors enabled here cover the universal metrics that apply to all
+// Windows servers: CPU, memory, disk, network, system uptime, and
+// Windows service health.
+//
+// Metrics are forwarded through prometheus.relabel.add_standard_labels
+// (defined in common/labels.alloy) which injects the standard label
+// taxonomy before sending to Prometheus.
+// =============================================================================
+
+prometheus.exporter.windows "base" {
+  enabled_collectors = [
+    "cpu",
+    "cs",             // Computer system: hostname, domain membership, physical memory
+    "logical_disk",   // Per-volume: free space, read/write bytes, IOPS, queue length
+    "memory",         // System memory: available, committed, cache, page faults
+    "net",            // Per-NIC: bytes sent/received, packets, errors, discards
+    "os",             // OS-level: visible memory, processes, uptime, paging usage
+    "service",        // Windows service state: running, stopped, start mode
+    "system",         // System-wide: context switches, processor queue, threads, uptime
+    "tcp",            // TCP stats: connections established, active/passive opens, failures
+    "scheduled_task", // Scheduled task: last result, state, missed runs
+    "time",           // Windows Time Service: NTP offset, sync status
+  ]
+
+  // Filter which Windows services to monitor. Without a filter, ALL
+  // services are reported which creates high cardinality. This regex
+  // captures critical infrastructure services present on every server.
+  // Role-specific configs add their own service filters.
+  service = {
+    where_clause = "Name LIKE 'W32Time' OR Name LIKE 'WinRM' OR Name LIKE 'EventLog' OR Name LIKE 'LanmanServer' OR Name LIKE 'LanmanWorkstation' OR Name LIKE 'Dhcp' OR Name LIKE 'Dnscache' OR Name LIKE 'TermService' OR Name LIKE 'wuauserv'"
+  }
+}
+
+prometheus.scrape "windows_base" {
+  targets         = prometheus.exporter.windows.base.targets
+  forward_to      = [prometheus.relabel.add_standard_labels.receiver]
+  scrape_interval = "30s"
+  scrape_timeout  = "15s"
+  job_name        = "windows_base"
+}
+
+// Static "os" label for Windows servers. This relabel rule runs before
+// the standard labels so that all metrics from this scrape carry os=windows.
+// The standard labels component (common/labels.alloy) adds the remaining
+// taxonomy labels (environment, datacenter, role, hostname).
+prometheus.relabel "windows_os_label" {
+  forward_to = [prometheus.relabel.add_standard_labels.receiver]
+
+  rule {
+    target_label = "os"
+    replacement  = "windows"
+  }
+}
