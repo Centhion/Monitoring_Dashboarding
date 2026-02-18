@@ -17,7 +17,7 @@ services:
     # Enable verbose logging for debugging rule evaluation
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus/data"
+      - "--storage.tsdb.path=/prometheus"
       - "--storage.tsdb.retention.time=15d"
       - "--storage.tsdb.retention.size=5GB"
       - "--storage.tsdb.wal-compression"

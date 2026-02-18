@@ -42,11 +42,11 @@ services:
       - ./alerts/prometheus/linux_alerts.yml:/etc/prometheus/rules/linux_alerts.yml:ro
       - ./alerts/prometheus/infra_alerts.yml:/etc/prometheus/rules/infra_alerts.yml:ro
       - ./alerts/prometheus/role_alerts.yml:/etc/prometheus/rules/role_alerts.yml:ro
-      # Persistent TSDB storage
-      - prometheus_data:/prometheus/data
+      # Persistent TSDB storage -- mounted at /prometheus (image default, writable by nobody)
+      - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus/data"
+      - "--storage.tsdb.path=/prometheus"
       - "--storage.tsdb.retention.time=15d"
       - "--storage.tsdb.retention.size=5GB"
       - "--storage.tsdb.wal-compression"
@@ -54,16 +54,6 @@ services:
       - "--web.enable-lifecycle"
       - "--web.console.libraries=/usr/share/prometheus/console_libraries"
       - "--web.console.templates=/usr/share/prometheus/consoles"
-    environment:
-      # Override defaults for local Docker networking
-      ALERTMANAGER_HOST: alertmanager
-      ALERTMANAGER_PORT: "9093"
-      LOKI_HOST: loki
-      LOKI_PORT: "3100"
-      GRAFANA_HOST: grafana
-      GRAFANA_PORT: "3000"
-      CLUSTER_NAME: local-poc
-      POD_NAME: prometheus-local
     deploy:
       resources:
         limits:

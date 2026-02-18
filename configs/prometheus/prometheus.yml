@@ -5,11 +5,18 @@
 # Prometheus receives metrics from Grafana Alloy agents via remote_write
 # and evaluates alerting/recording rules.
 #
-# Deployment: Kubernetes pod with persistent volume for TSDB storage.
-# This config is mounted as a ConfigMap.
+# IMPORTANT: Prometheus does NOT support shell-style environment variable
+# substitution (${VAR:-default}). All values in this file are literal.
+# For Kubernetes, use Helm templating or Kustomize to inject real values.
+# For local Docker Compose testing, the Docker service names below
+# (alertmanager, loki, grafana) resolve via Docker's internal DNS.
 #
-# Environment-specific values should be set via Kubernetes ConfigMap
-# substitution or Helm templating before deployment.
+# Values to replace for production:
+#   alertmanager:9093  -- Alertmanager service endpoint
+#   loki:3100          -- Loki service endpoint
+#   grafana:3000       -- Grafana service endpoint
+#   cluster name       -- Deployment cluster identifier
+#   prometheus replica -- Pod/replica identifier
 # =============================================================================
 
 global:
@@ -28,8 +35,8 @@ global:
   # External labels applied to all time series and alerts sent to
   # external systems (federation, Alertmanager, remote_write).
   external_labels:
-    cluster: "${CLUSTER_NAME:-monitoring}"
-    prometheus_replica: "${POD_NAME:-prometheus-0}"
+    cluster: "local-poc"
+    prometheus_replica: "prometheus-local"
 
 # ---------------------------------------------------------------------------
 # Rule Files
@@ -51,7 +58,7 @@ alerting:
   alertmanagers:
     - static_configs:
         - targets:
-            - "${ALERTMANAGER_HOST:-alertmanager}:${ALERTMANAGER_PORT:-9093}"
+            - "alertmanager:9093"
       # Timeout for sending alerts to Alertmanager.
       timeout: 10s
 
@@ -73,7 +80,7 @@ scrape_configs:
   - job_name: "alertmanager"
     static_configs:
       - targets:
-          - "${ALERTMANAGER_HOST:-alertmanager}:${ALERTMANAGER_PORT:-9093}"
+          - "alertmanager:9093"
     metrics_path: "/metrics"
     scrape_interval: 30s
 
@@ -81,7 +88,7 @@ scrape_configs:
   - job_name: "loki"
     static_configs:
       - targets:
-          - "${LOKI_HOST:-loki}:${LOKI_PORT:-3100}"
+          - "loki:3100"
     metrics_path: "/metrics"
     scrape_interval: 30s
 
@@ -89,7 +96,7 @@ scrape_configs:
   - job_name: "grafana"
     static_configs:
       - targets:
-          - "${GRAFANA_HOST:-grafana}:${GRAFANA_PORT:-3000}"
+          - "grafana:3000"
     metrics_path: "/metrics"
     scrape_interval: 60s
 
@@ -112,7 +119,7 @@ scrape_configs:
 # Set via command-line flags (not YAML config). Document here for reference.
 #
 # Recommended flags:
-#   --storage.tsdb.path=/prometheus/data       # TSDB data directory
+#   --storage.tsdb.path=/prometheus             # TSDB data directory
 #   --storage.tsdb.retention.time=30d          # Keep 30 days of data
 #   --storage.tsdb.retention.size=50GB         # Cap storage at 50GB
 #   --storage.tsdb.wal-compression             # Compress WAL for disk savings
