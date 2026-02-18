@@ -24,7 +24,12 @@
   "panels": [
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "id": 100,
       "title": "Overview",
       "type": "row"
@@ -44,9 +49,18 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 75 },
-              { "color": "red", "value": 90 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
             ]
           },
           "unit": "percent",
@@ -56,7 +70,12 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
       "id": 1,
       "options": {
         "colorMode": "background",
@@ -64,7 +83,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -103,9 +124,18 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 75 },
-              { "color": "red", "value": 90 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
             ]
           },
           "unit": "percent",
@@ -115,7 +145,12 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 1 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
       "id": 2,
       "options": {
         "colorMode": "background",
@@ -123,7 +158,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -162,7 +199,10 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           },
           "unit": "d",
@@ -170,7 +210,12 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
       "id": 3,
       "options": {
         "colorMode": "background",
@@ -178,7 +223,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -217,9 +264,18 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 1 },
-              { "color": "red", "value": 3 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
             ]
           },
           "unit": "short",
@@ -227,7 +283,12 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
       "id": 4,
       "options": {
         "colorMode": "background",
@@ -235,7 +296,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -261,7 +324,12 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
       "id": 101,
       "title": "CPU and Memory",
       "type": "row"
@@ -296,19 +364,35 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 75 },
-              { "color": "red", "value": 90 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
             ]
           },
           "unit": "percent",
@@ -317,11 +401,19 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 7 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 7
+      },
       "id": 5,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -378,17 +470,27 @@
             "lineInterpolation": "smooth",
             "lineWidth": 1,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "normal" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           },
           "unit": "percent",
@@ -397,11 +499,18 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 7 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 7
+      },
       "id": 6,
       "options": {
         "legend": {
-          "calcs": ["mean"],
+          "calcs": [
+            "mean"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -458,19 +567,35 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 75 },
-              { "color": "red", "value": 90 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
             ]
           },
           "unit": "percent",
@@ -479,11 +604,19 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 7 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 7
+      },
       "id": 7,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -512,7 +645,12 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
       "id": 102,
       "title": "Disk",
       "type": "row"
@@ -547,10 +685,15 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
             "thresholdsStyle": {
               "mode": "line"
             }
@@ -559,9 +702,18 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 10 },
-              { "color": "green", "value": 20 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "green",
+                "value": 20
+              }
             ]
           },
           "unit": "percent",
@@ -570,11 +722,18 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 16
+      },
       "id": 8,
       "options": {
         "legend": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -631,19 +790,35 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 75 },
-              { "color": "red", "value": 90 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
             ]
           },
           "unit": "percent",
@@ -652,11 +827,19 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 16
+      },
       "id": 9,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -713,17 +896,27 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           },
           "unit": "Bps",
@@ -731,30 +924,50 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byRegexp", "options": ".*Read.*" },
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Read.*"
+            },
             "properties": [
               {
                 "id": "color",
-                "value": { "fixedColor": "blue", "mode": "fixed" }
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
               }
             ]
           },
           {
-            "matcher": { "id": "byRegexp", "options": ".*Write.*" },
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Write.*"
+            },
             "properties": [
               {
                 "id": "color",
-                "value": { "fixedColor": "orange", "mode": "fixed" }
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
               }
             ]
           }
         ]
       },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 16
+      },
       "id": 10,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -794,7 +1007,12 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
       "id": 103,
       "title": "Network",
       "type": "row"
@@ -829,17 +1047,27 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           },
           "unit": "Bps",
@@ -847,11 +1075,19 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 25 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
       "id": 11,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -908,17 +1144,27 @@
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           },
           "unit": "Bps",
@@ -926,30 +1172,50 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byRegexp", "options": ".*Received.*" },
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Received.*"
+            },
             "properties": [
               {
                 "id": "color",
-                "value": { "fixedColor": "green", "mode": "fixed" }
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
               }
             ]
           },
           {
-            "matcher": { "id": "byRegexp", "options": ".*Sent.*" },
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Sent.*"
+            },
             "properties": [
               {
                 "id": "color",
-                "value": { "fixedColor": "blue", "mode": "fixed" }
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
               }
             ]
           }
         ]
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 25 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
       "id": 12,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -989,7 +1255,12 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 33 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
       "id": 104,
       "title": "Services",
       "type": "row"
@@ -1007,20 +1278,28 @@
           },
           "custom": {
             "align": "auto",
-            "cellOptions": { "type": "auto" },
+            "cellOptions": {
+              "type": "auto"
+            },
             "inspect": false
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "state" },
+            "matcher": {
+              "id": "byName",
+              "options": "state"
+            },
             "properties": [
               {
                 "id": "custom.cellOptions",
@@ -1042,7 +1321,10 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "hostname" },
+            "matcher": {
+              "id": "byName",
+              "options": "hostname"
+            },
             "properties": [
               {
                 "id": "custom.width",
@@ -1051,7 +1333,10 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "name" },
+            "matcher": {
+              "id": "byName",
+              "options": "name"
+            },
             "properties": [
               {
                 "id": "custom.width",
@@ -1060,7 +1345,10 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Value" },
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
             "properties": [
               {
                 "id": "custom.hidden",
@@ -1069,7 +1357,10 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Time" },
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
             "properties": [
               {
                 "id": "custom.hidden",
@@ -1078,7 +1369,10 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "instance" },
+            "matcher": {
+              "id": "byName",
+              "options": "instance"
+            },
             "properties": [
               {
                 "id": "custom.hidden",
@@ -1087,7 +1381,10 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "job" },
+            "matcher": {
+              "id": "byName",
+              "options": "job"
+            },
             "properties": [
               {
                 "id": "custom.hidden",
@@ -1096,7 +1393,10 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "os" },
+            "matcher": {
+              "id": "byName",
+              "options": "os"
+            },
             "properties": [
               {
                 "id": "custom.hidden",
@@ -1105,7 +1405,10 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "environment" },
+            "matcher": {
+              "id": "byName",
+              "options": "environment"
+            },
             "properties": [
               {
                 "id": "custom.hidden",
@@ -1114,7 +1417,10 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "datacenter" },
+            "matcher": {
+              "id": "byName",
+              "options": "datacenter"
+            },
             "properties": [
               {
                 "id": "custom.hidden",
@@ -1123,7 +1429,10 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "role" },
+            "matcher": {
+              "id": "byName",
+              "options": "role"
+            },
             "properties": [
               {
                 "id": "custom.hidden",
@@ -1132,7 +1441,10 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "__name__" },
+            "matcher": {
+              "id": "byName",
+              "options": "__name__"
+            },
             "properties": [
               {
                 "id": "custom.hidden",
@@ -1142,14 +1454,21 @@
           }
         ]
       },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 34 },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
       "id": 13,
       "options": {
         "cellHeight": "sm",
         "footer": {
           "countRows": false,
           "fields": "",
-          "reducer": ["sum"],
+          "reducer": [
+            "sum"
+          ],
           "show": false
         },
         "showHeader": true,
@@ -1206,7 +1525,11 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1218,19 +1541,20 @@
         "multi": true,
         "name": "environment",
         "options": [],
-        "query": {
-          "qryType": 1,
-          "query": "label_values(instance:windows_cpu_utilization:ratio, environment)",
-          "refId": "PrometheusVariableQueryEditor-VariableQuery"
-        },
+        "query": "label_values(instance:windows_cpu_utilization:ratio, environment)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "allValue": ".*"
       },
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1242,19 +1566,20 @@
         "multi": true,
         "name": "datacenter",
         "options": [],
-        "query": {
-          "qryType": 1,
-          "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\"}, datacenter)",
-          "refId": "PrometheusVariableQueryEditor-VariableQuery"
-        },
+        "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\"}, datacenter)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "allValue": ".*"
       },
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1266,19 +1591,20 @@
         "multi": true,
         "name": "role",
         "options": [],
-        "query": {
-          "qryType": 1,
-          "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, role)",
-          "refId": "PrometheusVariableQueryEditor-VariableQuery"
-        },
+        "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, role)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "allValue": ".*"
       },
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1290,16 +1616,13 @@
         "multi": true,
         "name": "hostname",
         "options": [],
-        "query": {
-          "qryType": 1,
-          "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}, hostname)",
-          "refId": "PrometheusVariableQueryEditor-VariableQuery"
-        },
+        "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}, hostname)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "allValue": ".*"
       }
     ]
   },

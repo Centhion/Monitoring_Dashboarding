@@ -24,7 +24,12 @@
   "panels": [
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
       "title": "Log Volume",
       "type": "row"
@@ -76,31 +81,61 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           },
           "unit": "short"
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "windows" },
+            "matcher": {
+              "id": "byName",
+              "options": "windows"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "linux" },
+            "matcher": {
+              "id": "byName",
+              "options": "linux"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
             ]
           }
         ]
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
       "id": 2,
       "options": {
         "legend": {
-          "calcs": ["sum", "mean", "max"],
+          "calcs": [
+            "sum",
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -173,85 +208,203 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           },
           "unit": "short"
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Error" },
+            "matcher": {
+              "id": "byName",
+              "options": "Error"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Critical" },
+            "matcher": {
+              "id": "byName",
+              "options": "Critical"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "dark-red", "mode": "fixed" } }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-red",
+                  "mode": "fixed"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Warning" },
+            "matcher": {
+              "id": "byName",
+              "options": "Warning"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Information" },
+            "matcher": {
+              "id": "byName",
+              "options": "Information"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "3" },
+            "matcher": {
+              "id": "byName",
+              "options": "3"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } },
-              { "id": "displayName", "value": "err (3)" }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "err (3)"
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "4" },
+            "matcher": {
+              "id": "byName",
+              "options": "4"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } },
-              { "id": "displayName", "value": "warning (4)" }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "warning (4)"
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "6" },
+            "matcher": {
+              "id": "byName",
+              "options": "6"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } },
-              { "id": "displayName", "value": "info (6)" }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "info (6)"
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "0" },
+            "matcher": {
+              "id": "byName",
+              "options": "0"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "dark-red", "mode": "fixed" } },
-              { "id": "displayName", "value": "emerg (0)" }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "emerg (0)"
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "1" },
+            "matcher": {
+              "id": "byName",
+              "options": "1"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "dark-red", "mode": "fixed" } },
-              { "id": "displayName", "value": "alert (1)" }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "alert (1)"
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "2" },
+            "matcher": {
+              "id": "byName",
+              "options": "2"
+            },
             "properties": [
-              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } },
-              { "id": "displayName", "value": "crit (2)" }
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "crit (2)"
+              }
             ]
           }
         ]
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
       "id": 3,
       "options": {
         "legend": {
-          "calcs": ["sum"],
+          "calcs": [
+            "sum"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -291,7 +444,12 @@
     },
     {
       "collapsed": true,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
       "id": 4,
       "panels": [
         {
@@ -309,16 +467,30 @@
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 10 },
-                  { "color": "red", "value": 50 }
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 10
+                  },
+                  {
+                    "color": "red",
+                    "value": 50
+                  }
                 ]
               },
               "unit": "short"
             },
             "overrides": []
           },
-          "gridPos": { "h": 4, "w": 8, "x": 0, "y": 10 },
+          "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 0,
+            "y": 10
+          },
           "id": 5,
           "options": {
             "colorMode": "background",
@@ -326,7 +498,9 @@
             "justifyMode": "auto",
             "orientation": "auto",
             "reduceOptions": {
-              "calcs": ["sum"],
+              "calcs": [
+                "sum"
+              ],
               "fields": "",
               "values": false
             },
@@ -364,16 +538,30 @@
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 50 },
-                  { "color": "orange", "value": 200 }
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 50
+                  },
+                  {
+                    "color": "orange",
+                    "value": 200
+                  }
                 ]
               },
               "unit": "short"
             },
             "overrides": []
           },
-          "gridPos": { "h": 4, "w": 8, "x": 8, "y": 10 },
+          "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 8,
+            "y": 10
+          },
           "id": 6,
           "options": {
             "colorMode": "background",
@@ -381,7 +569,9 @@
             "justifyMode": "auto",
             "orientation": "auto",
             "reduceOptions": {
-              "calcs": ["sum"],
+              "calcs": [
+                "sum"
+              ],
               "fields": "",
               "values": false
             },
@@ -419,16 +609,30 @@
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "red", "value": 1 },
-                  { "color": "dark-red", "value": 10 }
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  },
+                  {
+                    "color": "dark-red",
+                    "value": 10
+                  }
                 ]
               },
               "unit": "short"
             },
             "overrides": []
           },
-          "gridPos": { "h": 4, "w": 8, "x": 16, "y": 10 },
+          "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 16,
+            "y": 10
+          },
           "id": 7,
           "options": {
             "colorMode": "background",
@@ -436,7 +640,9 @@
             "justifyMode": "auto",
             "orientation": "auto",
             "reduceOptions": {
-              "calcs": ["sum"],
+              "calcs": [
+                "sum"
+              ],
               "fields": "",
               "values": false
             },
@@ -465,7 +671,12 @@
             "uid": "loki"
           },
           "description": "Live stream of Windows Event Log entries matching the current filters. Use the Search variable for free-text filtering across log content.",
-          "gridPos": { "h": 16, "w": 24, "x": 0, "y": 14 },
+          "gridPos": {
+            "h": 16,
+            "w": 24,
+            "x": 0,
+            "y": 14
+          },
           "id": 8,
           "options": {
             "dedupStrategy": "none",
@@ -499,7 +710,12 @@
     },
     {
       "collapsed": true,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 10 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
       "id": 9,
       "panels": [
         {
@@ -517,16 +733,30 @@
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 10 },
-                  { "color": "red", "value": 50 }
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 10
+                  },
+                  {
+                    "color": "red",
+                    "value": 50
+                  }
                 ]
               },
               "unit": "short"
             },
             "overrides": []
           },
-          "gridPos": { "h": 4, "w": 12, "x": 0, "y": 11 },
+          "gridPos": {
+            "h": 4,
+            "w": 12,
+            "x": 0,
+            "y": 11
+          },
           "id": 10,
           "options": {
             "colorMode": "background",
@@ -534,7 +764,9 @@
             "justifyMode": "auto",
             "orientation": "auto",
             "reduceOptions": {
-              "calcs": ["sum"],
+              "calcs": [
+                "sum"
+              ],
               "fields": "",
               "values": false
             },
@@ -572,16 +804,30 @@
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
-                  { "color": "green", "value": null },
-                  { "color": "yellow", "value": 50 },
-                  { "color": "orange", "value": 200 }
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 50
+                  },
+                  {
+                    "color": "orange",
+                    "value": 200
+                  }
                 ]
               },
               "unit": "short"
             },
             "overrides": []
           },
-          "gridPos": { "h": 4, "w": 12, "x": 12, "y": 11 },
+          "gridPos": {
+            "h": 4,
+            "w": 12,
+            "x": 12,
+            "y": 11
+          },
           "id": 11,
           "options": {
             "colorMode": "background",
@@ -589,7 +835,9 @@
             "justifyMode": "auto",
             "orientation": "auto",
             "reduceOptions": {
-              "calcs": ["sum"],
+              "calcs": [
+                "sum"
+              ],
               "fields": "",
               "values": false
             },
@@ -618,7 +866,12 @@
             "uid": "loki"
           },
           "description": "Live stream of Linux systemd journal entries matching the current filters. Use the Search variable for free-text filtering across log content.",
-          "gridPos": { "h": 16, "w": 24, "x": 0, "y": 15 },
+          "gridPos": {
+            "h": 16,
+            "w": 24,
+            "x": 0,
+            "y": 15
+          },
           "id": 12,
           "options": {
             "dedupStrategy": "none",
@@ -652,7 +905,12 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 11 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 11
+      },
       "id": 13,
       "title": "Unified Search",
       "type": "row"
@@ -663,7 +921,12 @@
         "uid": "loki"
       },
       "description": "Combined log view across all sources (Windows Event Logs and Linux journal). Matches all logs for the selected hostname, environment, and datacenter filters. Use the Search variable to perform free-text filtering across all log content.",
-      "gridPos": { "h": 20, "w": 24, "x": 0, "y": 12 },
+      "gridPos": {
+        "h": 20,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
       "id": 14,
       "options": {
         "dedupStrategy": "none",
@@ -694,7 +957,11 @@
   ],
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": ["logs", "loki", "overview"],
+  "tags": [
+    "logs",
+    "loki",
+    "overview"
+  ],
   "templating": {
     "list": [
       {
@@ -715,17 +982,13 @@
         "multi": true,
         "name": "environment",
         "options": [],
-        "query": {
-          "label": "environment",
-          "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "{}",
-          "type": 1
-        },
+        "query": "label_values({}, environment)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "allValue": ".*"
       },
       {
         "current": {
@@ -745,17 +1008,13 @@
         "multi": true,
         "name": "datacenter",
         "options": [],
-        "query": {
-          "label": "datacenter",
-          "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "{environment=~\"$environment\"}",
-          "type": 1
-        },
+        "query": "label_values({environment=~\"$environment\"}, datacenter)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "allValue": ".*"
       },
       {
         "current": {
@@ -775,17 +1034,13 @@
         "multi": true,
         "name": "hostname",
         "options": [],
-        "query": {
-          "label": "hostname",
-          "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
-          "type": 1
-        },
+        "query": "label_values({environment=~\"$environment\", datacenter=~\"$datacenter\"}, hostname)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "allValue": ".*"
       },
       {
         "current": {
@@ -818,7 +1073,8 @@
         ],
         "query": "windows,linux",
         "skipUrlSync": false,
-        "type": "custom"
+        "type": "custom",
+        "allValue": ".*"
       },
       {
         "current": {
@@ -839,7 +1095,8 @@
         ],
         "query": "",
         "skipUrlSync": false,
-        "type": "textbox"
+        "type": "textbox",
+        "allValue": ".*"
       }
     ]
   },
