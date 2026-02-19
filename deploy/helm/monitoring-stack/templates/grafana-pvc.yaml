@@ -1,0 +1,24 @@
+{{- if and .Values.grafana.enabled .Values.grafana.persistence.enabled }}
+# ---------------------------------------------------------------------------
+# Grafana PersistentVolumeClaim
+# ---------------------------------------------------------------------------
+# Stores the Grafana SQLite database (users, orgs, preferences, annotations).
+# Using a separate PVC instead of volumeClaimTemplate since Grafana is a
+# Deployment (not StatefulSet) -- it does not need stable pod identity.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-data
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "grafana") | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.grafana.persistence.accessModes | nindent 4 }}
+  {{- if .Values.grafana.persistence.storageClass }}
+  storageClassName: {{ .Values.grafana.persistence.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.grafana.persistence.size }}
+{{- end }}

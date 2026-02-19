@@ -1,0 +1,91 @@
+# =============================================================================
+# Development / Staging Values Overlay
+# =============================================================================
+# Lightweight configuration for development and staging environments.
+# Reduces resource consumption and retention to minimize cluster costs.
+#
+# Usage:
+#   helm install monitoring-dev ./deploy/helm/monitoring-stack \
+#     -f deploy/helm/examples/values-development.yaml \
+#     --set grafana.admin.password=<password> \
+#     -n monitoring-dev --create-namespace
+# =============================================================================
+
+prometheus:
+  # Shorter retention -- dev/staging doesn't need long history
+  retention:
+    time: 7d
+    size: 5GB
+
+  # Smaller PVC for dev environments
+  persistence:
+    size: 5Gi
+
+  # Lower resource allocation for cost savings
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Identify this as a dev cluster in federated setups
+  externalLabels:
+    cluster: dev
+
+loki:
+  # Shorter log retention
+  retention: 72h  # 3 days
+
+  persistence:
+    size: 5Gi
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+alertmanager:
+  # Use placeholder webhook -- dev rarely needs real notifications
+  notifications:
+    teamsWebhookUrl: "https://example.com/webhook/dev-placeholder"
+    smtp:
+      host: "smtp.example.com"
+      port: "587"
+      from: "monitoring-dev@example.com"
+      to: "dev-team@example.com"
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 16Mi
+    limits:
+      cpu: 50m
+      memory: 32Mi
+
+grafana:
+  # Smaller PVC -- fewer users, less annotation history
+  persistence:
+    size: 1Gi
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+  admin:
+    password: "admin"  # Acceptable for dev environments
+
+  env:
+    # Enable anonymous access for faster local iteration in dev
+    GF_AUTH_ANONYMOUS_ENABLED: "true"
+    GF_SECURITY_ALLOW_EMBEDDING: "true"
+    GF_ANALYTICS_REPORTING_ENABLED: "false"
+    GF_ANALYTICS_CHECK_FOR_UPDATES: "false"

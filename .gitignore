@@ -15,6 +15,17 @@ docs/TEMPLATE_DEVELOPMENT.md
 secrets/
 **/vault.yml
 
+# Helm chart build artifacts
+# The files/ directory is populated at package time by package-chart.sh
+# and should not be committed (configs live at repo root as source of truth)
+deploy/helm/monitoring-stack/files/*
+!deploy/helm/monitoring-stack/files/.gitkeep
+deploy/helm/monitoring-stack/charts/
+*.tgz
+
+# Fleet inventory generated output
+inventory/generated/
+
 # Python
 __pycache__/
 *.py[cod]

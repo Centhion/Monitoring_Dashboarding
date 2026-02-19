@@ -6,10 +6,10 @@
 # developer workloads on Docker Desktop (~2 GB total).
 #
 # Usage:
-#   docker compose up -d          Start all services
-#   docker compose ps             Check health status
-#   docker compose logs -f        Stream all logs
-#   docker compose down -v        Stop and remove volumes
+#   docker compose -f deploy/docker/docker-compose.yml up -d   Start all services
+#   docker compose -f deploy/docker/docker-compose.yml ps      Check health status
+#   docker compose -f deploy/docker/docker-compose.yml logs -f  Stream all logs
+#   docker compose -f deploy/docker/docker-compose.yml down -v  Stop and remove volumes
 #
 # After startup:
 #   Grafana:      http://localhost:3000  (admin / admin)
@@ -35,13 +35,13 @@ services:
       - "9090:9090"
     volumes:
       # Main config
-      - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../../configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       # Recording rules and alert rules under /etc/prometheus/rules/
-      - ./configs/prometheus/recording_rules.yml:/etc/prometheus/rules/recording_rules.yml:ro
-      - ./alerts/prometheus/windows_alerts.yml:/etc/prometheus/rules/windows_alerts.yml:ro
-      - ./alerts/prometheus/linux_alerts.yml:/etc/prometheus/rules/linux_alerts.yml:ro
-      - ./alerts/prometheus/infra_alerts.yml:/etc/prometheus/rules/infra_alerts.yml:ro
-      - ./alerts/prometheus/role_alerts.yml:/etc/prometheus/rules/role_alerts.yml:ro
+      - ../../configs/prometheus/recording_rules.yml:/etc/prometheus/rules/recording_rules.yml:ro
+      - ../../alerts/prometheus/windows_alerts.yml:/etc/prometheus/rules/windows_alerts.yml:ro
+      - ../../alerts/prometheus/linux_alerts.yml:/etc/prometheus/rules/linux_alerts.yml:ro
+      - ../../alerts/prometheus/infra_alerts.yml:/etc/prometheus/rules/infra_alerts.yml:ro
+      - ../../alerts/prometheus/role_alerts.yml:/etc/prometheus/rules/role_alerts.yml:ro
       # Persistent TSDB storage -- mounted at /prometheus (image default, writable by nobody)
       - prometheus_data:/prometheus
     command:
@@ -79,7 +79,7 @@ services:
     ports:
       - "3100:3100"
     volumes:
-      - ./configs/loki/loki.yml:/etc/loki/loki.yml:ro
+      - ../../configs/loki/loki.yml:/etc/loki/loki.yml:ro
       - loki_data:/loki
     command:
       - "-config.file=/etc/loki/loki.yml"
@@ -108,8 +108,8 @@ services:
     ports:
       - "9093:9093"
     volumes:
-      - ./configs/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
-      - ./configs/alertmanager/templates/teams.tmpl:/etc/alertmanager/templates/teams.tmpl:ro
+      - ../../configs/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ../../configs/alertmanager/templates/teams.tmpl:/etc/alertmanager/templates/teams.tmpl:ro
     command:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
       - "--storage.path=/alertmanager"
@@ -148,15 +148,15 @@ services:
       - "3000:3000"
     volumes:
       # Datasource provisioning (Prometheus + Loki)
-      - ./configs/grafana/datasources/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ../../configs/grafana/datasources/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
       # Dashboard provisioning config (points to dashboard directories)
-      - ./configs/grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ../../configs/grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
       # Notification/contact point provisioning
-      - ./configs/grafana/notifiers/notifiers.yml:/etc/grafana/provisioning/notifiers/notifiers.yml:ro
+      - ../../configs/grafana/notifiers/notifiers.yml:/etc/grafana/provisioning/notifiers/notifiers.yml:ro
       # Dashboard JSON files mounted to the paths expected by the provisioning config
-      - ./dashboards/windows:/var/lib/grafana/dashboards/windows:ro
-      - ./dashboards/linux:/var/lib/grafana/dashboards/linux:ro
-      - ./dashboards/overview:/var/lib/grafana/dashboards/overview:ro
+      - ../../dashboards/windows:/var/lib/grafana/dashboards/windows:ro
+      - ../../dashboards/linux:/var/lib/grafana/dashboards/linux:ro
+      - ../../dashboards/overview:/var/lib/grafana/dashboards/overview:ro
       # Persistent Grafana database (users, preferences, annotations)
       - grafana_data:/var/lib/grafana
     environment:

@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Enterprise Linux server health overview. Provides at-a-glance status for CPU, memory, disk, network, load, and systemd services across the Linux fleet. Designed as a SCOM replacement.",
+  "description": "Enterprise Linux server health overview. Provides at-a-glance status for CPU, memory, disk, network, load, and systemd services across the Linux fleet.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,

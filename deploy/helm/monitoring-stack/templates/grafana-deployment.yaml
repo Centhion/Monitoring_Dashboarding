@@ -1,0 +1,163 @@
+{{- if .Values.grafana.enabled }}
+# ---------------------------------------------------------------------------
+# Grafana Deployment
+# ---------------------------------------------------------------------------
+# Runs the Grafana web UI with provisioned datasources, dashboards,
+# and notification channels. PVC stores the SQLite database for users,
+# orgs, and preferences.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "grafana") | nindent 4 }}
+spec:
+  replicas: {{ .Values.grafana.replicas }}
+  selector:
+    matchLabels:
+      {{- include "monitoring-stack.selectorLabels" (dict "context" . "component" "grafana") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "grafana") | nindent 8 }}
+      annotations:
+        checksum/provisioning: {{ include (print $.Template.BasePath "/grafana-configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/grafana-secret.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # Grafana runs as uid 472 in the official image
+      securityContext:
+        fsGroup: 472
+        runAsUser: 472
+        runAsNonRoot: true
+      containers:
+        - name: grafana
+          image: "{{ .Values.grafana.image.repository }}:{{ .Values.grafana.image.tag }}"
+          imagePullPolicy: {{ .Values.grafana.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            # Admin credentials from secret
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.grafana.admin.existingSecret }}
+                  name: {{ .Values.grafana.admin.existingSecret }}
+                  {{- else }}
+                  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-secret
+                  {{- end }}
+                  key: admin-user
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.grafana.admin.existingSecret }}
+                  name: {{ .Values.grafana.admin.existingSecret }}
+                  {{- else }}
+                  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-secret
+                  {{- end }}
+                  key: admin-password
+            # Datasource URLs for provisioning variable expansion
+            - name: PROMETHEUS_URL
+              value: "http://{{ include "monitoring-stack.componentFullname" (dict "context" . "component" "prometheus") }}:{{ .Values.prometheus.service.port }}"
+            - name: LOKI_URL
+              value: "http://{{ include "monitoring-stack.componentFullname" (dict "context" . "component" "loki") }}:{{ .Values.loki.service.port }}"
+            # Teams webhook URL for Grafana-native alerting contact points
+            - name: TEAMS_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "alertmanager") }}-secret
+                  key: TEAMS_WEBHOOK_URL
+            {{- range $key, $value := .Values.grafana.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.grafana.resources | nindent 12 }}
+          volumeMounts:
+            # Provisioning configs
+            - name: provisioning-datasources
+              mountPath: /etc/grafana/provisioning/datasources/datasources.yml
+              subPath: datasources.yml
+              readOnly: true
+            - name: provisioning-dashboards
+              mountPath: /etc/grafana/provisioning/dashboards/dashboards.yml
+              subPath: dashboards.yml
+              readOnly: true
+            - name: provisioning-notifiers
+              mountPath: /etc/grafana/provisioning/notifiers/notifiers.yml
+              subPath: notifiers.yml
+              readOnly: true
+            # Dashboard JSON files
+            {{- if .Values.dashboards.enabled }}
+            - name: dashboards-windows
+              mountPath: /var/lib/grafana/dashboards/windows
+              readOnly: true
+            - name: dashboards-linux
+              mountPath: /var/lib/grafana/dashboards/linux
+              readOnly: true
+            - name: dashboards-overview
+              mountPath: /var/lib/grafana/dashboards/overview
+              readOnly: true
+            {{- end }}
+            # Persistent storage for Grafana SQLite database
+            - name: data
+              mountPath: /var/lib/grafana
+      volumes:
+        - name: provisioning-datasources
+          configMap:
+            name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-provisioning
+            items:
+              - key: datasources.yml
+                path: datasources.yml
+        - name: provisioning-dashboards
+          configMap:
+            name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-provisioning
+            items:
+              - key: dashboards.yml
+                path: dashboards.yml
+        - name: provisioning-notifiers
+          configMap:
+            name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-provisioning
+            items:
+              - key: notifiers.yml
+                path: notifiers.yml
+        {{- if .Values.dashboards.enabled }}
+        - name: dashboards-windows
+          configMap:
+            name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-dashboards-windows
+        - name: dashboards-linux
+          configMap:
+            name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-dashboards-linux
+        - name: dashboards-overview
+          configMap:
+            name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-dashboards-overview
+        {{- end }}
+        {{- if .Values.grafana.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-data
+        {{- else }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+{{- end }}

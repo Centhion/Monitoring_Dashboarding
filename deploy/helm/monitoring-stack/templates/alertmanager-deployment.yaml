@@ -1,0 +1,82 @@
+{{- if .Values.alertmanager.enabled }}
+# ---------------------------------------------------------------------------
+# Alertmanager Deployment
+# ---------------------------------------------------------------------------
+# Alertmanager is stateless (routing config, no persistent data needed
+# for PoC). Uses a Deployment rather than StatefulSet for simplicity.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "alertmanager") }}
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "alertmanager") | nindent 4 }}
+spec:
+  replicas: {{ .Values.alertmanager.replicas }}
+  selector:
+    matchLabels:
+      {{- include "monitoring-stack.selectorLabels" (dict "context" . "component" "alertmanager") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "alertmanager") | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/alertmanager-configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/alertmanager-secret.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsUser: 65534
+        runAsNonRoot: true
+      containers:
+        - name: alertmanager
+          image: "{{ .Values.alertmanager.image.repository }}:{{ .Values.alertmanager.image.tag }}"
+          imagePullPolicy: {{ .Values.alertmanager.image.pullPolicy }}
+          args:
+            - "--config.file=/etc/alertmanager/alertmanager.yml"
+            - "--storage.path=/alertmanager"
+            - "--web.listen-address=:9093"
+          ports:
+            - name: http
+              containerPort: 9093
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "alertmanager") }}-secret
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.alertmanager.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alertmanager/alertmanager.yml
+              subPath: alertmanager.yml
+              readOnly: true
+            - name: config
+              mountPath: /etc/alertmanager/templates/teams.tmpl
+              subPath: teams.tmpl
+              readOnly: true
+            - name: storage
+              mountPath: /alertmanager
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "alertmanager") }}-config
+        - name: storage
+          emptyDir: {}
+{{- end }}

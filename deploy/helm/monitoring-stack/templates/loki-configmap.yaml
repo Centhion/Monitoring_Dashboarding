@@ -1,0 +1,17 @@
+{{- if .Values.loki.enabled }}
+# ---------------------------------------------------------------------------
+# Loki ConfigMap
+# ---------------------------------------------------------------------------
+# Contains the Loki server configuration. Retention and storage paths
+# are templated from values.yaml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "loki") }}-config
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "loki") | nindent 4 }}
+data:
+  loki.yml: |-
+    {{ .Files.Get "files/loki.yml" | nindent 4 }}
+{{- end }}

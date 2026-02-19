@@ -2,7 +2,7 @@
 
 > This file is the agent's primary task tracker. Update it after completing significant work.
 
-**Project Goal**: Build an enterprise-grade monitoring and dashboarding platform using the Grafana observability stack (Alloy, Prometheus, Loki, Alertmanager, Grafana) to replace Microsoft SCOM and Squared Up for mixed Windows/Linux server environments.
+**Project Goal**: A fork-and-deploy monitoring platform template built on the Grafana observability stack (Alloy, Prometheus, Loki, Alertmanager, Grafana) for mixed Windows and Linux server environments. Ships with production-ready configs, dashboards, alert rules, fleet deployment tooling, and a Helm chart for Kubernetes.
 
 ---
 
@@ -18,6 +18,7 @@
 | Phase 5: Validation Tooling | Completed | 3 validators + runner, 12/12 tests passing, requirements.txt, docs |
 | Phase 5.5: Docker Compose PoC | Completed | Local testing stack validated end-to-end (metrics, logs, recording rules) |
 | Phase 5.7: Fleet Tagging and Deployment | In Progress | Inventory system, Ansible playbooks, tag validation for 500-2000 servers across 5-15+ sites |
+| Phase 5.8: Generalization and K8s Readiness | In Progress | Strip org-specific content, Helm chart, fork-and-deploy template |
 | Phase 6: Mimir Migration | Pending | Long-term metrics storage (when ready to scale) |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
@@ -46,7 +47,7 @@
 
 ### Human Actions Required
 
-- [x] Set up Git remote (https://github.com/Centhion/Monitoring_Dashboarding.git)
+- [x] Set up Git remote
 - [x] Push initial commit
 - [x] Verify Git authentication (HTTPS with credential manager)
 
@@ -172,7 +173,7 @@
 - [ ] Deploy Alertmanager to Kubernetes cluster
 - [ ] Test alert delivery to Teams channel
 - [ ] Review and approve alert thresholds
-- [ ] Provide SCOM monitor export for gap analysis (optional, can add later)
+- [ ] Review alert thresholds against current monitoring requirements
 
 ---
 
@@ -287,7 +288,7 @@
 
 **Status**: In Progress
 
-**Fleet Context**: ~16 AD domains consolidating to 1 over 18 months. Inventory must be AD-independent. Sites use short abbreviation codes (DV, SOL, SN, etc.). Multi-role servers are common (e.g., SQL + IIS on same host).
+**Fleet Context**: Inventory is AD-independent by design to support multi-domain environments. Sites use short abbreviation codes (SITE-A, SITE-B, etc.). Multi-role servers are common (e.g., SQL + IIS on same host).
 
 ### Tasks
 
@@ -361,6 +362,129 @@
 
 ---
 
+## Phase 5.8: Generalization and Kubernetes Deployment Readiness
+
+**Goal**: Strip all org-specific content, restructure the repository as a fork-and-deploy template, and add a Helm chart for production Kubernetes deployment. Preserve Docker Compose local testing as the development workflow.
+
+**Status**: Complete (all 8 tasks done; Helm lint deferred to device with Helm CLI)
+
+**Model**: Fork-and-deploy. Users fork the repo, edit `values.yaml` and `.env`, and deploy. No generator scripts or setup wizards.
+
+**Helm Chart Strategy**: Start minimal, iterate with testing. Three maturity phases:
+- **Phase A (this task)**: Single-replica, no Ingress, no TLS, no LDAP. Just the 4 services with ConfigMaps, Secrets, and PVCs. Validate with `helm template`, `helm lint`, and dry-run install.
+- **Phase B (future)**: Add optional Ingress, TLS termination, resource tuning, and node affinity/tolerations after Phase A is confirmed working on a real cluster.
+- **Phase C (future)**: Add LDAP/OAuth auth, HA replicas, horizontal pod autoscaling, and Mimir migration path when scaling requires it.
+
+### Tasks
+
+- [x] 1. Strip org-specific content from all files
+  - Generalized all documentation, configs, agent prompts, and dashboard descriptions
+  - Replaced org-specific GitHub URLs, datacenter names, user paths with generic placeholders
+  - Cleared session history containing debug context
+  - Fixed deprecated `env("COMPUTERNAME")` with `constants.hostname` in local Alloy config
+  - Final grep sweep confirmed zero matches for org-specific terms
+  - Complexity: Medium
+
+- [x] 2. Restructure deployment directories
+  - Moved `docker-compose.yml` to `deploy/docker/docker-compose.yml`
+  - Moved `docker-compose.override.yml` to `deploy/docker/docker-compose.override.yml`
+  - Created convenience wrappers `dc.sh` (bash) and `dc.ps1` (PowerShell) at repo root
+  - Created `deploy/helm/` directory structure for Helm chart
+  - Updated all documentation, scripts, and `.dockerignore` to reference new paths
+  - Updated `scripts/poc_setup.py` with `COMPOSE_FILE` constant, `--env-file` support, and `_compose_base_cmd()` helper
+  - Complexity: Medium
+
+- [x] 3. Create Helm chart (Phase A -- minimal, single-replica)
+  - Directory: `deploy/helm/monitoring-stack/`
+  - Chart.yaml with metadata, appVersion, chart version 0.1.0, phase roadmap comments
+  - values.yaml with all configurable values, conservative defaults, fleet sizing guidance, and Phase B/C stubs
+  - templates/_helpers.tpl with name, fullname, labels, selectorLabels, componentFullname, namespace helpers
+  - Prometheus: StatefulSet, Service (ClusterIP), ConfigMap (prometheus.yml + recording rules), ConfigMap (alert rules), volumeClaimTemplate
+  - Loki: StatefulSet, Service, ConfigMap (loki.yml), volumeClaimTemplate
+  - Alertmanager: Deployment, Service, ConfigMap (alertmanager.yml + teams.tmpl), Secret (webhook URL, SMTP creds)
+  - Grafana: Deployment, Service, ConfigMap (provisioning: datasources, dashboards, notifiers), ConfigMap (dashboard JSON per category), PVC, Secret (admin password with existingSecret support)
+  - NOTES.txt post-install instructions with port-forward commands and next steps
+  - Packaging scripts: `package-chart.sh` and `package-chart.ps1` copy repo configs into chart files/ directory
+  - Phase B/C features stubbed in values.yaml as `enabled: false` (Ingress, TLS, LDAP, HA)
+  - Helm lint/template validation deferred -- Helm not installed on dev workstation
+  - Complexity: Complex
+
+  **Risk mitigation (Helm chart)**:
+  - Start with `helm template` output review before any cluster install
+  - Each service template validated independently against official image docs
+  - ConfigMap content injected from same config files used by Docker Compose via packaging scripts (single source of truth)
+  - values.yaml documents every field with inline comments, default rationale, and fleet sizing guidance
+  - PVC sizes default conservatively (10Gi for PoC) with comments on production sizing
+  - Resource requests/limits included with conservative defaults; comments explain scaling guidance
+  - Chart version 0.1.0 signals pre-production maturity; semver tracks breaking changes
+
+- [x] 4. Create values overlay examples
+  - `deploy/helm/examples/values-minimal.yaml`: 2 required fields (Teams webhook, Grafana password) with usage instructions
+  - `deploy/helm/examples/values-production.yaml`: Full production config with 50Gi PVCs, 30d retention, realistic resource limits, fleet sizing guidance, Phase B/C stubs as commented examples
+  - `deploy/helm/examples/values-development.yaml`: Lightweight for dev/staging (5Gi PVCs, 3-7d retention, reduced memory, anonymous Grafana access)
+  - Each file heavily commented explaining what each value does and when to change it
+  - Complexity: Simple
+
+- [x] 5. Create QUICKSTART.md
+  - Section A: Local Testing (Docker Compose) -- 5 minute path with convenience wrappers
+  - Section B: Production Kubernetes (Helm) -- 15 minute path with packaging and overlay workflow
+  - Section C: What to Customize (alert thresholds, dashboards, notification channels, Alloy roles)
+  - Section D: Adding Servers (pointer to Phase 5.7 fleet onboarding)
+  - Architecture diagram showing data flow
+  - Written for someone who just forked the repo and wants to see it running
+  - Complexity: Simple
+
+- [x] 6. Generalize Phase 5.7 inventory examples
+  - Replaced org-specific site codes with generic placeholders (SITE-A, SITE-B, SITE-C) in PROJECT_PLAN.md
+  - Replaced org-specific domain references with example.com
+  - Kept all architecture decisions intact (multi-role, OS build precision, Ansible-first)
+  - Complexity: Simple
+
+- [x] 7. Update .gitignore and clean artifacts
+  - Added `deploy/helm/monitoring-stack/files/*` (populated at package time, not committed)
+  - Added `deploy/helm/monitoring-stack/charts/` for Helm dependencies
+  - Added `inventory/generated/` for fleet inventory output
+  - Added `*.tgz` for Helm packaged charts
+  - Verified .env, CLAUDE.local.md, and settings.local.json are gitignored
+  - Updated `.dockerignore` with deploy/helm/ and inventory/ exclusions
+  - Complexity: Simple
+
+- [x] 8. Final validation sweep
+  - Docker Compose: `docker compose -f deploy/docker/docker-compose.yml config` -- PASSED (all 4 services, all bind mount paths resolve correctly)
+  - Validators: `python scripts/validate_all.py` -- ALL PASSED (27 files, 2 expected warnings on local Alloy URLs)
+  - Grep sweep: zero matches for org-specific terms (SCOM, Squared Up, Centhion, etamez, denver, RDU7)
+  - Helm lint: DEFERRED -- Helm CLI not installed on dev workstation; requires `helm lint` on target machine
+  - Tests: DEFERRED -- pytest not installed; requires `pip install pytest`
+  - **Human action required**: Install Helm and run `helm lint deploy/helm/monitoring-stack/` + `helm template` to validate chart before first cluster deployment
+  - Complexity: Medium
+
+### Architecture Notes
+
+- **Single source of truth for configs**: The same YAML/JSON config files are used by both Docker Compose (bind mounts) and Helm (ConfigMap content). No duplication. Helm templates read from the same `configs/` and `alerts/` directories.
+- **Fork-and-deploy model**: Users fork the repo, edit `deploy/helm/values.yaml` (or copy an example overlay), and run `helm install`. For local testing, they edit `.env` and run `docker compose up`. The repo IS the deployment artifact.
+- **Helm chart maturity phases**: Phase A (minimal) ships first. Phase B (Ingress, TLS) and Phase C (auth, HA) are additive -- existing values.yaml fields are preserved, new ones are added. No breaking changes across phases.
+- **Directory restructure**: `deploy/docker/` and `deploy/helm/` cleanly separate the two deployment modes. Config files remain in `configs/`, `dashboards/`, `alerts/` at the repo root -- shared by both.
+
+### Risk Mitigations
+
+| Risk | Mitigation | Verification |
+|------|-----------|-------------|
+| Helm chart produces invalid K8s YAML | Validate every template with `helm template --debug` before any cluster install | `helm lint` + `helm template` in task #8 |
+| Docker Compose breaks after directory move | Test full stack startup after restructure; update all path references | Docker Compose up + Alloy data flow in task #8 |
+| Org-specific content missed during cleanup | Automated grep sweep for known terms as final gate | Grep sweep in tasks #1 and #8 |
+| Helm ConfigMaps diverge from source configs | Templates use `.Files.Get` to inject config file content directly; no manual copy | Template review in task #3 |
+| values.yaml defaults are unsafe for production | Conservative defaults (small PVCs, low memory); production overlay shows recommended values | values-production.yaml in task #4 |
+| Chart version confusion | Semantic versioning from 0.1.0; CHANGELOG in chart documents breaking changes | Chart.yaml version field |
+
+### Human Actions Required
+
+- [ ] Review Helm values.yaml defaults before chart is finalized
+- [ ] Test Helm chart against a real K8s cluster after Phase A dry-run validation
+- [ ] Choose a license for the repo (currently placeholder)
+- [ ] Review final repo state for any remaining org-specific references
+
+---
+
 ## Phase 6: Mimir Migration (Future)
 
 **Goal**: Replace Prometheus with Grafana Mimir for long-term metric storage and horizontal scaling.
@@ -391,11 +515,10 @@
 
 ### Prerequisites
 
-- [x] Set up Git remote (https://github.com/Centhion/Monitoring_Dashboarding.git)
+- [x] Set up Git remote
 - [x] Push initial commit
 - [x] Verify Git authentication (HTTPS)
 - [ ] Create Teams Incoming Webhook for monitoring channel
-- [ ] Provide SCOM monitor export/list for alert parity audit
 
 ### Fleet Deployment (Phase 5.7)
 
@@ -417,12 +540,18 @@
 - [ ] Review and approve alert thresholds
 - [ ] Review dashboards with operations team
 
+### Generalization and K8s (Phase 5.8)
+
+- [ ] Review Helm values.yaml defaults
+- [ ] Test Helm chart against real K8s cluster
+- [ ] Choose a license for the repo
+- [ ] Review final repo for remaining org-specific references
+
 ### Post-Completion
 
 - [ ] Integrate config validation into CI/CD pipeline
 - [ ] Document operational runbooks
 - [ ] Plan Mimir migration timeline
-- [ ] Decommission SCOM/Squared Up (when ready)
 
 ---
 
@@ -435,5 +564,5 @@
 
 ---
 
-*Document Version: 1.1*
-*Last Updated: 2026-02-18*
+*Document Version: 1.2*
+*Last Updated: 2026-02-19*

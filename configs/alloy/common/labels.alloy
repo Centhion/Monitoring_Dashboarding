@@ -7,7 +7,7 @@
 //
 // Environment variables must be set on each server before Alloy starts:
 //   ALLOY_ENV        -- deployment environment (prod, staging, dev)
-//   ALLOY_DATACENTER -- physical or logical datacenter (us-east-1, denver-dc)
+//   ALLOY_DATACENTER -- physical or logical datacenter (us-east-1, site-a)
 //   ALLOY_ROLE       -- server role (dc, sql, iis, fileserver, docker, generic)
 //
 // The "os" label is set statically per OS-specific config (windows/base.alloy

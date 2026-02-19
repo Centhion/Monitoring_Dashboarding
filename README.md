@@ -1,6 +1,6 @@
 # Enterprise Monitoring and Dashboarding Platform
 
-A configuration-as-code repository for an enterprise-grade monitoring and dashboarding solution built on the Grafana observability stack. Replaces Microsoft SCOM and Squared Up with a modern, scalable alternative for mixed Windows and Linux server environments.
+A fork-and-deploy monitoring platform template built on the Grafana observability stack. Ships with production-ready configs, dashboards, alert rules, fleet deployment tooling, and a Helm chart for Kubernetes. Supports mixed Windows and Linux server environments.
 
 ## Purpose
 
@@ -21,7 +21,7 @@ Provide centralized infrastructure monitoring, log aggregation, alerting, and da
 
 ```bash
 # Clone the repository
-git clone https://github.com/Centhion/Monitoring_Dashboarding.git
+git clone https://github.com/<YOUR_ORG>/Monitoring_Dashboarding.git
 cd Monitoring_Dashboarding
 
 # Set up environment
@@ -45,6 +45,8 @@ python scripts/poc_setup.py
 | `configs/grafana/` | Grafana provisioning (datasources, dashboards, notifiers) |
 | `dashboards/` | Grafana dashboard JSON definitions |
 | `alerts/` | Prometheus alerting rules and Grafana alert policies |
+| `deploy/docker/` | Docker Compose stack for local testing and PoC |
+| `deploy/helm/` | Helm chart and value overlays for Kubernetes deployment |
 | `scripts/` | Python tooling for config validation, generation, and testing |
 | `docs/` | Architecture docs, runbooks, and project tracking |
 | `.claude/` | Agent configuration (instructions, skills, agents, rules, commands) |
@@ -54,13 +56,14 @@ python scripts/poc_setup.py
 
 - **Configuration as Code**: All monitoring configs, dashboards, and alert rules stored in Git
 - **Mixed OS Support**: Alloy agent configs for both Windows Server and Linux
-- **SCOM Parity Alerts**: Alert rules designed to replicate critical SCOM monitors
+- **Industry-Standard Alert Rules**: Alert rules based on SRE best practices and community thresholds
 - **Teams Integration**: Alert notifications delivered to Microsoft Teams channels
 - **Grafana Provisioning**: Datasources, dashboards, and contact points deployed via provisioning YAML
 - **Validation Tooling**: Python scripts to lint and validate configs before deployment
 
 ## Documentation
 
+- See `QUICKSTART.md` for getting started (Docker Compose local testing and Helm K8s deployment)
 - See `ARCHITECTURE.md` for design patterns, stack details, and decisions
 - See `docs/PROJECT_PLAN.md` for current status and task tracking
 - See `docs/ALLOY_DEPLOYMENT.md` for Alloy agent deployment on Windows and Linux

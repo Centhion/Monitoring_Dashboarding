@@ -1,0 +1,322 @@
+# =============================================================================
+# Monitoring Stack -- Helm Values (Phase A: Minimal)
+# =============================================================================
+# This file contains all configurable values for the monitoring stack chart.
+# Override values using:
+#   helm install monitoring ./deploy/helm/monitoring-stack -f my-values.yaml
+#   helm install monitoring ./deploy/helm/monitoring-stack --set prometheus.retention.time=30d
+#
+# For config file overrides from the repo root:
+#   helm install monitoring ./deploy/helm/monitoring-stack \
+#     --set-file configFiles.prometheus.main=configs/prometheus/prometheus.yml
+#
+# See deploy/helm/examples/ for production and development overlay files.
+# =============================================================================
+
+# -- Override the chart name (used in resource names)
+nameOverride: ""
+# -- Override the full release name (used in resource names)
+fullnameOverride: ""
+# -- Override the namespace (defaults to helm release namespace)
+namespaceOverride: ""
+
+# -- Global settings applied to all components
+global:
+  # -- Common labels added to every resource
+  labels: {}
+  # -- Image pull secrets for private registries
+  imagePullSecrets: []
+
+# =============================================================================
+# Prometheus -- Metrics Storage and Rule Evaluation
+# =============================================================================
+prometheus:
+  # -- Enable or disable the Prometheus component
+  enabled: true
+
+  image:
+    repository: prom/prometheus
+    tag: "v2.53.4"
+    pullPolicy: IfNotPresent
+
+  # -- Number of replicas. Phase A supports 1 only.
+  # Phase C will add HA support with Thanos or Prometheus federation.
+  replicas: 1
+
+  # -- Resource requests and limits.
+  # PoC defaults are conservative. Production guidance:
+  #   100k active series: 2Gi memory, 1 CPU
+  #   500k active series: 8Gi memory, 2 CPU
+  #   1M+ active series:  16Gi memory, 4 CPU (consider Mimir)
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  # -- TSDB retention settings
+  retention:
+    # -- How long to keep data. Production recommendation: 30d
+    time: 15d
+    # -- Maximum TSDB size on disk. Production recommendation: 50Gi
+    size: 10GB
+
+  # -- Persistent volume for TSDB data
+  persistence:
+    # -- Enable persistent storage (strongly recommended)
+    enabled: true
+    # -- Storage class. Leave empty for cluster default.
+    storageClass: ""
+    # -- PVC size. Production recommendation: 50Gi-100Gi depending on fleet size
+    size: 10Gi
+    # -- Access modes
+    accessModes:
+      - ReadWriteOnce
+
+  # -- Service configuration
+  service:
+    type: ClusterIP
+    port: 9090
+
+  # -- Startup flags passed to Prometheus binary
+  extraArgs:
+    - "--web.enable-remote-write-receiver"
+    - "--web.enable-lifecycle"
+    - "--storage.tsdb.wal-compression"
+
+  # -- External labels applied to all metrics for federation identification
+  externalLabels:
+    cluster: monitoring
+
+  # -- Alertmanager endpoint for alert delivery.
+  # Uses the in-cluster Alertmanager service by default.
+  # Override if using an external Alertmanager.
+  alertmanager:
+    host: ""  # Empty = auto-detected from release name
+    port: 9093
+
+# =============================================================================
+# Loki -- Log Aggregation
+# =============================================================================
+loki:
+  # -- Enable or disable the Loki component
+  enabled: true
+
+  image:
+    repository: grafana/loki
+    tag: "3.4.2"
+    pullPolicy: IfNotPresent
+
+  replicas: 1
+
+  # -- Resource requests and limits.
+  # Loki memory usage depends on active streams and query concurrency.
+  # PoC defaults are conservative. Production guidance:
+  #   Light load (< 100 streams):   512Mi-1Gi
+  #   Medium load (100-1000):       2Gi-4Gi
+  #   Heavy load (1000+):           8Gi+ (consider distributed mode)
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # -- Persistent volume for log chunks and index
+  persistence:
+    enabled: true
+    storageClass: ""
+    # -- PVC size. Production recommendation: 50Gi-200Gi depending on log volume
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+
+  # -- Log retention period. Production recommendation: 30d
+  retention: 168h  # 7 days
+
+  service:
+    type: ClusterIP
+    port: 3100
+    grpcPort: 9096
+
+# =============================================================================
+# Alertmanager -- Alert Routing and Notification
+# =============================================================================
+alertmanager:
+  # -- Enable or disable Alertmanager
+  enabled: true
+
+  image:
+    repository: prom/alertmanager
+    tag: "v0.28.1"
+    pullPolicy: IfNotPresent
+
+  replicas: 1
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+  service:
+    type: ClusterIP
+    port: 9093
+
+  # -- Notification channel configuration.
+  # These values are injected into a Kubernetes Secret and mounted as
+  # environment variables in the Alertmanager pod.
+  notifications:
+    # -- Microsoft Teams incoming webhook URL.
+    # REQUIRED for alert notifications to work.
+    teamsWebhookUrl: "https://example.com/webhook/placeholder"
+    # -- SMTP settings for email fallback notifications
+    smtp:
+      host: "smtp.example.com"
+      port: "587"
+      from: "monitoring@example.com"
+      to: "ops-team@example.com"
+
+# =============================================================================
+# Grafana -- Dashboards and Visualization
+# =============================================================================
+grafana:
+  # -- Enable or disable Grafana
+  enabled: true
+
+  image:
+    repository: grafana/grafana
+    tag: "11.5.2"
+    pullPolicy: IfNotPresent
+
+  replicas: 1
+
+  # -- Resource requests and limits.
+  # Grafana memory depends on concurrent users and dashboard complexity.
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # -- Persistent volume for Grafana database (users, orgs, preferences)
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 2Gi
+    accessModes:
+      - ReadWriteOnce
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  # -- Admin credentials. CHANGE THIS in production.
+  # The password is stored in a Kubernetes Secret.
+  admin:
+    user: admin
+    # -- Initial admin password. Override with --set grafana.admin.password=<value>
+    # or use an existing secret with grafana.admin.existingSecret.
+    password: admin
+    # -- Use an existing Kubernetes Secret for admin credentials.
+    # The secret must have keys "admin-user" and "admin-password".
+    existingSecret: ""
+
+  # -- Grafana environment variables for feature flags and behavior
+  env:
+    GF_AUTH_ANONYMOUS_ENABLED: "false"
+    GF_SECURITY_ALLOW_EMBEDDING: "true"
+    GF_ANALYTICS_REPORTING_ENABLED: "false"
+    GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+
+# =============================================================================
+# Config Files
+# =============================================================================
+# Config file content injected into ConfigMaps. Defaults are loaded from
+# the chart's bundled files (configs/ directory).
+#
+# To override with your own config files from the repo root:
+#   helm install monitoring ./deploy/helm/monitoring-stack \
+#     --set-file configFiles.prometheus.main=configs/prometheus/prometheus.yml
+#
+# The chart ships with empty defaults for these values -- actual config
+# content comes from the files bundled inside the chart or via --set-file.
+# See the QUICKSTART.md for the packaging workflow.
+# =============================================================================
+configFiles:
+  # Prometheus config files are loaded from configs/ within the chart.
+  # Override individual files using --set-file.
+  prometheus: {}
+  loki: {}
+  alertmanager: {}
+  grafana: {}
+
+# =============================================================================
+# Dashboard JSON
+# =============================================================================
+# Dashboard JSON files are loaded from dashboards/ within the chart.
+# The chart bundles all JSON dashboards during packaging.
+# Override with --set-file if needed.
+dashboards:
+  # -- Enable dashboard provisioning via ConfigMaps
+  enabled: true
+
+# =============================================================================
+# Ingress (Phase B -- Not Available in Phase A)
+# =============================================================================
+# Ingress is disabled in Phase A. These values are stubbed for forward
+# compatibility. Phase B will add Ingress templates for Grafana and
+# optionally Prometheus/Alertmanager.
+ingress:
+  # -- Enable Ingress resources. Phase B feature.
+  enabled: false
+  # -- Ingress class name (e.g., nginx, traefik, alb)
+  # className: nginx
+  # -- TLS configuration. Phase B feature.
+  # tls:
+  #   - secretName: monitoring-tls
+  #     hosts:
+  #       - grafana.example.com
+  # -- Grafana Ingress host
+  # grafana:
+  #   host: grafana.example.com
+  #   annotations: {}
+
+# =============================================================================
+# Authentication (Phase C -- Not Available in Phase A)
+# =============================================================================
+# LDAP/AD authentication is disabled in Phase A. These values are stubbed
+# for forward compatibility. Phase C will add LDAP configuration for
+# Grafana and potentially OAuth2 proxy for Prometheus/Alertmanager.
+auth:
+  # -- Enable LDAP authentication for Grafana. Phase C feature.
+  ldap:
+    enabled: false
+  #   host: ldap.example.com
+  #   port: 636
+  #   useSsl: true
+  #   bindDn: "cn=readonly,dc=example,dc=com"
+  #   searchBaseDn: "ou=users,dc=example,dc=com"
+  #   searchFilter: "(sAMAccountName=%s)"
+
+# =============================================================================
+# High Availability (Phase C -- Not Available in Phase A)
+# =============================================================================
+# HA features are disabled in Phase A. Phase C will support multiple replicas,
+# Thanos sidecar for Prometheus, and distributed Loki mode.
+ha:
+  # -- Enable HA mode. Phase C feature.
+  enabled: false
+  # prometheus:
+  #   replicas: 2
+  #   thanos:
+  #     enabled: true
+  # loki:
+  #   mode: distributed

@@ -1,0 +1,23 @@
+{{- if .Values.prometheus.enabled }}
+# ---------------------------------------------------------------------------
+# Prometheus ConfigMap -- Alert Rules
+# ---------------------------------------------------------------------------
+# Separated from main config to allow independent updates to alert rules
+# without restarting Prometheus (use /-/reload endpoint).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "prometheus") }}-alert-rules
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "prometheus") | nindent 4 }}
+data:
+  windows_alerts.yml: |-
+    {{ .Files.Get "files/windows_alerts.yml" | nindent 4 }}
+  linux_alerts.yml: |-
+    {{ .Files.Get "files/linux_alerts.yml" | nindent 4 }}
+  infra_alerts.yml: |-
+    {{ .Files.Get "files/infra_alerts.yml" | nindent 4 }}
+  role_alerts.yml: |-
+    {{ .Files.Get "files/role_alerts.yml" | nindent 4 }}
+{{- end }}

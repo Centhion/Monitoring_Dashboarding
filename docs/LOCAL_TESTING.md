@@ -64,7 +64,7 @@ The stack is memory-limited to run on developer workstations:
 | Alertmanager | 64 MB | 20-40 MB |
 | **Total** | **~1.9 GB** | **~500 MB - 1 GB typical** |
 
-If you need to reduce memory usage further, edit the `deploy.resources.limits.memory` values in `docker-compose.yml`.
+If you need to reduce memory usage further, edit the `deploy.resources.limits.memory` values in `deploy/docker/docker-compose.yml`.
 
 ---
 
@@ -114,6 +114,8 @@ This starts Alloy with a single config file that:
 
 ## Management Commands
 
+The Docker Compose file lives at `deploy/docker/docker-compose.yml`. Use the convenience wrappers (`./dc.sh` on Linux/macOS, `.\dc.ps1` on Windows) to avoid typing the full path, or pass `-f` explicitly.
+
 ```bash
 # Check health of running stack
 python scripts/poc_setup.py --status
@@ -124,17 +126,20 @@ python scripts/poc_setup.py --stop
 # Stop stack AND delete all data (fresh start)
 python scripts/poc_setup.py --reset
 
-# View container logs
-docker compose logs -f                    # All services
-docker compose logs -f prometheus         # Prometheus only
-docker compose logs -f grafana            # Grafana only
+# View container logs (all commands run from repo root)
+./dc.sh logs -f                    # All services
+./dc.sh logs -f prometheus         # Prometheus only
+./dc.sh logs -f grafana            # Grafana only
 
 # Restart a single service (after config change)
-docker compose restart prometheus
-docker compose restart grafana
+./dc.sh restart prometheus
+./dc.sh restart grafana
 
 # Pull latest images
-docker compose pull
+./dc.sh pull
+
+# Or use the explicit -f flag directly:
+# docker compose -f deploy/docker/docker-compose.yml logs -f
 ```
 
 ---
@@ -145,15 +150,15 @@ When you modify config files, restart the affected service:
 
 | File Changed | Restart Command |
 |-------------|-----------------|
-| `configs/prometheus/prometheus.yml` | `docker compose restart prometheus` |
-| `configs/prometheus/recording_rules.yml` | `docker compose restart prometheus` |
-| `alerts/prometheus/*.yml` | `docker compose restart prometheus` |
-| `configs/loki/loki.yml` | `docker compose restart loki` |
-| `configs/alertmanager/alertmanager.yml` | `docker compose restart alertmanager` |
-| `configs/grafana/datasources/*` | `docker compose restart grafana` |
-| `configs/grafana/dashboards/*` | `docker compose restart grafana` |
-| `configs/grafana/notifiers/*` | `docker compose restart grafana` |
-| `dashboards/**/*.json` | `docker compose restart grafana` |
+| `configs/prometheus/prometheus.yml` | `docker compose -f deploy/docker/docker-compose.yml restart prometheus` |
+| `configs/prometheus/recording_rules.yml` | `docker compose -f deploy/docker/docker-compose.yml restart prometheus` |
+| `alerts/prometheus/*.yml` | `docker compose -f deploy/docker/docker-compose.yml restart prometheus` |
+| `configs/loki/loki.yml` | `docker compose -f deploy/docker/docker-compose.yml restart loki` |
+| `configs/alertmanager/alertmanager.yml` | `docker compose -f deploy/docker/docker-compose.yml restart alertmanager` |
+| `configs/grafana/datasources/*` | `docker compose -f deploy/docker/docker-compose.yml restart grafana` |
+| `configs/grafana/dashboards/*` | `docker compose -f deploy/docker/docker-compose.yml restart grafana` |
+| `configs/grafana/notifiers/*` | `docker compose -f deploy/docker/docker-compose.yml restart grafana` |
+| `dashboards/**/*.json` | `docker compose -f deploy/docker/docker-compose.yml restart grafana` |
 
 Prometheus also supports config reload without restart:
 
@@ -175,7 +180,7 @@ docker info
 netstat -an | findstr "3000 3100 9090 9093"
 
 # View startup errors
-docker compose logs
+docker compose -f deploy/docker/docker-compose.yml logs
 ```
 
 ### "No Data" in Grafana panels
@@ -187,26 +192,26 @@ docker compose logs
 
 ### Prometheus shows 0 rules
 
-- Verify volume mounts: `docker compose exec prometheus ls /etc/prometheus/rules/`
-- Check for YAML syntax errors: `docker compose logs prometheus | grep "error"`
+- Verify volume mounts: `docker compose -f deploy/docker/docker-compose.yml exec prometheus ls /etc/prometheus/rules/`
+- Check for YAML syntax errors: `docker compose -f deploy/docker/docker-compose.yml logs prometheus | grep "error"`
 - Run validator: `python scripts/validate_prometheus.py`
 
 ### Grafana shows "Datasource not found"
 
-- Verify provisioning: `docker compose exec grafana ls /etc/grafana/provisioning/datasources/`
-- Check logs: `docker compose logs grafana | grep "provisioning"`
+- Verify provisioning: `docker compose -f deploy/docker/docker-compose.yml exec grafana ls /etc/grafana/provisioning/datasources/`
+- Check logs: `docker compose -f deploy/docker/docker-compose.yml logs grafana | grep "provisioning"`
 - Ensure Prometheus and Loki are healthy before Grafana starts (handled by `depends_on` in Compose)
 
 ### Alertmanager shows webhook errors
 
 - Expected if `TEAMS_WEBHOOK_URL` is not set (uses placeholder URL)
 - Set a real webhook URL in `.env` to test Teams notifications
-- Check: `docker compose logs alertmanager | grep "webhook"`
+- Check: `docker compose -f deploy/docker/docker-compose.yml logs alertmanager | grep "webhook"`
 
 ### Container is restarting (OOM)
 
 - Check memory usage: `docker stats`
-- Increase limits in `docker-compose.yml` if needed
+- Increase limits in `deploy/docker/docker-compose.yml` if needed
 - Reduce Prometheus retention: change `--storage.tsdb.retention.time` to `7d`
 
 ---
@@ -244,4 +249,4 @@ This catches syntax errors, missing fields, and convention violations before the
 
 ---
 
-*Last Updated: 2026-02-18*
+*Last Updated: 2026-02-19*

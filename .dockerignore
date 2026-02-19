@@ -1,6 +1,9 @@
 # Agent configs are deployed to servers, not used in Docker Compose
 configs/alloy/
 
+# Helm chart and Kubernetes manifests (not used by Docker Compose)
+deploy/helm/
+
 # Development and CI files
 .claude/
 .git/
@@ -9,6 +12,10 @@ skills/
 tests/
 scripts/
 docs/
+
+# Inventory and Ansible (fleet deployment, not Docker Compose)
+inventory/
+ansible/
 
 # Environment and secrets
 .env

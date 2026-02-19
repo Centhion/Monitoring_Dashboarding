@@ -22,7 +22,7 @@
 // ---------------------------------------------------------------------------
 // AD DS and DNS Metrics
 // The windows_exporter exposes AD/DNS performance counters through the
-// "ad" and "dns" collectors. These provide the same data SCOM collects
+// "ad" and "dns" collectors. These provide comprehensive AD health data
 // from the NTDS and DNS Server performance counter sets.
 // ---------------------------------------------------------------------------
 prometheus.exporter.windows "dc" {

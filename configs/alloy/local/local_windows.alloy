@@ -83,7 +83,7 @@ prometheus.relabel "add_labels" {
 
   rule {
     target_label = "hostname"
-    replacement  = env("COMPUTERNAME")
+    replacement  = constants.hostname
   }
 
   // Alloy v1.13+ uses "integrations/windows" as the default job name
@@ -107,7 +107,7 @@ loki.process "add_labels" {
       datacenter  = "developer-workstation",
       role        = "workstation",
       os          = "windows",
-      hostname    = env("COMPUTERNAME"),
+      hostname    = constants.hostname,
     }
   }
 }

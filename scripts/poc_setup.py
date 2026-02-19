@@ -23,6 +23,9 @@ import urllib.request
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+COMPOSE_FILE = PROJECT_ROOT / "deploy" / "docker" / "docker-compose.yml"
+# .env lives at repo root, not beside the compose file
+ENV_FILE = PROJECT_ROOT / ".env"
 
 # Service endpoints for health checking
 SERVICES = {
@@ -96,13 +99,19 @@ def check_prerequisites() -> bool:
     return True
 
 
+def _compose_base_cmd() -> list[str]:
+    """Build the base docker compose command with file and env-file flags."""
+    cmd = ["docker", "compose", "-f", str(COMPOSE_FILE)]
+    if ENV_FILE.exists():
+        cmd.extend(["--env-file", str(ENV_FILE)])
+    return cmd
+
+
 def start_stack() -> bool:
     """Start the Docker Compose stack."""
     print("\nStarting monitoring stack...")
-    code, output = run_command(
-        ["docker", "compose", "up", "-d"],
-        cwd=PROJECT_ROOT,
-    )
+    cmd = _compose_base_cmd() + ["up", "-d"]
+    code, output = run_command(cmd, cwd=PROJECT_ROOT)
     if code != 0:
         print(f"  ERROR: Failed to start stack:\n{output}")
         return False
@@ -230,12 +239,12 @@ def print_status() -> None:
     if all_healthy:
         print("  All services healthy")
     else:
-        print("  Some services unhealthy -- run: docker compose logs")
+        print("  Some services unhealthy -- run: docker compose -f deploy/docker/docker-compose.yml logs")
 
 
 def stop_stack(remove_volumes: bool = False) -> None:
     """Stop the Docker Compose stack."""
-    cmd = ["docker", "compose", "down"]
+    cmd = _compose_base_cmd() + ["down"]
     if remove_volumes:
         cmd.append("-v")
         print("Stopping stack and removing volumes...")
@@ -292,10 +301,10 @@ def main() -> int:
 
     if not wait_for_health(timeout_seconds=120):
         print("\nSome services failed to start. Check logs:")
-        print("  docker compose logs prometheus")
-        print("  docker compose logs loki")
-        print("  docker compose logs alertmanager")
-        print("  docker compose logs grafana")
+        print("  docker compose -f deploy/docker/docker-compose.yml logs prometheus")
+        print("  docker compose -f deploy/docker/docker-compose.yml logs loki")
+        print("  docker compose -f deploy/docker/docker-compose.yml logs alertmanager")
+        print("  docker compose -f deploy/docker/docker-compose.yml logs grafana")
         return 1
 
     # Deep validation

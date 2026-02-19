@@ -1,0 +1,19 @@
+{{- if .Values.alertmanager.enabled }}
+# ---------------------------------------------------------------------------
+# Alertmanager ConfigMap
+# ---------------------------------------------------------------------------
+# Contains the Alertmanager routing configuration and Teams notification
+# template. Sensitive values (webhook URL, SMTP creds) are in the Secret.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "alertmanager") }}-config
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "alertmanager") | nindent 4 }}
+data:
+  alertmanager.yml: |-
+    {{ .Files.Get "files/alertmanager.yml" | nindent 4 }}
+  teams.tmpl: |-
+    {{ .Files.Get "files/teams.tmpl" | nindent 4 }}
+{{- end }}

@@ -1,0 +1,55 @@
+{{- if and .Values.grafana.enabled .Values.dashboards.enabled }}
+# ---------------------------------------------------------------------------
+# Grafana ConfigMap -- Dashboard JSON (Windows)
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-dashboards-windows
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "grafana") | nindent 4 }}
+    grafana-dashboard: "windows"
+data:
+  {{- $windowsFiles := .Files.Glob "files/dashboards/windows/*.json" }}
+  {{- range $path, $content := $windowsFiles }}
+  {{ base $path }}: |-
+    {{ $.Files.Get $path | nindent 4 }}
+  {{- end }}
+---
+# ---------------------------------------------------------------------------
+# Grafana ConfigMap -- Dashboard JSON (Linux)
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-dashboards-linux
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "grafana") | nindent 4 }}
+    grafana-dashboard: "linux"
+data:
+  {{- $linuxFiles := .Files.Glob "files/dashboards/linux/*.json" }}
+  {{- range $path, $content := $linuxFiles }}
+  {{ base $path }}: |-
+    {{ $.Files.Get $path | nindent 4 }}
+  {{- end }}
+---
+# ---------------------------------------------------------------------------
+# Grafana ConfigMap -- Dashboard JSON (Overview)
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-dashboards-overview
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "grafana") | nindent 4 }}
+    grafana-dashboard: "overview"
+data:
+  {{- $overviewFiles := .Files.Glob "files/dashboards/overview/*.json" }}
+  {{- range $path, $content := $overviewFiles }}
+  {{ base $path }}: |-
+    {{ $.Files.Get $path | nindent 4 }}
+  {{- end }}
+{{- end }}

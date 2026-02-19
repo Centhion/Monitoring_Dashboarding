@@ -67,7 +67,7 @@ Every server running Alloy must have these environment variables set. Configs re
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `ALLOY_ENV` | Deployment environment | `prod`, `staging`, `dev` |
-| `ALLOY_DATACENTER` | Physical or logical datacenter | `us-east-1`, `denver-dc` |
+| `ALLOY_DATACENTER` | Physical or logical datacenter | `us-east-1`, `site-a` |
 | `ALLOY_ROLE` | Server role identifier | `dc`, `sql`, `iis`, `fileserver`, `docker`, `generic` |
 | `PROMETHEUS_REMOTE_WRITE_URL` | Prometheus remote write endpoint | `http://prometheus:9090/api/v1/write` |
 | `LOKI_WRITE_URL` | Loki push API endpoint | `http://loki:3100/loki/api/v1/push` |
@@ -117,7 +117,7 @@ Or set system environment variables via PowerShell:
 
 ```powershell
 [System.Environment]::SetEnvironmentVariable("ALLOY_ENV", "prod", "Machine")
-[System.Environment]::SetEnvironmentVariable("ALLOY_DATACENTER", "denver-dc", "Machine")
+[System.Environment]::SetEnvironmentVariable("ALLOY_DATACENTER", "site-a", "Machine")
 [System.Environment]::SetEnvironmentVariable("ALLOY_ROLE", "dc", "Machine")
 [System.Environment]::SetEnvironmentVariable("PROMETHEUS_REMOTE_WRITE_URL", "http://prometheus:9090/api/v1/write", "Machine")
 [System.Environment]::SetEnvironmentVariable("LOKI_WRITE_URL", "http://loki:3100/loki/api/v1/push", "Machine")
@@ -200,7 +200,7 @@ Create or edit `/etc/default/alloy`:
 
 ```bash
 ALLOY_ENV=prod
-ALLOY_DATACENTER=denver-dc
+ALLOY_DATACENTER=site-a
 ALLOY_ROLE=docker
 PROMETHEUS_REMOTE_WRITE_URL=http://prometheus:9090/api/v1/write
 LOKI_WRITE_URL=http://loki:3100/loki/api/v1/push

@@ -1,0 +1,29 @@
+# =============================================================================
+# Minimal Values Overlay
+# =============================================================================
+# The absolute minimum configuration needed to deploy the monitoring stack.
+# Only 2 values MUST be changed -- everything else uses safe defaults.
+#
+# Usage:
+#   helm install monitoring ./deploy/helm/monitoring-stack \
+#     -f deploy/helm/examples/values-minimal.yaml \
+#     --set alertmanager.notifications.teamsWebhookUrl=<YOUR_WEBHOOK_URL> \
+#     --set grafana.admin.password=<YOUR_SECURE_PASSWORD>
+#
+# For a test deployment where you don't need Teams notifications:
+#   helm install monitoring ./deploy/helm/monitoring-stack \
+#     -f deploy/helm/examples/values-minimal.yaml \
+#     --set grafana.admin.password=changeme
+# =============================================================================
+
+# REQUIRED: Set a real Teams webhook URL for alert notifications.
+# Get this from your Teams channel: Connectors > Incoming Webhook > Create.
+alertmanager:
+  notifications:
+    teamsWebhookUrl: "https://example.com/webhook/YOUR_TEAMS_WEBHOOK_HERE"
+
+# REQUIRED: Set a secure admin password for Grafana.
+# The default "admin" password should never be used in production.
+grafana:
+  admin:
+    password: "CHANGE_ME_TO_A_SECURE_PASSWORD"

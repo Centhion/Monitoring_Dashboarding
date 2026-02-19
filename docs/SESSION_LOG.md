@@ -16,59 +16,53 @@ This file maintains continuity across work sessions. Each session summary is app
 
 ---
 
-## Session: 2026-02-18 (Continued Session -- PoC Fixes + Fleet Deployment Planning)
+## Session: 2026-02-19 17:00
 
 ### Completed
 
-- **Log Explorer Loki parse error fix**: Changed `allValue` from `".*"` to `".+"` in `dashboards/overview/log_explorer.json` for all template variables. Loki rejects `.*` as a label matcher because it matches empty strings; `.+` requires at least one character. Grafana restarted and re-provisioned.
+**Phase 5.8: Generalization and Kubernetes Deployment Readiness -- ALL 8 TASKS**
 
-- **Phase 5.7 planning complete**: Designed and approved the Fleet Tagging and Ansible Deployment Tooling plan. Updated `docs/PROJECT_PLAN.md` with full Phase 5.7 task breakdown (6 deliverables), architecture notes, risks, and human actions required.
+- **Task 1 -- Strip org-specific content**: Removed all SCOM, Squared Up, Centhion, etamez, Denver, and password references from 10 files. Replaced with generic placeholders (`<YOUR_ORG>`, `site-a`, `example.com`). Fixed deprecated `env("COMPUTERNAME")` -> `constants.hostname` in local Alloy config. Grep sweep confirmed zero residual matches.
+- **Task 6 -- Generalize Phase 5.7 inventory**: Done alongside Task 1. Site codes generalized to SITE-A/SITE-B/SITE-C, domains to example.com.
+- **Task 2 -- Restructure deployment directories**: `git mv` of compose files to `deploy/docker/`. Updated all 18 bind mount paths (`./` -> `../../`). Updated `poc_setup.py` with `COMPOSE_FILE` constant, `_compose_base_cmd()` helper, and `--env-file` support. Updated `LOCAL_TESTING.md` with all new `-f` flag paths. Created `dc.sh` and `dc.ps1` convenience wrappers at repo root. Updated `.dockerignore` with helm/inventory exclusions.
+- **Task 3 -- Helm chart (Phase A minimal)**: Created 17-file chart at `deploy/helm/monitoring-stack/`. Chart.yaml v0.1.0, values.yaml with conservative defaults and fleet sizing guidance, Phase B/C stubs. Templates: Prometheus StatefulSet + Service + 2 ConfigMaps; Loki StatefulSet + Service + ConfigMap; Alertmanager Deployment + Service + ConfigMap + Secret; Grafana Deployment + Service + ConfigMap (provisioning) + ConfigMap (dashboards per category) + PVC + Secret. NOTES.txt with port-forward instructions. Packaging scripts (`package-chart.sh`/`.ps1`) that copy repo configs into chart `files/` directory at package time.
+- **Task 4 -- Values overlay examples**: Created `values-minimal.yaml` (2 required fields), `values-development.yaml` (low resources, short retention), `values-production.yaml` (50Gi PVCs, 30d retention, Phase B/C commented stubs).
+- **Task 5 -- QUICKSTART.md**: 4-section guide covering Docker Compose (5 min), Helm K8s (15 min), customization, and server onboarding.
+- **Task 7 -- .gitignore cleanup**: Added `deploy/helm/monitoring-stack/files/*`, `deploy/helm/monitoring-stack/charts/`, `inventory/generated/`, `*.tgz`.
+- **Task 8 -- Final validation sweep**: Docker Compose config validates clean (4 services, 18 bind mounts resolve). `validate_all.py` passes (27 files, 2 expected Alloy warnings). Grep sweep clean. Helm lint and pytest deferred (not installed on this machine).
 
-- **(From earlier in this continued session -- already committed)**:
-  - `6da1cb7`: Fixed `${VAR:-default}` env var substitution in Prometheus and Alertmanager configs (literal Docker service names)
-  - `e23e90b`: Fixed Alloy River syntax (`service = {` to `service {}`), removed deprecated `cs` collector, added job relabel rules for Alloy v1.13
-  - `9582c73`: Updated recording rules and all references for Alloy v1.13 metric renames (`windows_cs_*` to `windows_memory_*`, `windows_os_*` to `windows_time_*`/`windows_system_*`)
-  - `be31f2c`: Replaced env var URLs with literal URLs in Grafana datasource provisioning
-  - `c2be8f4`: Converted dashboard template variable `query` from object format to string format, added `allValue` and default `current`
+**Docker Compose pipeline verified end-to-end after restructure**:
+- Started stack from new `deploy/docker/docker-compose.yml` path
+- All 4 services healthy (HTTP 200)
+- Prometheus: 11 rule groups, 67 rules loaded
+- Grafana: Both datasources provisioned (prometheus, loki)
+- Alloy agent tested: 40 CPU time series, event logs flowing to Loki
+- Labels correct: `environment=local-poc`, `datacenter=developer-workstation`, `hostname=LTZEP-200158`
 
-- **All changes committed and pushed**: `01cec68` -- Log Explorer allValue fix, Phase 5.7 plan, session log. Pre-commit check caught Grafana password in SESSION_LOG.md; redacted before commit.
-
-- **User confirmed dashboards working**: Log Explorer and other dashboards showing data. Full pipeline validated end-to-end.
+### In Progress
+- None. All Phase 5.8 tasks complete.
 
 ### Blockers
+- **Helm validation**: `helm lint` and `helm template` cannot run on this machine (Helm CLI not installed). Must be validated on another device after pulling.
+- **pytest**: Not installed. `pip install pytest` needed to run `tests/test_validators.py`.
 
-- **MSI Alloy service still running**: The MSI-installed Alloy Windows service is still running on the user's workstation alongside the standalone binary. Needs admin terminal to run `net stop Alloy; sc config Alloy start= disabled`. Not blocking development, but should be cleaned up.
-
-- **Phase 5.7 human dependencies**: Cannot begin implementation tasks #4-5 (Ansible playbook, tag validation) without: datacenter site list with metadata, host inventory export, production Prometheus/Loki URLs, and test servers with WinRM/SSH access.
-
-### Decisions Made
-
-- **Site code format**: Short abbreviations (DV, SOL, SN, etc.) -- final format confirmed by user. Many more sites to come beyond the initial examples.
-- **Multi-role support**: `roles` field in hosts.yml is a list. ALLOY_ROLE env var set to primary (first) role. All matching role_*.alloy files deployed to config directory.
-- **OS build precision**: Free-form string, not enum-constrained. Captures exact build numbers (e.g., `"10.0.20348"` for Server 2022, `"9.5"` for RHEL 9.5).
-- **Ansible first**: Ansible chosen over SCCM for initial deployment tooling. SCCM support can be added later.
-- **Role vocabulary**: `dc, sql, iis, fileserver, docker, generic, exchange, print, app` -- extensible via sites.yml with documented process. `hyperv` explicitly excluded per user.
-- **Site metadata fields**: timezone, AD domain, network segment tracked per site (not per host). Inherited via site code reference.
-- **Host metadata fields**: os_type and os_build tracked per host.
-- **Loki `allValue` must use `.+` not `.*`**: Loki requires at least one non-empty-compatible matcher in every query. Prometheus dashboards can use either, but `.+` is safer for both.
+### Decisions
+- **Fork-and-deploy model**: Users fork, edit `values.yaml`/`.env`, deploy. No generators.
+- **Helm chart packaging**: Configs live at repo root (single source of truth). `package-chart.sh` copies them into chart `files/` directory at package time. The `files/` directory is gitignored.
+- **Convenience wrappers**: `dc.sh`/`dc.ps1` at repo root avoid typing `-f deploy/docker/docker-compose.yml` on every command. `poc_setup.py` handles it automatically.
+- **Phase A scope**: Minimal Helm chart (single replica, ClusterIP only, no Ingress/TLS/LDAP/HPA). Phase B/C values stubbed as `enabled: false` for forward compatibility.
+- **Volume warnings acceptable**: Named volumes created under old project name (`monitoring_dashboarding`) still work from new compose path (`docker`). Cosmetic only.
 
 ### Next Session
-
-1. **Begin Phase 5.7 Task 1**: Create `inventory/sites.yml` with schema, example entries (DV, SOL, SN), and role/OS vocabulary. Include extension documentation.
-2. **Begin Phase 5.7 Task 2**: Create `inventory/hosts.yml` with schema and example entries demonstrating multi-role servers, multiple OS types, and precise OS builds.
-3. **Begin Phase 5.7 Task 3**: Create `scripts/fleet_inventory.py` with validate, import-csv, generate-ansible, and stats subcommands.
-4. **Phase 5.7 Tasks 4-6** (Ansible playbook, tag validation, onboarding runbook) can proceed in parallel with tasks 1-3 but will need human inputs (site list, host inventory) before they can be fully tested.
+1. **Commit and push all Phase 5.8 changes** -- 20 files modified/created, nothing committed yet this session
+2. **Pull on second device and run `helm lint` + `helm template`** to validate chart templates
+3. **Install pytest and run test suite** if not already done
+4. **Begin Phase 5.7 implementation** (fleet inventory, Ansible playbook, tag validation) if K8s deployment is validated
+5. **Consider Phase B Helm additions** (Ingress, TLS) after Phase A is confirmed on a real cluster
 
 ### Context
-
-- **Alloy binary location**: `C:\Tools\alloy\alloy-windows-amd64.exe` (standalone zip, not MSI)
-- **Alloy run command**: `C:\Tools\alloy\alloy-windows-amd64.exe run C:\Docker_testing\Monitoring_Dashboarding\configs\alloy\local\`
-- **Docker containers**: `mon-prometheus`, `mon-grafana`, `mon-loki`, `mon-alertmanager` -- all healthy
-- **Grafana credentials**: `admin` / `[REDACTED -- see local .env or team vault]`
-- **Python path**: `C:/Users/etamez/AppData/Local/Programs/Python/Python314/python.exe`
-- **Commit method**: `C:/Users/etamez/AppData/Local/Programs/Python/Python314/python.exe skills/git_smart_commit.py commit-and-push "message"` (direct `git commit` blocked by settings.json)
-- **Alloy v1.13 key changes**: `cs` collector removed (metrics in memory/os/cpu), River block syntax (`service {}` not `service = {}`), job label forced to `integrations/windows` (relabel rule overrides), `env()` stdlib function deprecated (use `sys.env()`)
-- **Domain consolidation**: ~16 AD domains merging to 1 over next 18 months. Inventory design is AD-independent by design.
-- **Fleet scale**: 500-2000 servers across 5-15+ sites. Moderate cardinality, no concerns.
-
----
+- Grafana admin password on this machine's Docker volumes is NOT `admin` -- it was changed during previous PoC testing. The compose file sets `admin/admin` but the existing volume preserves the old password. Use `--reset` to get a fresh start or the old credentials to log in.
+- The `poc_setup.py` Grafana datasource check uses `admin:admin` basic auth, which will fail on the existing volume. The health check (HTTP 200 on `/api/health`) still works without auth.
+- All changes this session are uncommitted. There are 15 modified files, 2 renamed (compose files), and 4 new untracked files/dirs (QUICKSTART.md, dc.sh, dc.ps1, deploy/helm/).
+- Python path on this machine: `C:/Users/etamez/AppData/Local/Programs/Python/Python314/python.exe`
+- Commit method: `C:/Users/etamez/AppData/Local/Programs/Python/Python314/python.exe skills/git_smart_commit.py commit-and-push "message"`

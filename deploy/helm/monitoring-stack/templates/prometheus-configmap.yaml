@@ -1,0 +1,61 @@
+{{- if .Values.prometheus.enabled }}
+# ---------------------------------------------------------------------------
+# Prometheus ConfigMap -- Main Configuration
+# ---------------------------------------------------------------------------
+# Contains prometheus.yml and recording rules. Alert rules are in a
+# separate ConfigMap to allow independent updates.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "prometheus") }}-config
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "prometheus") | nindent 4 }}
+data:
+  # Main Prometheus configuration
+  prometheus.yml: |-
+    global:
+      scrape_interval: 30s
+      evaluation_interval: 30s
+      external_labels:
+        cluster: {{ .Values.prometheus.externalLabels.cluster | quote }}
+
+    # Alert delivery to Alertmanager
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+              {{- $amHost := .Values.prometheus.alertmanager.host }}
+              {{- if not $amHost }}
+              {{- $amHost = printf "%s-alertmanager" (include "monitoring-stack.fullname" .) }}
+              {{- end }}
+                - "{{ $amHost }}:{{ .Values.prometheus.alertmanager.port }}"
+
+    # Rule file paths (mounted from this ConfigMap and the alert rules ConfigMap)
+    rule_files:
+      - /etc/prometheus/rules/*.yml
+
+    # Scrape configs for self-monitoring
+    scrape_configs:
+      - job_name: prometheus
+        static_configs:
+          - targets: ["localhost:9090"]
+
+      {{- if .Values.loki.enabled }}
+      - job_name: loki
+        static_configs:
+          - targets:
+              - "{{ include "monitoring-stack.componentFullname" (dict "context" . "component" "loki") }}:{{ .Values.loki.service.port }}"
+      {{- end }}
+
+      {{- if .Values.grafana.enabled }}
+      - job_name: grafana
+        static_configs:
+          - targets:
+              - "{{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}:{{ .Values.grafana.service.port }}"
+      {{- end }}
+
+  # Recording rules for pre-computed metric aggregations
+  recording_rules.yml: |-
+    {{ .Files.Get "files/recording_rules.yml" | nindent 4 }}
+{{- end }}

@@ -1,0 +1,72 @@
+{{- if .Values.grafana.enabled }}
+# ---------------------------------------------------------------------------
+# Grafana ConfigMap -- Provisioning
+# ---------------------------------------------------------------------------
+# Contains datasource, dashboard provider, and notifier provisioning YAML.
+# Grafana reads these on startup to auto-configure without manual setup.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }}-provisioning
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "grafana") | nindent 4 }}
+data:
+  # Datasource provisioning -- connects Grafana to Prometheus and Loki
+  datasources.yml: |-
+    apiVersion: 1
+    datasources:
+      {{- if $.Values.prometheus.enabled }}
+      - name: Prometheus
+        type: prometheus
+        uid: prometheus
+        access: proxy
+        url: http://{{ include "monitoring-stack.componentFullname" (dict "context" $ "component" "prometheus") }}:{{ $.Values.prometheus.service.port }}
+        isDefault: true
+        editable: false
+      {{- end }}
+      {{- if $.Values.loki.enabled }}
+      - name: Loki
+        type: loki
+        uid: loki
+        access: proxy
+        url: http://{{ include "monitoring-stack.componentFullname" (dict "context" $ "component" "loki") }}:{{ $.Values.loki.service.port }}
+        editable: false
+      {{- end }}
+
+  # Dashboard provider -- tells Grafana where to find dashboard JSON files
+  dashboards.yml: |-
+    apiVersion: 1
+    providers:
+      - name: windows
+        orgId: 1
+        folder: Windows
+        type: file
+        disableDeletion: true
+        editable: false
+        options:
+          path: /var/lib/grafana/dashboards/windows
+          foldersFromFilesStructure: false
+      - name: linux
+        orgId: 1
+        folder: Linux
+        type: file
+        disableDeletion: true
+        editable: false
+        options:
+          path: /var/lib/grafana/dashboards/linux
+          foldersFromFilesStructure: false
+      - name: overview
+        orgId: 1
+        folder: Overview
+        type: file
+        disableDeletion: true
+        editable: false
+        options:
+          path: /var/lib/grafana/dashboards/overview
+          foldersFromFilesStructure: false
+
+  # Notifier provisioning -- contact points for Grafana-native alerting
+  notifiers.yml: |-
+    {{ .Files.Get "files/notifiers.yml" | nindent 4 }}
+{{- end }}

@@ -1,0 +1,43 @@
+Monitoring Stack has been deployed to namespace: {{ include "monitoring-stack.namespace" . }}
+
+=== Access the Services ===
+
+{{- if .Values.grafana.enabled }}
+
+Grafana (Dashboards):
+  kubectl port-forward svc/{{ include "monitoring-stack.componentFullname" (dict "context" . "component" "grafana") }} {{ .Values.grafana.service.port }}:{{ .Values.grafana.service.port }} -n {{ include "monitoring-stack.namespace" . }}
+  Then open: http://localhost:{{ .Values.grafana.service.port }}
+  Credentials: {{ .Values.grafana.admin.user }} / (password from secret)
+
+{{- end }}
+{{- if .Values.prometheus.enabled }}
+
+Prometheus (Metrics):
+  kubectl port-forward svc/{{ include "monitoring-stack.componentFullname" (dict "context" . "component" "prometheus") }} {{ .Values.prometheus.service.port }}:{{ .Values.prometheus.service.port }} -n {{ include "monitoring-stack.namespace" . }}
+  Then open: http://localhost:{{ .Values.prometheus.service.port }}
+
+{{- end }}
+{{- if .Values.alertmanager.enabled }}
+
+Alertmanager (Alert Routing):
+  kubectl port-forward svc/{{ include "monitoring-stack.componentFullname" (dict "context" . "component" "alertmanager") }} {{ .Values.alertmanager.service.port }}:{{ .Values.alertmanager.service.port }} -n {{ include "monitoring-stack.namespace" . }}
+  Then open: http://localhost:{{ .Values.alertmanager.service.port }}
+
+{{- end }}
+
+=== Next Steps ===
+
+1. Verify all pods are running:
+   kubectl get pods -n {{ include "monitoring-stack.namespace" . }} -l app.kubernetes.io/part-of={{ include "monitoring-stack.name" . }}
+
+2. Deploy Alloy agents to your servers, configured to send metrics and logs to:
+   {{- if .Values.prometheus.enabled }}
+   Prometheus: http://{{ include "monitoring-stack.componentFullname" (dict "context" . "component" "prometheus") }}.{{ include "monitoring-stack.namespace" . }}.svc:{{ .Values.prometheus.service.port }}/api/v1/write
+   {{- end }}
+   {{- if .Values.loki.enabled }}
+   Loki:       http://{{ include "monitoring-stack.componentFullname" (dict "context" . "component" "loki") }}.{{ include "monitoring-stack.namespace" . }}.svc:{{ .Values.loki.service.port }}/loki/api/v1/push
+   {{- end }}
+
+3. Set a real Teams webhook URL for alert notifications:
+   helm upgrade {{ .Release.Name }} ./deploy/helm/monitoring-stack \
+     --set alertmanager.notifications.teamsWebhookUrl=<your-webhook-url>

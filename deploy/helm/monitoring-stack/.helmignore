@@ -1,0 +1,9 @@
+# Helm chart packaging exclusions
+.git
+.gitignore
+.gitkeep
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

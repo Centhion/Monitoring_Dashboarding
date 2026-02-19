@@ -1,0 +1,122 @@
+{{- if .Values.prometheus.enabled }}
+# ---------------------------------------------------------------------------
+# Prometheus StatefulSet
+# ---------------------------------------------------------------------------
+# StatefulSet provides stable network identity and persistent storage.
+# Single replica in Phase A; Phase C adds HA with Thanos sidecar.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "prometheus") }}
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "prometheus") | nindent 4 }}
+spec:
+  replicas: {{ .Values.prometheus.replicas }}
+  serviceName: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "prometheus") }}
+  selector:
+    matchLabels:
+      {{- include "monitoring-stack.selectorLabels" (dict "context" . "component" "prometheus") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "prometheus") | nindent 8 }}
+      annotations:
+        # Force pod restart when config changes
+        checksum/config: {{ include (print $.Template.BasePath "/prometheus-configmap.yaml") . | sha256sum }}
+        checksum/alerts: {{ include (print $.Template.BasePath "/prometheus-alertrules-configmap.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # Prometheus image runs as nobody (65534). The TSDB directory must be writable.
+      securityContext:
+        fsGroup: 65534
+        runAsUser: 65534
+        runAsNonRoot: true
+      containers:
+        - name: prometheus
+          image: "{{ .Values.prometheus.image.repository }}:{{ .Values.prometheus.image.tag }}"
+          imagePullPolicy: {{ .Values.prometheus.image.pullPolicy }}
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus"
+            - "--storage.tsdb.retention.time={{ .Values.prometheus.retention.time }}"
+            - "--storage.tsdb.retention.size={{ .Values.prometheus.retention.size }}"
+            {{- range .Values.prometheus.extraArgs }}
+            - {{ . | quote }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 9090
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.prometheus.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
+              readOnly: true
+            - name: config
+              mountPath: /etc/prometheus/rules/recording_rules.yml
+              subPath: recording_rules.yml
+              readOnly: true
+            - name: alert-rules
+              mountPath: /etc/prometheus/rules/windows_alerts.yml
+              subPath: windows_alerts.yml
+              readOnly: true
+            - name: alert-rules
+              mountPath: /etc/prometheus/rules/linux_alerts.yml
+              subPath: linux_alerts.yml
+              readOnly: true
+            - name: alert-rules
+              mountPath: /etc/prometheus/rules/infra_alerts.yml
+              subPath: infra_alerts.yml
+              readOnly: true
+            - name: alert-rules
+              mountPath: /etc/prometheus/rules/role_alerts.yml
+              subPath: role_alerts.yml
+              readOnly: true
+            - name: data
+              mountPath: /prometheus
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "prometheus") }}-config
+        - name: alert-rules
+          configMap:
+            name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "prometheus") }}-alert-rules
+  {{- if .Values.prometheus.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          {{- toYaml .Values.prometheus.persistence.accessModes | nindent 10 }}
+        {{- if .Values.prometheus.persistence.storageClass }}
+        storageClassName: {{ .Values.prometheus.persistence.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.prometheus.persistence.size }}
+  {{- else }}
+      # No persistent storage -- data lost on pod restart
+        - name: data
+          emptyDir: {}
+  {{- end }}
+{{- end }}

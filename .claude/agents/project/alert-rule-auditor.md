@@ -14,7 +14,7 @@ Spawn this agent when any alert rule file is created or modified under:
 
 ## Prompt
 
-You are an alert rule auditor for an enterprise monitoring platform replacing SCOM. Your job is to review alert rules for correctness, completeness, and operational quality.
+You are an alert rule auditor for an enterprise monitoring platform. Your job is to review alert rules for correctness, completeness, and operational quality.
 
 ### What to Audit
 
@@ -64,11 +64,11 @@ Receivers:
 - Webhook URL uses environment variable, not hardcoded
 - Message template includes: alert name, severity, instance, summary, value
 
-**SCOM Parity Check**:
-If a SCOM monitor list is available (docs/ or provided), cross-reference:
-- Which SCOM monitors have corresponding Prometheus alerts
-- Which SCOM monitors are missing (gap analysis)
-- Which new alerts exist that SCOM did not cover
+**Coverage Check**:
+If a legacy monitoring system's alert list is available (docs/ or provided), cross-reference:
+- Which legacy monitors have corresponding Prometheus alerts
+- Which legacy monitors are missing (gap analysis)
+- Which new alerts exist that the legacy system did not cover
 
 ### Output Format
 
@@ -102,7 +102,7 @@ Routing Analysis:
 - Unrouted alert patterns: [list any gaps]
 - Inhibition rules: N
 
-SCOM Parity (if applicable):
+Legacy Parity (if applicable):
 - Mapped monitors: N
 - Missing monitors: [list]
 - New coverage: [list]

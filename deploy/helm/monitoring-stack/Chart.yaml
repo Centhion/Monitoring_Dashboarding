@@ -1,0 +1,36 @@
+apiVersion: v2
+name: monitoring-stack
+description: >-
+  Enterprise monitoring stack with Prometheus, Loki, Alertmanager, and Grafana.
+  Designed as a fork-and-deploy template for mixed Windows and Linux server fleets.
+  Phase A: minimal, single-replica, no Ingress/TLS/LDAP.
+
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+# Chart maturity phases:
+#   0.1.x  Phase A -- Minimal (single replica, ClusterIP, no auth)
+#   0.2.x  Phase B -- Ingress, TLS termination
+#   0.3.x  Phase C -- LDAP/AD auth, HA replicas, Mimir migration
+#
+# Semantic versioning:
+#   MAJOR -- breaking values.yaml changes
+#   MINOR -- new features (additive)
+#   PATCH -- bug fixes, template corrections
+
+keywords:
+  - monitoring
+  - prometheus
+  - loki
+  - grafana
+  - alertmanager
+  - observability
+
+home: https://github.com/<YOUR_ORG>/Monitoring_Dashboarding
+sources:
+  - https://github.com/<YOUR_ORG>/Monitoring_Dashboarding
+
+maintainers:
+  - name: Platform Engineering
+    # email: ops@example.com

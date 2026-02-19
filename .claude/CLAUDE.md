@@ -348,6 +348,5 @@ Use agent prompt from: `.claude/agents/project/alert-rule-auditor.md`
 
 This project uses **HTTPS** remotes with Windows Credential Manager for Git authentication.
 
-- **Remote URL**: `https://github.com/Centhion/Monitoring_Dashboarding.git`
-- **Always use HTTPS remotes**: `https://github.com/username/repo.git`
+- **Always use HTTPS remotes**: `https://github.com/<org>/<repo>.git`
 - Credentials are cached by the Windows Git Credential Manager

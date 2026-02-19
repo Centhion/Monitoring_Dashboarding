@@ -1,0 +1,150 @@
+# =============================================================================
+# Production Values Overlay
+# =============================================================================
+# Full production configuration with realistic resource limits, retention
+# policies, and security settings. Adjust values based on fleet size.
+#
+# Usage:
+#   helm install monitoring ./deploy/helm/monitoring-stack \
+#     -f deploy/helm/examples/values-production.yaml \
+#     --set alertmanager.notifications.teamsWebhookUrl=<REAL_WEBHOOK_URL> \
+#     --set grafana.admin.password=<SECURE_PASSWORD> \
+#     -n monitoring --create-namespace
+#
+# Fleet sizing guidance (adjust resources based on your fleet):
+#   Small  (<100 servers):   Use defaults in this file
+#   Medium (100-500 servers): Double Prometheus memory, increase PVC to 100Gi
+#   Large  (500+ servers):    Consider Mimir (Phase C) for horizontal scaling
+# =============================================================================
+
+prometheus:
+  # Production retention: 30 days of metrics history
+  retention:
+    time: 30d
+    size: 50GB
+
+  # Production PVC sizing
+  # Rule of thumb: 2 bytes per sample, 30s scrape interval
+  # 100 servers x 2000 series x 2 bytes x (86400/30) x 30 days = ~35GB
+  persistence:
+    size: 50Gi
+    # storageClass: "managed-premium"  # Uncomment for Azure AKS
+    # storageClass: "gp3"             # Uncomment for AWS EKS
+    # storageClass: "pd-ssd"          # Uncomment for GCP GKE
+
+  # Production resource allocation (tuned for ~100k active series)
+  # Monitor actual usage and adjust. Prometheus memory scales linearly
+  # with active series count.
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+
+  externalLabels:
+    cluster: production
+
+loki:
+  # 30 days of log retention
+  retention: 720h  # 30 days
+
+  # Production PVC for log storage
+  # Size depends heavily on log volume. Start at 50Gi, monitor usage.
+  persistence:
+    size: 50Gi
+    # storageClass: "managed-premium"
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+
+alertmanager:
+  # REQUIRED: Replace with your real Teams webhook URL
+  notifications:
+    teamsWebhookUrl: "REPLACE_WITH_REAL_TEAMS_WEBHOOK_URL"
+    smtp:
+      host: "smtp.your-org.com"
+      port: "587"
+      from: "monitoring@your-org.com"
+      to: "ops-team@your-org.com"
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+grafana:
+  # Production PVC for Grafana database
+  persistence:
+    size: 5Gi
+    # storageClass: "managed-premium"
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  # REQUIRED: Use a strong password or external secret
+  admin:
+    password: "REPLACE_WITH_SECURE_PASSWORD"
+    # For production, prefer an existing Kubernetes Secret:
+    # existingSecret: "grafana-admin-credentials"
+
+  env:
+    # Disable anonymous access in production
+    GF_AUTH_ANONYMOUS_ENABLED: "false"
+    GF_SECURITY_ALLOW_EMBEDDING: "false"
+    GF_ANALYTICS_REPORTING_ENABLED: "false"
+    GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+
+# =============================================================================
+# Phase B Stubs (Ingress + TLS)
+# =============================================================================
+# Uncomment and configure when ready for Phase B deployment.
+# Requires an Ingress controller (nginx, traefik, ALB, etc.) and TLS certs.
+#
+# ingress:
+#   enabled: true
+#   className: nginx
+#   grafana:
+#     host: grafana.your-org.com
+#     annotations:
+#       cert-manager.io/cluster-issuer: letsencrypt-prod
+#   tls:
+#     - secretName: grafana-tls
+#       hosts:
+#         - grafana.your-org.com
+
+# =============================================================================
+# Phase C Stubs (Auth + HA)
+# =============================================================================
+# Uncomment and configure when ready for Phase C deployment.
+#
+# auth:
+#   ldap:
+#     enabled: true
+#     host: ldap.your-org.com
+#     port: 636
+#     useSsl: true
+#     bindDn: "cn=grafana-readonly,ou=services,dc=your-org,dc=com"
+#     searchBaseDn: "ou=users,dc=your-org,dc=com"
+#     searchFilter: "(sAMAccountName=%s)"
+#
+# ha:
+#   enabled: true
+#   prometheus:
+#     replicas: 2
+#     thanos:
+#       enabled: true
