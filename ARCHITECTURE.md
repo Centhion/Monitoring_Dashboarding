@@ -81,9 +81,13 @@ Monitoring_Dashboarding/
 |       +-- dashboards/         # Dashboard provisioning YAML (points to dashboards/)
 |       +-- notifiers/          # Contact point provisioning
 +-- dashboards/                  # Grafana dashboard JSON files
-|   +-- windows/                # Windows Server dashboards
-|   +-- linux/                  # Linux Server dashboards
-|   +-- overview/               # Infrastructure overview dashboards
+|   +-- windows/                # Windows Server dashboards (windows_overview, iis_overview)
+|   +-- linux/                  # Linux Server dashboards (linux_overview)
+|   +-- overview/               # Hub dashboards (enterprise_noc, site_overview, infrastructure_overview, log_explorer)
+|   +-- network/                # Network infrastructure dashboards (Phase 7A)
+|   +-- hardware/               # Hardware health dashboards (Phase 7B)
+|   +-- certs/                  # Certificate monitoring dashboards (Phase 7C)
+|   +-- assets/                 # Asset intelligence dashboards (Phase 7D)
 +-- alerts/                      # Alert rule definitions
 |   +-- prometheus/             # Prometheus alerting rules (YAML)
 |   +-- grafana/                # Grafana-managed alert rules (JSON)
@@ -121,6 +125,8 @@ Monitoring_Dashboarding/
 | Configuration-as-code approach | All configs version-controlled for auditability, reproducibility, and team collaboration. Enterprise requirement. | 2026-02-17 |
 | Python for tooling | Widely available, good library ecosystem for YAML/JSON validation, team familiarity. | 2026-02-17 |
 | Teams webhook over MCP integration | Simple HTTP webhook is sufficient for alert notifications. No external dependency or MCP server needed. | 2026-02-17 |
+| Hub-and-spoke dashboard architecture | Enterprise NOC (multi-site grid) and Site Overview (per-resort drill-down) provide location-centric navigation. Template variables propagate between dashboards via URL params. Sites auto-populate from `datacenter` label -- no dashboard changes needed to add sites. | 2026-03-06 |
+| Site recording rules layer | Pre-aggregate instance metrics to datacenter level (`site:*` namespace) so hub dashboards query cheap pre-computed series instead of scanning all instances. | 2026-03-06 |
 
 ## External Dependencies
 

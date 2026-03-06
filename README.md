@@ -43,7 +43,7 @@ python scripts/poc_setup.py
 | `configs/loki/` | Loki server configuration |
 | `configs/alertmanager/` | Alertmanager routing, receivers, and inhibition rules |
 | `configs/grafana/` | Grafana provisioning (datasources, dashboards, notifiers) |
-| `dashboards/` | Grafana dashboard JSON definitions |
+| `dashboards/` | Grafana dashboard JSON (windows/, linux/, overview/, network/, hardware/, certs/, assets/) |
 | `alerts/` | Prometheus alerting rules and Grafana alert policies |
 | `deploy/docker/` | Docker Compose stack for local testing and PoC |
 | `deploy/helm/` | Helm chart and value overlays for Kubernetes deployment |
@@ -56,10 +56,25 @@ python scripts/poc_setup.py
 
 - **Configuration as Code**: All monitoring configs, dashboards, and alert rules stored in Git
 - **Mixed OS Support**: Alloy agent configs for both Windows Server and Linux
+- **Hub-and-Spoke Dashboards**: Enterprise NOC for multi-site overview, Site Overview for per-resort drill-down, plus dedicated Windows, Linux, and IIS dashboards with cross-navigation
 - **Industry-Standard Alert Rules**: Alert rules based on SRE best practices and community thresholds
 - **Teams Integration**: Alert notifications delivered to Microsoft Teams channels
 - **Grafana Provisioning**: Datasources, dashboards, and contact points deployed via provisioning YAML
+- **Label-Driven Discovery**: Add sites by setting `ALLOY_DATACENTER` on agents -- dashboards auto-populate with no config changes
 - **Validation Tooling**: Python scripts to lint and validate configs before deployment
+
+## Dashboards
+
+| Dashboard | UID | Folder | Purpose |
+|-----------|-----|--------|---------|
+| Enterprise NOC | `enterprise-noc` | Infrastructure | Multi-site health grid with drill-down links per datacenter |
+| Site Overview | `site-overview` | Infrastructure | Single-site deep view with server, IIS, and log panels |
+| Infrastructure Overview | `infra-overview` | Infrastructure | Fleet-wide server metrics, top problem servers, alerts |
+| Windows Server Overview | `windows-overview` | Windows Servers | Per-host Windows CPU, memory, disk, network, services |
+| Linux Server Overview | `linux-overview` | Linux Servers | Per-host Linux CPU, memory, disk, network, systemd |
+| IIS Overview | `iis-overview` | Windows Servers | IIS request rates, error ratios, connections, access logs |
+
+All dashboards include a cross-navigation link bar. Template variables (`environment`, `datacenter`, `hostname`) propagate between dashboards for seamless drill-down.
 
 ## Documentation
 
