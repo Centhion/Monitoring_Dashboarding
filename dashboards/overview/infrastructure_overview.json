@@ -20,7 +20,68 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
-  "links": [],
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Enterprise NOC",
+      "tooltip": "Multi-site health overview",
+      "type": "link",
+      "url": "/d/enterprise-noc/enterprise-noc"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Site Overview",
+      "tooltip": "Single-site deep visibility",
+      "type": "link",
+      "url": "/d/site-overview/site-overview"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Windows Servers",
+      "tooltip": "Windows server detail",
+      "type": "link",
+      "url": "/d/windows-overview/windows-server-overview"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Linux Servers",
+      "tooltip": "Linux server detail",
+      "type": "link",
+      "url": "/d/linux-overview/linux-server-overview"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "IIS Overview",
+      "tooltip": "IIS web server detail",
+      "type": "link",
+      "url": "/d/iis-overview/iis-overview"
+    }
+  ],
   "panels": [
     {
       "collapsed": false,

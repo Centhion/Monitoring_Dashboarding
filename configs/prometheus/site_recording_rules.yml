@@ -1,0 +1,146 @@
+# =============================================================================
+# Site-Level Recording Rules (Phase 7H)
+# =============================================================================
+# Aggregate instance-level metrics to the datacenter (site) level for the
+# Enterprise NOC and Site Overview dashboards. Each rule groups by datacenter
+# so that the hub dashboards can display per-site health at a glance without
+# running expensive queries across all instances.
+#
+# These rules consume the instance-level recording rules from
+# recording_rules.yml and iis_recording_rules.yml. Adding a new monitoring
+# domain (SNMP, hardware, certs) means adding new site-level rules here and
+# updating the NOC/Site Overview dashboards.
+#
+# Naming convention: site:<metric>:<aggregation>
+# =============================================================================
+
+groups:
+  # ---------------------------------------------------------------------------
+  # Site Server Health
+  # Aggregated server counts and resource utilization per datacenter/site.
+  # ---------------------------------------------------------------------------
+  - name: site_server_rules
+    interval: 60s
+    rules:
+      # Total servers reporting metrics per site, regardless of OS.
+      - record: site:servers_reporting:count
+        expr: |
+          count by (datacenter, environment) (
+            up{job=~"windows_base|linux_base"} == 1
+          )
+
+      # Windows server count per site.
+      - record: site:windows_servers:count
+        expr: |
+          count by (datacenter, environment) (
+            up{job="windows_base"} == 1
+          )
+
+      # Linux server count per site.
+      - record: site:linux_servers:count
+        expr: |
+          count by (datacenter, environment) (
+            up{job="linux_base"} == 1
+          )
+
+      # Average CPU utilization across all servers at a site (0-1 ratio).
+      # Combines Windows and Linux instances for a unified site-level view.
+      - record: site:cpu_utilization:avg
+        expr: |
+          avg by (datacenter, environment) (
+            instance:windows_cpu_utilization:ratio
+            or
+            instance:linux_cpu_utilization:ratio
+          )
+
+      # Average memory utilization across all servers at a site (0-1 ratio).
+      - record: site:memory_utilization:avg
+        expr: |
+          avg by (datacenter, environment) (
+            instance:windows_memory_utilization:ratio
+            or
+            instance:linux_memory_utilization:ratio
+          )
+
+      # Minimum disk free ratio across all volumes at a site.
+      # Surfaces the single worst disk across all servers -- the NOC cares
+      # about the most critical volume, not the average.
+      - record: site:disk_free:min
+        expr: |
+          min by (datacenter, environment) (
+            instance:windows_disk_free:ratio
+            or
+            instance:linux_disk_free:ratio
+          )
+
+      # Total count of services/units not running across all servers at a site.
+      # Windows services + Linux systemd failed units combined.
+      - record: site:services_not_running:sum
+        expr: |
+          sum by (datacenter, environment) (
+            instance:windows_services_not_running:count
+            or
+            instance:linux_systemd_failed:count
+          ) or
+          (0 * group by (datacenter, environment) (
+            up{job=~"windows_base|linux_base"}
+          ))
+
+      # Count of servers with high CPU (>85%) at a site.
+      - record: site:high_cpu:count
+        expr: |
+          count by (datacenter, environment) (
+            (
+              instance:windows_cpu_utilization:ratio > 0.85
+              or
+              instance:linux_cpu_utilization:ratio > 0.85
+            )
+          )
+
+      # Count of servers with low disk space (<20% free on any volume) at a site.
+      - record: site:low_disk:count
+        expr: |
+          count by (datacenter, environment) (
+            (
+              instance:windows_disk_free:ratio < 0.20
+              or
+              instance:linux_disk_free:ratio < 0.20
+            )
+          )
+
+  # ---------------------------------------------------------------------------
+  # Site IIS Health
+  # Aggregated IIS metrics per datacenter/site from iis_recording_rules.yml.
+  # ---------------------------------------------------------------------------
+  - name: site_iis_rules
+    interval: 60s
+    rules:
+      # Total IIS request rate across all servers at a site.
+      - record: site:iis_request_rate:sum
+        expr: |
+          sum by (datacenter, environment) (
+            instance:iis_request_rate:rate5m
+          )
+
+      # Site-wide IIS 5xx error ratio (weighted average across all servers).
+      # Numerator: total 5xx requests/sec across the site.
+      # Denominator: total requests/sec across the site.
+      # Returns NaN when there are zero requests (Grafana shows "no data").
+      - record: site:iis_5xx_error:ratio
+        expr: |
+          sum by (datacenter, environment) (
+            instance:iis_5xx_error:ratio
+            *
+            instance:iis_request_rate:rate5m
+          )
+          /
+          sum by (datacenter, environment) (
+            instance:iis_request_rate:rate5m
+          )
+
+      # Total active IIS connections across all servers at a site.
+      - record: site:iis_active_connections:sum
+        expr: |
+          sum by (datacenter, environment) (
+            instance:iis_active_connections:total
+          )

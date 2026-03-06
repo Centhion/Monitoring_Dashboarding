@@ -25,9 +25,9 @@
 | Phase 7C: SSL Certificate Monitoring | Pending | Blackbox probing for internal PKI + public DigiCert certs |
 | Phase 7D: Lansweeper Integration | Pending | Custom Python exporter for asset intelligence via GraphQL API |
 | Phase 7E: Cloud Infrastructure Monitoring | Pending | Stub configs for AWS CloudWatch / Azure Monitor (when ready) |
-| Phase 7F: IIS Dedicated Dashboard | Pending | Dashboard for existing IIS role metrics and access logs |
+| Phase 7F: IIS Dedicated Dashboard | Completed | Dashboard for existing IIS role metrics and access logs |
 | Phase 7G: Agentless Collection | Blocked | WinRM/SSH for edge cases -- pending internal use case review |
-| Phase 7H: Dashboard Hub Architecture | Pending | Enterprise NOC + per-site drill-down dashboards for location-centric monitoring |
+| Phase 7H: Dashboard Hub Architecture | Completed | Enterprise NOC + per-site drill-down dashboards for location-centric monitoring |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
 
@@ -1003,7 +1003,7 @@
 
 **Goal**: Create a location-centric navigation layer across all monitoring domains. Two dashboards: an Enterprise NOC view showing all sites at a glance, and a Site Overview dashboard showing all monitored infrastructure at a single resort/location with drill-down links to detailed dashboards.
 
-**Status**: Pending
+**Status**: Completed
 
 **Audience**: Both central NOC team (multi-site comparison, problem identification) and resort IT staff (single-site deep visibility, troubleshooting).
 
@@ -1013,7 +1013,7 @@
 
 ### Tasks
 
-- [ ] 1. Create Enterprise NOC dashboard -- `dashboards/overview/enterprise_noc.json`
+- [x] 1. Create Enterprise NOC dashboard -- `dashboards/overview/enterprise_noc.json`
   - Multi-site health grid: one row per datacenter/site, columns for each monitoring domain
   - Domain columns (grow as phases ship):
     - Servers: count, avg CPU, avg memory, services down
@@ -1028,7 +1028,7 @@
   - Complexity: Medium
   - Dependencies: Phase 7F complete (server + IIS recording rules provide initial data)
 
-- [ ] 2. Create Site Overview dashboard -- `dashboards/overview/site_overview.json`
+- [x] 2. Create Site Overview dashboard -- `dashboards/overview/site_overview.json`
   - Single `datacenter` variable (single-select, not multi) as the site selector
   - Row: Site Health Summary
     - Stat panels: total servers, total alerts, total services down, uptime SLA %
@@ -1055,7 +1055,7 @@
   - Complexity: Medium
   - Dependencies: Phase 7F complete (server + IIS recording rules provide initial data)
 
-- [ ] 3. Create fleet-level recording rules for site aggregation -- `configs/prometheus/site_recording_rules.yml`
+- [x] 3. Create fleet-level recording rules for site aggregation -- `configs/prometheus/site_recording_rules.yml`
   - Per-site server counts: `site:servers_reporting:count`
   - Per-site avg CPU: `site:cpu_utilization:avg`
   - Per-site avg memory: `site:memory_utilization:avg`
@@ -1065,7 +1065,7 @@
   - Complexity: Simple
   - Dependencies: None (uses existing instance-level recording rules)
 
-- [ ] 4. Add cross-dashboard link navigation to all existing dashboards
+- [x] 4. Add cross-dashboard link navigation to all existing dashboards
   - Add a dashboard link bar to Windows, Linux, IIS, and Infrastructure Overview dashboards
   - Links pass current template variable values (`$datacenter`, `$environment`) to target dashboards
   - Consistent navigation: every dashboard can reach the Enterprise NOC and Site Overview
