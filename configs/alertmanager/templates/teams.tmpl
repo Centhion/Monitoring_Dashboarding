@@ -4,12 +4,23 @@
   Formats Alertmanager notifications into Adaptive Card JSON for Teams
   incoming webhooks. Each notification includes:
     - Alert status (firing/resolved) with color coding
-    - Alert name and severity
-    - Affected server hostname
-    - Summary and description from alert annotations
-    - Link to relevant Grafana dashboard
+    - Group-level metadata (severity, datacenter, environment, alert count)
+    - Per-alert detail blocks (hostname, summary, description)
+    - Grafana dashboard deep-link (when dashboard_url annotation is set)
+    - Category label for alert classification
+
+  The template iterates over ALL alerts in the group rather than only the
+  first. This ensures grouped notifications (e.g., 5 servers with high CPU
+  in the same datacenter) render each affected host, not just one.
 
   Teams Incoming Webhooks accept Adaptive Card JSON payloads.
+  Adaptive Card schema: https://adaptivecards.io/schemas/adaptive-card.json
+
+  NOTE: Go template output is raw text. If alert label or annotation values
+  contain JSON-special characters (quotes, backslashes), the card JSON may
+  be malformed. Alertmanager does not provide a built-in JSON escape
+  function. For environments where this is a risk, consider using a
+  dedicated webhook receiver (e.g., Grafana OnCall) that handles escaping.
   ======================================================================= */}}
 
 {{ define "teams.card" }}
@@ -42,35 +53,59 @@
                 "value": "{{ (index .Alerts 0).Labels.severity }}"
               },
               {
-                "title": "Host",
-                "value": "{{ (index .Alerts 0).Labels.hostname }}"
+                "title": "Datacenter",
+                "value": "{{ (index .Alerts 0).Labels.datacenter }}"
               },
               {
                 "title": "Environment",
                 "value": "{{ (index .Alerts 0).Labels.environment }}"
               },
               {
-                "title": "Datacenter",
-                "value": "{{ (index .Alerts 0).Labels.datacenter }}"
+                "title": "Category",
+                "value": "{{ (index .Alerts 0).Labels.category }}"
               },
               {
                 "title": "Alerts",
-                "value": "{{ len .Alerts }} alert(s)"
+                "value": "{{ .Alerts | len }} alert(s)"
               }
             ]
           },
+          {{- range $i, $alert := .Alerts }}
+          {{ if $i }},{{ end }}
           {
-            "type": "TextBlock",
-            "text": "{{ (index .Alerts 0).Annotations.summary }}",
-            "wrap": true,
-            "weight": "Bolder"
-          },
-          {
-            "type": "TextBlock",
-            "text": "{{ (index .Alerts 0).Annotations.description }}",
-            "wrap": true,
-            "isSubtle": true
+            "type": "Container",
+            "separator": true,
+            "items": [
+              {
+                "type": "TextBlock",
+                "text": "{{ $alert.Labels.hostname }}",
+                "weight": "Bolder",
+                "size": "Medium"
+              },
+              {
+                "type": "TextBlock",
+                "text": "{{ $alert.Annotations.summary }}",
+                "wrap": true,
+                "weight": "Bolder"
+              },
+              {
+                "type": "TextBlock",
+                "text": "{{ $alert.Annotations.description }}",
+                "wrap": true,
+                "isSubtle": true
+              }
+            ]
           }
+          {{- end }}
+        ],
+        "actions": [
+          {{- if (index .Alerts 0).Annotations.dashboard_url }}
+          {
+            "type": "Action.OpenUrl",
+            "title": "Open in Grafana",
+            "url": "{{ (index .Alerts 0).Annotations.dashboard_url }}"
+          }
+          {{- end }}
         ]
       }
     }

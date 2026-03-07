@@ -14,7 +14,7 @@
 | Phase 1: Alloy Agent Configs | Completed | 13 configs: common (3), Windows base+4 roles (6), Linux base+docker (3), deployment guide (1) |
 | Phase 2: Backend Configs (Prometheus + Loki) | Completed | 6 tasks: Prometheus config + recording rules, Loki config, Grafana provisioning, docs |
 | Phase 3: Alerting Rules and Routing | Completed | 8 tasks: 46 alert rules, Alertmanager routing + Teams template, Grafana notifiers, runbooks |
-| Phase 3.1: Alert Routing Enhancement | Pending | Site-based datacenter routing, per-site email DLs, SMTP auth, templatized receiver mapping |
+| Phase 3.1: Alert Routing Enhancement | Completed | 8 tasks: site-based datacenter routing (3 sites), 6 per-site email receivers, SMTP auth, enhanced Teams template, Helm/Grafana sync, validated |
 | Phase 4: Grafana Dashboards | Completed | 4 dashboards (Windows, Linux, Infra Overview, Log Explorer) + customization guide |
 | Phase 5: Validation Tooling | Completed | 3 validators + runner, 12/12 tests passing, requirements.txt, docs |
 | Phase 5.5: Docker Compose PoC | Completed | Local testing stack validated end-to-end (metrics, logs, recording rules) |
@@ -190,40 +190,40 @@
 
 **Goal**: Extend Alertmanager routing to support site-based alert distribution via email, with templatized per-site distribution list mappings. The existing severity-based Teams routing remains unchanged. This enhancement adds a `datacenter` child-route layer so deployers can map each site to its own ops email DL by editing a single config block.
 
-**Status**: Pending
+**Status**: Completed
 
 **Prerequisite**: Phase 3 (complete)
 
 ### Tasks
 
-- [ ] 1. Add site-based `datacenter` child routes to `alertmanager.yml` routing tree
+- [x] 1. Add site-based `datacenter` child routes to `alertmanager.yml` routing tree
   - Insert `match_re: { datacenter: "<site-pattern>" }` children under each severity tier
   - Templatize with placeholder site names (site-a, site-b, site-c) so deployers replace values per fork
   - Preserve existing severity-based Teams routing (critical -> Teams + email, warning -> Teams, info -> Teams)
-- [ ] 2. Create per-site email receivers with templatized DL addresses
+- [x] 2. Create per-site email receivers with templatized DL addresses
   - Pattern: `site_<name>_critical` receiver -> `site-<name>-ops@example.com`
   - Include both Teams webhook and email in critical/warning receivers per site
   - Use `example.com` placeholder domain throughout (deployers replace per fork)
-- [ ] 3. Add SMTP authentication fields to global config
+- [x] 3. Add SMTP authentication fields to global config
   - `smtp_auth_username` and `smtp_auth_password` via environment variable substitution
   - Document env vars in `.env.example`
   - Verify Helm `values.yaml` already has `alertmanager.notifications.smtp.*` fields; add any missing
-- [ ] 4. Enhance Teams Adaptive Card template (`configs/alertmanager/templates/teams.tmpl`)
+- [x] 4. Enhance Teams Adaptive Card template (`configs/alertmanager/templates/teams.tmpl`)
   - Iterate over all alerts in the group (current template only renders `[0]`)
   - Add Grafana dashboard deep-link using `dashboard_url` annotation
   - Add `datacenter` and `category` labels to the card facts
-- [ ] 5. Update Helm values and secrets for site-email mapping
+- [x] 5. Update Helm values and secrets for site-email mapping
   - Add `alertmanager.notifications.siteEmails` map in `values.yaml` (site name -> DL address)
   - Update `alertmanager-secret.yaml` template to inject site email values
   - Ensure SMTP password flows through Kubernetes Secret, not plain text
-- [ ] 6. Sync Grafana contact points (`configs/grafana/notifiers/notifiers.yml`)
+- [x] 6. Sync Grafana contact points (`configs/grafana/notifiers/notifiers.yml`)
   - Add per-site notification policies mirroring Alertmanager site routing
   - Maintain Grafana as the secondary routing path (Alertmanager is primary)
-- [ ] 7. Update `.env.example` with new environment variables
+- [x] 7. Update `.env.example` with new environment variables
   - `SMTP_AUTH_USERNAME`, `SMTP_AUTH_PASSWORD`
   - `SMTP_SMARTHOST` (already present, verify)
   - Document per-site email DL convention
-- [ ] 8. Validate and test routing
+- [x] 8. Validate and test routing
   - Run `scripts/validate_prometheus.py` against updated Alertmanager config
   - Verify route matching logic with `amtool config routes test` examples in docs
   - Update `docs/ALERT_RUNBOOKS.md` with site-routing explanation

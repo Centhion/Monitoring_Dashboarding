@@ -45,6 +45,12 @@ Operational procedures for each alert rule. Find the alert name in the table of 
 - [FleetLowDiskServers](#fleetlowdiskservers)
 - [FleetServersNotReporting](#fleetserversnotreporting)
 
+### Alert Routing
+- [Routing Hierarchy](#routing-hierarchy)
+- [Adding a New Site](#adding-a-new-site)
+- [Testing Route Matching](#testing-route-matching)
+- [Teams Adaptive Card Template](#teams-adaptive-card-template)
+
 ### Role-Specific Alerts
 - [AdReplicationFailure](#adreplicationfailure)
 - [AdLdapSearchSlow](#adldapsearchslow)
@@ -379,3 +385,110 @@ Operational procedures for each alert rule. Find the alert name in the table of 
 **Severity**: Critical
 
 **Investigate**: `systemctl status docker` and `journalctl -u docker`. Restart Docker daemon.
+
+---
+
+## Alert Routing Architecture
+
+### Routing Hierarchy
+
+Alertmanager routes alerts through a two-level hierarchy:
+
+1. **Severity tier** (critical / warning / info) -- determines urgency and timing
+2. **Datacenter tier** (site-a / site-b / site-c / ...) -- determines which ops team receives the alert
+
+Each combination of severity and datacenter maps to a dedicated receiver that delivers notifications to both Teams (webhook) and the site-specific email distribution list.
+
+### Routing Flow
+
+```
+Alert fires with labels: severity=critical, datacenter=site-a
+  |
+  v
+Route tree evaluates severity=critical child
+  |
+  v
+Datacenter child routes check datacenter label:
+  - datacenter=site-a  -> site_a_critical receiver (Teams + site-a-ops@example.com)
+  - datacenter=site-b  -> site_b_critical receiver (Teams + site-b-ops@example.com)
+  - datacenter=site-c  -> site_c_critical receiver (Teams + site-c-ops@example.com)
+  - (no match)          -> teams_and_email fallback (Teams + ops-team@example.com)
+```
+
+### Severity Behavior
+
+| Severity | Channels | Group Wait | Repeat Interval | Site Routing |
+|----------|----------|------------|-----------------|--------------|
+| Critical | Teams + Email | 15s | 1h | Yes -- per-site email DL |
+| Warning  | Teams + Email | 30s (default) | 4h | Yes -- per-site email DL |
+| Info     | Teams only | 30s (default) | 12h | No -- informational only |
+
+### Adding a New Site
+
+To add a site to the routing tree:
+
+1. **alertmanager.yml** -- Add two new routes (critical + warning) and two new receivers:
+   - Route: `match: { datacenter: <site-name> }` under the critical and warning sections
+   - Receiver: `site_<name>_critical` with Teams webhook + email to `<site>-ops@example.com`
+   - Receiver: `site_<name>_warning` with Teams webhook + email to `<site>-ops@example.com`
+
+2. **notifiers.yml** -- Add a new Grafana contact point and notification policy entries:
+   - Contact point: `Site-<Name> Email` with the site email DL
+   - Policy routes: `datacenter = <site-name>` under critical and warning tiers
+
+3. **.env** -- Add `SITE_<NAME>_EMAIL=<site>-ops@yourcompany.com`
+
+4. **Helm values.yaml** -- Add the site to `alertmanager.notifications.siteEmails`
+
+### Fallback Behavior
+
+Alerts from datacenters that are not explicitly mapped in the routing tree fall through to the default receiver:
+
+- **Critical**: `teams_and_email` -- delivers to Teams and the catch-all `ops-team@example.com`
+- **Warning**: `teams_default` -- delivers to Teams only
+- **Info**: `teams_info` -- delivers to Teams only (no resolved notifications)
+
+This ensures no alerts are dropped during incremental site onboarding.
+
+### Inhibition Rules
+
+Two inhibition rules suppress noise when higher-severity conditions exist:
+
+1. **Server-down suppression**: If `WindowsServerDown` or `LinuxServerDown` fires for a host, all warning/info alerts for that same hostname are suppressed.
+2. **Pipeline failure suppression**: If `PrometheusNotificationsFailing` fires, all `Fleet*` alerts are suppressed since the monitoring pipeline itself is unreliable.
+
+### Testing Route Matching
+
+Use `amtool` to verify which receiver an alert would route to:
+
+```bash
+# Test a critical alert from site-a
+amtool config routes test --config.file=configs/alertmanager/alertmanager.yml \
+  severity=critical datacenter=site-a alertname=WindowsCpuHighCritical hostname=web01
+
+# Test a warning alert from an unmapped datacenter
+amtool config routes test --config.file=configs/alertmanager/alertmanager.yml \
+  severity=warning datacenter=site-z alertname=LinuxMemoryHighWarning hostname=db01
+
+# Test an info alert (no site routing)
+amtool config routes test --config.file=configs/alertmanager/alertmanager.yml \
+  severity=info datacenter=site-a alertname=WindowsServerReboot hostname=app01
+```
+
+### Teams Adaptive Card Template
+
+The Teams notification template (`configs/alertmanager/templates/teams.tmpl`) renders an Adaptive Card with:
+
+- **Header**: Alert status (FIRING/RESOLVED) with color coding
+- **Summary facts**: Severity, datacenter, environment, category, alert count
+- **Per-alert blocks**: Each alert in the group renders its own section with hostname, summary, and description
+- **Dashboard link**: If the alert has a `dashboard_url` annotation, an "Open in Grafana" action button appears
+
+To add dashboard links to your alert rules, include the `dashboard_url` annotation:
+
+```yaml
+annotations:
+  summary: "High CPU on {{ $labels.hostname }}"
+  description: "CPU usage is above 90% for 5 minutes."
+  dashboard_url: "https://grafana.example.com/d/windows-overview?var-hostname={{ $labels.hostname }}"
+```

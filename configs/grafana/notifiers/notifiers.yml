@@ -10,6 +10,12 @@
 # Note: The primary alerting path is Prometheus rules -> Alertmanager -> Teams.
 # Grafana contact points provide an additional notification path for
 # Grafana-specific alert rules (e.g., dashboard-driven alerts).
+#
+# SITE ROUTING:
+# This file mirrors the Alertmanager site-based routing structure.
+# Per-site email contact points route critical/warning alerts to the
+# appropriate site ops distribution list based on the `datacenter` label.
+# Add or remove site entries to match your Alertmanager config.
 # =============================================================================
 
 apiVersion: 1
@@ -19,6 +25,7 @@ apiVersion: 1
 # Define notification channels that Grafana alert rules can send to.
 # ---------------------------------------------------------------------------
 contactPoints:
+  # -- Default Teams channel for all alert severities.
   - orgId: 1
     name: "Microsoft Teams"
     receivers:
@@ -34,6 +41,7 @@ contactPoints:
             {{ .CommonAnnotations.summary }}
         disableResolveMessage: false
 
+  # -- Default email fallback for unmapped datacenters.
   - orgId: 1
     name: "Email Fallback"
     receivers:
@@ -44,9 +52,44 @@ contactPoints:
           singleEmail: true
         disableResolveMessage: false
 
+  # -- Site-A email distribution list.
+  - orgId: 1
+    name: "Site-A Email"
+    receivers:
+      - uid: email-site-a
+        type: email
+        settings:
+          addresses: "${SITE_A_EMAIL:-site-a-ops@example.com}"
+          singleEmail: true
+        disableResolveMessage: false
+
+  # -- Site-B email distribution list.
+  - orgId: 1
+    name: "Site-B Email"
+    receivers:
+      - uid: email-site-b
+        type: email
+        settings:
+          addresses: "${SITE_B_EMAIL:-site-b-ops@example.com}"
+          singleEmail: true
+        disableResolveMessage: false
+
+  # -- Site-C email distribution list.
+  - orgId: 1
+    name: "Site-C Email"
+    receivers:
+      - uid: email-site-c
+        type: email
+        settings:
+          addresses: "${SITE_C_EMAIL:-site-c-ops@example.com}"
+          singleEmail: true
+        disableResolveMessage: false
+
 # ---------------------------------------------------------------------------
 # Notification Policies
 # Route alerts to contact points based on labels.
+# Mirrors the Alertmanager routing hierarchy:
+#   severity -> datacenter -> contact point
 # ---------------------------------------------------------------------------
 policies:
   - orgId: 1
@@ -54,14 +97,55 @@ policies:
     group_by:
       - alertname
       - hostname
+      - datacenter
     group_wait: 30s
     group_interval: 5m
     repeat_interval: 4h
     routes:
-      # Critical alerts go to Teams and Email.
+      # Critical alerts: route by datacenter to site-specific email + Teams.
       - receiver: "Email Fallback"
         matchers:
           - severity = critical
         continue: true
         group_wait: 15s
         repeat_interval: 1h
+        routes:
+          - receiver: "Site-A Email"
+            matchers:
+              - datacenter = site-a
+            continue: true
+          - receiver: "Site-B Email"
+            matchers:
+              - datacenter = site-b
+            continue: true
+          - receiver: "Site-C Email"
+            matchers:
+              - datacenter = site-c
+            continue: true
+
+      # Warning alerts: route by datacenter to site-specific email + Teams.
+      - receiver: "Microsoft Teams"
+        matchers:
+          - severity = warning
+        continue: false
+        repeat_interval: 4h
+        routes:
+          - receiver: "Site-A Email"
+            matchers:
+              - datacenter = site-a
+            continue: true
+          - receiver: "Site-B Email"
+            matchers:
+              - datacenter = site-b
+            continue: true
+          - receiver: "Site-C Email"
+            matchers:
+              - datacenter = site-c
+            continue: true
+
+      # Info alerts: Teams only, no site routing.
+      - receiver: "Microsoft Teams"
+        matchers:
+          - severity = info
+        continue: false
+        repeat_interval: 12h

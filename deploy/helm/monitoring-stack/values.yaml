@@ -171,16 +171,36 @@ alertmanager:
   # -- Notification channel configuration.
   # These values are injected into a Kubernetes Secret and mounted as
   # environment variables in the Alertmanager pod.
+  #
+  # IMPORTANT: Alertmanager does not support env var substitution in its
+  # config file. For Kubernetes deployments, either:
+  #   1. Replace placeholder values in configs/alertmanager/alertmanager.yml
+  #      before packaging the chart (recommended)
+  #   2. Use Kustomize overlays to patch the ConfigMap
+  #   3. Use --set-file to inject a pre-configured alertmanager.yml
   notifications:
     # -- Microsoft Teams incoming webhook URL.
     # REQUIRED for alert notifications to work.
     teamsWebhookUrl: "https://example.com/webhook/placeholder"
-    # -- SMTP settings for email fallback notifications
+    # -- SMTP settings for email notifications
     smtp:
       host: "smtp.example.com"
       port: "587"
       from: "monitoring@example.com"
-      to: "ops-team@example.com"
+      # -- SMTP authentication credentials.
+      # The password is stored in a Kubernetes Secret, never in plain text.
+      authUsername: "monitoring@example.com"
+      authPassword: "changeme"
+    # -- Default catch-all email for alerts from unmapped datacenters.
+    defaultEmail: "ops-team@example.com"
+    # -- Per-site email distribution lists.
+    # Each key is a datacenter name matching the `datacenter` label on alerts.
+    # Each value is the ops team email DL for that site.
+    # Add or remove entries to match your site inventory.
+    siteEmails:
+      site-a: "site-a-ops@example.com"
+      site-b: "site-b-ops@example.com"
+      site-c: "site-c-ops@example.com"
 
 # =============================================================================
 # Grafana -- Dashboards and Visualization
