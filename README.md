@@ -38,7 +38,7 @@ python scripts/poc_setup.py
 
 | Directory | Purpose |
 |-----------|---------|
-| `configs/alloy/` | Grafana Alloy agent configurations (Windows and Linux) |
+| `configs/alloy/` | Grafana Alloy agent configurations (Windows, Linux, and site gateway) |
 | `configs/prometheus/` | Prometheus server configuration and recording rules |
 | `configs/loki/` | Loki server configuration |
 | `configs/alertmanager/` | Alertmanager routing, receivers, and inhibition rules |
@@ -61,6 +61,9 @@ python scripts/poc_setup.py
 - **Teams Integration**: Alert notifications delivered to Microsoft Teams channels
 - **Grafana Provisioning**: Datasources, dashboards, and contact points deployed via provisioning YAML
 - **Label-Driven Discovery**: Add sites by setting `ALLOY_DATACENTER` on agents -- dashboards auto-populate with no config changes
+- **SNMP Network Monitoring**: Poll switches, firewalls, APs, and UPS devices via Alloy's embedded snmp_exporter with per-interface traffic, utilization, and error tracking
+- **Hardware Health via Redfish**: Monitor iLO/iDRAC BMC interfaces for system health, temperature, power consumption, and component status (drives, memory)
+- **Two-Tier Deployment**: Tier 1 Alloy agents push from servers; Tier 2 site gateway containers pull SNMP, certificates, and hardware metrics per site
 - **Validation Tooling**: Python scripts to lint and validate configs before deployment
 
 ## Dashboards
@@ -73,6 +76,9 @@ python scripts/poc_setup.py
 | Windows Server Overview | `windows-overview` | Windows Servers | Per-host Windows CPU, memory, disk, network, services |
 | Linux Server Overview | `linux-overview` | Linux Servers | Per-host Linux CPU, memory, disk, network, systemd |
 | IIS Overview | `iis-overview` | Windows Servers | IIS request rates, error ratios, connections, access logs |
+| Certificate Overview | `cert-overview` | Certificates | SSL/TLS certificate expiry tracking with probe health |
+| Network Infrastructure | `network-overview` | Network | SNMP device inventory, interface status, traffic, utilization |
+| Hardware Health | `hardware-overview` | Hardware | Redfish BMC health, temperatures, power, component status |
 
 All dashboards include a cross-navigation link bar. Template variables (`environment`, `datacenter`, `hostname`) propagate between dashboards for seamless drill-down.
 

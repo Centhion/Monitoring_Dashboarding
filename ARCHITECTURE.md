@@ -18,33 +18,35 @@ This document outlines the architecture and design decisions for the Enterprise 
 ## Data Flow
 
 ```
-+-------------------+     +-------------------+
-| Windows Servers   |     | Linux Servers     |
-| (Grafana Alloy)   |     | (Grafana Alloy)   |
-+--------+----------+     +--------+----------+
-         |                          |
-         |  metrics (remote write)  |  metrics (remote write)
-         |  logs (push)             |  logs (push)
-         v                          v
-+--------+----------+     +--------+----------+
-| Prometheus        |     | Loki              |
-| (metrics)         |     | (logs)            |
-+--------+----------+     +--------+----------+
-         |                          |
-         |  alert rules evaluate    |
-         v                          |
-+--------+----------+               |
-| Alertmanager      |               |
-| (routing/grouping)|               |
-+--------+----------+               |
-         |                          |
-         |  webhooks                |
-         v                          |
-+--------+----------+               |
-| Microsoft Teams   |               |
-+-------------------+               |
-                                    |
-         +-----+-------------------+
+  TIER 1: Per-Server Agents (Push)       TIER 2: Per-Site Gateway (Pull)
+
++-------------------+  +---------------+  +-----------------------------+
+| Windows Servers   |  | Linux Servers |  | Alloy Site Gateway          |
+| (Grafana Alloy)   |  | (Grafana Alloy)|  |   SNMP exporter (embedded) |
++--------+----------+  +-------+-------+  |   Blackbox exporter (certs) |
+         |                      |          |   Redfish exporter (sidecar)|
+         | metrics (remote write)          +-------------+--------------+
+         | logs (push)          |                        |
+         v                      v          metrics (remote write)
++--------+----------+  +--------+------+               |
+| Prometheus        |<-+---------------+---------------+
+| (metrics)         |
++--------+----------+  +--------+------+
+         |              | Loki         |<--- logs (push) from Tier 1
+         | alert rules  | (logs)       |
+         v              +--------+-----+
++--------+----------+            |
+| Alertmanager      |            |
+| (routing/grouping)|            |
++--------+----------+            |
+         |                       |
+         | webhooks              |
+         v                       |
++--------+----------+            |
+| Microsoft Teams   |            |
++-------------------+            |
+                                 |
+         +-----+-----------------+
          |
          v
 +--------+----------+
@@ -73,6 +75,9 @@ Monitoring_Dashboarding/
 |   |   +-- common/             # Shared components (labels, remote_write, loki_push)
 |   |   +-- windows/            # Windows base + role configs (.alloy)
 |   |   +-- linux/              # Linux base + role configs (.alloy)
+|   |   +-- gateway/            # Tier 2 site gateway (SNMP, Blackbox, Redfish)
+|   |   +-- certs/              # Certificate blackbox probe modules and endpoints
+|   |   +-- roles/              # Standalone role configs (cert monitor)
 |   +-- prometheus/             # Prometheus server config and recording rules
 |   +-- loki/                   # Loki server config
 |   +-- alertmanager/           # Alertmanager routing and receivers
@@ -127,6 +132,9 @@ Monitoring_Dashboarding/
 | Teams webhook over MCP integration | Simple HTTP webhook is sufficient for alert notifications. No external dependency or MCP server needed. | 2026-02-17 |
 | Hub-and-spoke dashboard architecture | Enterprise NOC (multi-site grid) and Site Overview (per-resort drill-down) provide location-centric navigation. Template variables propagate between dashboards via URL params. Sites auto-populate from `datacenter` label -- no dashboard changes needed to add sites. | 2026-03-06 |
 | Site recording rules layer | Pre-aggregate instance metrics to datacenter level (`site:*` namespace) so hub dashboards query cheap pre-computed series instead of scanning all instances. | 2026-03-06 |
+| Two-tier Alloy deployment model | Tier 1: Alloy Agent installed per server (push-based, deployed via SCCM/Ansible). Tier 2: Alloy Site Gateway container per site (pull-based, polls SNMP/certs/hardware). Separates agent-based from gateway-based monitoring cleanly. | 2026-03-07 |
+| Embedded SNMP exporter over standalone | Alloy natively embeds snmp_exporter via `prometheus.exporter.snmp`, eliminating a separate container. Supports `config_merge_strategy = "merge"` to extend built-in modules (system, if_mib) with custom vendor profiles. | 2026-03-07 |
+| External Redfish exporter as sidecar | Alloy has no native Redfish component. A Redfish exporter sidecar runs alongside the site gateway container, accepting BMC targets via the multi-target URL parameter pattern (`__param_target`). | 2026-03-07 |
 
 ## External Dependencies
 
@@ -140,6 +148,7 @@ Monitoring_Dashboarding/
 | Python | 3.10+ | Tooling scripts |
 | PyYAML | Latest | YAML parsing for config validation |
 | jsonschema | Latest | JSON schema validation for dashboards |
+| Redfish Exporter | Latest | Sidecar for polling iLO/iDRAC BMC interfaces via Redfish API (Tier 2 gateway) |
 
 ## Phase 2 Additions
 
