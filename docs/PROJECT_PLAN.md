@@ -30,6 +30,7 @@
 | Phase 7G: Agentless Collection | Blocked | WinRM/SSH for edge cases -- pending internal use case review |
 | Phase 7H: Dashboard Hub Architecture | Completed | Enterprise NOC + per-site drill-down dashboards for location-centric monitoring |
 | Phase 8: Access Control and RBAC | Pending | Grafana folder provisioning, Team mapping, LDAP/AD group sync for hybrid AD/Entra ID |
+| Phase 9: Requirements Gap Closure | Pending | Agentless probing, file/process monitoring, alert dedup, maintenance windows, SLA, SNMP traps, audit logging, forecasting |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
 
@@ -1174,6 +1175,342 @@
 
 ---
 
+## Phase 9: Requirements Gap Closure
+
+**Goal**: Close all internally-solvable gaps identified in the team requirements analysis (see `docs/REQUIREMENTS_RESPONSE.md`). Eliminates the 15-20% feature delta between the internal stack and paid platforms, making the build-vs-buy decision definitive on cost.
+
+**Status**: Pending
+
+**Prerequisite**: None. All work is additive configuration. No dependency on team decisions (Q1-Q10 in REQUIREMENTS_RESPONSE.md) or on Phases 5.7, 6, 7E, 7G, or 8.
+
+**Estimated effort**: 10-14 days of configuration work.
+
+**Approach**: All tasks create new files or extend existing configs. No existing production configs are replaced or restructured. Follows the fork-and-deploy model -- capability templates are built here; deployers customize targets and thresholds for their environment.
+
+### Tasks -- Group A: Agentless Probing Extensions (1 day)
+
+Extends the existing blackbox exporter and site gateway with ICMP, TCP, UDP, and HTTP probe types.
+
+- [ ] 1. Add ICMP, TCP, and UDP probe modules to blackbox exporter config -- extend `configs/alloy/gateway/site_gateway.alloy`, new `configs/alloy/gateway/blackbox_modules.yml`
+  - Complexity: Simple
+  - Dependencies: None
+
+- [ ] 2. Add HTTP/HTTPS synthetic probe module with response code and body validation -- same files as Task 1
+  - Complexity: Simple
+  - Dependencies: Task 1
+
+- [ ] 3. Create probe target template file with categorized examples (web apps, mail relays, DNS resolvers, database listeners) -- `configs/alloy/gateway/probe_targets.yml`
+  - Complexity: Simple
+  - Dependencies: None
+
+- [ ] 4. Create probe failure alert rules (HTTPProbeFailed, ICMPProbeFailed, TCPProbeFailed, UDPProbeFailed) -- `alerts/prometheus/probe_alerts.yml`
+  - Complexity: Simple
+  - Dependencies: Tasks 1-2
+
+- [ ] 5. Create probing recording rules (probe success ratio, latency aggregation by target and site) -- `configs/prometheus/probe_recording_rules.yml`
+  - Complexity: Simple
+  - Dependencies: Tasks 1-2
+
+- [ ] 6. Update Prometheus config to load new probe rule files -- extend `configs/prometheus/prometheus.yml` rule_files list
+  - Complexity: Simple
+  - Dependencies: Tasks 4-5
+
+**Covers requirements**: Agentless / Stimulus response status monitoring (ICMP, TCP/UDP), Synthetic service testing.
+
+### Tasks -- Group B: Alloy Agent Collection Extensions (1 day)
+
+New opt-in Alloy role configs for file/folder size monitoring and arbitrary process monitoring. New files only.
+
+- [ ] 7. Create Windows file/folder size monitoring component -- `configs/alloy/windows/role_file_size.alloy`
+  - Monitors configurable file and folder paths, exposes size as metric
+  - Paths specified via environment variable or config customization
+  - Complexity: Medium
+  - Dependencies: None
+
+- [ ] 8. Create Linux file/folder size monitoring component -- `configs/alloy/linux/role_file_size.alloy`
+  - Complexity: Medium
+  - Dependencies: None
+
+- [ ] 9. Create Windows process monitoring component (non-service executables) -- `configs/alloy/windows/role_process.alloy`
+  - Tracks whether specified process names are running, exposes as metric
+  - Process names specified via environment variable or config customization
+  - Complexity: Medium
+  - Dependencies: None
+
+- [ ] 10. Create Linux process monitoring component -- `configs/alloy/linux/role_process.alloy`
+  - Complexity: Medium
+  - Dependencies: None
+
+- [ ] 11. Create file size and process alert rules (FileSizeExceeded, ProcessNotRunning) -- `alerts/prometheus/endpoint_alerts.yml`
+  - Complexity: Simple
+  - Dependencies: Tasks 7-10
+
+**Covers requirements**: File and Folder size monitoring, Program status (running, not running).
+
+### Tasks -- Group C: Dashboard and Forecasting Enhancements (1.5 days)
+
+Extends existing dashboards with capacity forecasting panels. Creates new SLA and probing dashboards.
+
+- [ ] 12. Add `predict_linear` disk capacity forecasting panels to Windows Overview dashboard -- extend `dashboards/windows/windows_overview.json`
+  - Shows "days until disk full at current rate" per volume
+  - Complexity: Simple
+  - Dependencies: None
+
+- [ ] 13. Add `predict_linear` disk capacity forecasting panels to Linux Overview dashboard -- extend `dashboards/linux/linux_overview.json`
+  - Complexity: Simple
+  - Dependencies: None
+
+- [ ] 14. Add `predict_linear` memory and CPU trend panels to Infrastructure Overview -- extend `dashboards/overview/infrastructure_overview.json`
+  - Shows fleet-wide capacity trajectory
+  - Complexity: Simple
+  - Dependencies: None
+
+- [ ] 15. Create SLA recording rules (daily/weekly/monthly availability per host, per role, per site) -- `configs/prometheus/sla_recording_rules.yml`
+  - Uses `avg_over_time(up[period])` for availability percentages
+  - Aggregates by datacenter, role, and fleet-wide
+  - Complexity: Medium
+  - Dependencies: None
+
+- [ ] 16. Create SLA Availability dashboard -- `dashboards/overview/sla_availability.json`
+  - Availability percentage by host, role, and site
+  - SLA target threshold indicators (99.9%, 99.5%, 99.0%)
+  - Top/bottom hosts by availability
+  - Time range selector for daily/weekly/monthly view
+  - Complexity: Medium
+  - Dependencies: Task 15
+
+- [ ] 17. Create Agentless Probing dashboard -- `dashboards/overview/probing_overview.json`
+  - Probe status grid (up/down per target)
+  - Latency timeseries per probe target
+  - Success rate percentages
+  - Complexity: Medium
+  - Dependencies: Group A tasks
+
+- [ ] 18. Update Prometheus config to load SLA recording rules -- extend `configs/prometheus/prometheus.yml` rule_files list
+  - Complexity: Simple
+  - Dependencies: Task 15
+
+**Covers requirements**: Future forecasting, SLA calculation and reporting, Synthetic testing visibility.
+
+### Tasks -- Group D: Alert Deduplication Enhancement (1.5 days)
+
+Adds mass-outage detection and site-level alert suppression to reduce alert storms.
+
+- [ ] 19. Create mass-outage detection recording rules -- `configs/prometheus/outage_recording_rules.yml`
+  - Calculates percentage of hosts unreachable per datacenter and per role
+  - Threshold-based: fires when >X% of a site's hosts are simultaneously unreachable
+  - Complexity: Medium
+  - Dependencies: None
+
+- [ ] 20. Create SitePartialOutage and RolePartialOutage alert rules -- `alerts/prometheus/outage_alerts.yml`
+  - SitePartialOutage: fires when significant portion of a datacenter goes unreachable
+  - RolePartialOutage: fires when significant portion of a role (e.g., all SQL servers) goes unreachable
+  - Complexity: Medium
+  - Dependencies: Task 19
+
+- [ ] 21. Add mass-outage inhibition rules to Alertmanager -- extend `configs/alertmanager/alertmanager.yml` inhibit_rules section
+  - SitePartialOutage suppresses individual host-down alerts for that datacenter
+  - RolePartialOutage suppresses individual service-down alerts for that role
+  - Additive: new rules appended to existing inhibit_rules list
+  - Complexity: Medium
+  - Dependencies: Task 20
+
+- [ ] 22. Document alert deduplication architecture and upstream_device label pattern -- `docs/ALERT_DEDUP.md`
+  - Explains the mass-outage approach (zero maintenance)
+  - Documents optional per-host topology mapping via upstream_device labels (for future use)
+  - Includes decision record from team review (grouping vs full topology)
+  - Complexity: Simple
+  - Dependencies: None
+
+- [ ] 23. Update Prometheus config to load outage recording rules -- extend `configs/prometheus/prometheus.yml` rule_files list
+  - Complexity: Simple
+  - Dependencies: Task 19
+
+**Covers requirement**: Alert deduplication (hierarchy-based) -- via mass-outage detection and grouped suppression.
+
+### Tasks -- Group E: Maintenance Window Tooling (1 day)
+
+Adds recurring maintenance window support and programmatic silence management.
+
+- [ ] 24. Create Grafana mute timing examples in notification policy -- extend `configs/grafana/notifiers/notifiers.yml`
+  - Example recurring windows: weekly patching (Sunday 02:00-06:00), monthly maintenance, backup windows
+  - Deployers customize time ranges and affected notification policies
+  - Complexity: Medium
+  - Dependencies: None
+
+- [ ] 25. Create maintenance window API helper script -- `scripts/maintenance_window.py`
+  - Create silence: by datacenter, role, hostname, or custom label matchers with start/end time
+  - List active silences: shows all current maintenance windows with expiry
+  - Delete silence: removes a scheduled or active silence by ID
+  - Scheduled creation: accepts future start time for pre-planned maintenance
+  - Complexity: Medium
+  - Dependencies: None
+
+- [ ] 26. Document maintenance window workflows -- `docs/MAINTENANCE_WINDOWS.md`
+  - Ad hoc silences via Alertmanager UI
+  - Scheduled silences via maintenance_window.py script
+  - Recurring windows via Grafana mute timings
+  - Scoped silences by label (datacenter, role, hostname)
+  - Complexity: Simple
+  - Dependencies: Tasks 24-25
+
+**Covers requirements**: Alert silencing / maintenance windows (scheduled single-time, recurring, manual ad hoc, dynamic scopes).
+
+### Tasks -- Group F: SNMP Trap Ingestion Pipeline (2 days)
+
+New data flow: SNMP traps received by snmptrapd, formatted to syslog, forwarded to Loki via Alloy.
+
+- [ ] 27. Create snmptrapd configuration for trap reception and syslog formatting -- `configs/snmptrapd/snmptrapd.conf`
+  - Configures trap listener on UDP 162
+  - Formats trap data as structured syslog entries (OID, source IP, severity, varbinds)
+  - Complexity: Medium
+  - Dependencies: None
+
+- [ ] 28. Create Alloy syslog receiver component for trap log ingestion -- `configs/alloy/gateway/role_snmp_traps.alloy`
+  - Receives syslog from snmptrapd
+  - Loki label extraction pipeline for trap fields (OID, source device, severity, trap type)
+  - Forwards structured trap logs to Loki
+  - Complexity: Medium
+  - Dependencies: Task 27
+
+- [ ] 29. Create SNMP trap alert rules via Loki alerting -- `alerts/grafana/snmp_trap_alerts.yml`
+  - Critical trap OIDs trigger alerts (link down, power failure, authentication failure)
+  - Uses LogQL queries against trap log labels
+  - Complexity: Medium
+  - Dependencies: Task 28
+
+- [ ] 30. Add SNMP trap log panel to Network Overview dashboard -- extend `dashboards/network/network_overview.json`
+  - Trap history log stream filtered by device and severity
+  - Trap volume graph
+  - Complexity: Simple
+  - Dependencies: Task 28
+
+- [ ] 31. Document SNMP trap pipeline setup and OID-to-alert mapping -- `docs/SNMP_TRAPS.md`
+  - Architecture: snmptrapd -> syslog -> Alloy -> Loki
+  - Trap OID reference for common network devices
+  - How to add new trap-based alerts
+  - Device-side trap destination configuration
+  - Complexity: Simple
+  - Dependencies: Tasks 27-29
+
+**Covers requirement**: SNMP trap ingestion.
+
+### Tasks -- Group G: Audit Logging Pipeline (1.5 days)
+
+Forwards Grafana server logs to Loki for Tier 1 + Tier 2 (OSS) audit capability.
+
+- [ ] 32. Configure Grafana structured JSON logging at info level -- Grafana env vars or `configs/grafana/grafana.ini`
+  - Enables structured JSON log output
+  - Ensures API request logging includes user identity and action
+  - Complexity: Simple
+  - Dependencies: None
+
+- [ ] 33. Create Alloy component to tail Grafana server logs and forward to Loki -- `configs/alloy/roles/role_grafana_audit.alloy`
+  - Tails Grafana log file or stdout
+  - Loki label extraction pipeline for audit fields (user, action, dashboard_uid, alert_rule_id, HTTP method, path)
+  - Complexity: Medium
+  - Dependencies: Task 32
+
+- [ ] 34. Create Audit Trail dashboard -- `dashboards/overview/audit_trail.json`
+  - Login activity (successful and failed, by user and IP)
+  - Dashboard modifications (create, update, delete by user)
+  - Alert rule changes (by user)
+  - Silence creation and deletion (by user)
+  - Filterable by user, action type, and time range
+  - Complexity: Medium
+  - Dependencies: Task 33
+
+- [ ] 35. Document audit logging architecture, capabilities, and limitations -- `docs/AUDIT_LOGGING.md`
+  - What this approach covers (Tier 1 + partial Tier 2)
+  - What requires Grafana Enterprise (full Tier 2 change diffs, Tier 3 compliance)
+  - Log retention and querying via Loki
+  - Complexity: Simple
+  - Dependencies: Tasks 32-34
+
+**Covers requirement**: User and admin action auditing (at OSS-achievable granularity).
+
+### Tasks -- Group H: Validation and Documentation (1 day)
+
+Extends validators, deployment configs, and documentation to cover all new Phase 9 components.
+
+- [ ] 36. Extend validate_prometheus.py to cover new rule files (probe, outage, SLA) -- `scripts/validate_prometheus.py`
+  - Complexity: Simple
+  - Dependencies: Groups A, C, D
+
+- [ ] 37. Extend validate_dashboards.py to cover new dashboards (SLA, Probing, Audit Trail) -- `scripts/validate_dashboards.py`
+  - Complexity: Simple
+  - Dependencies: Groups C, G
+
+- [ ] 38. Add new configs to Docker Compose bind mounts for PoC testing -- extend `deploy/docker/docker-compose.yml`
+  - Complexity: Simple
+  - Dependencies: All groups
+
+- [ ] 39. Add new configs to Helm chart ConfigMap templates -- extend `deploy/helm/monitoring-stack/templates/`
+  - Complexity: Simple
+  - Dependencies: All groups
+
+- [ ] 40. Update ARCHITECTURE.md with new components (probing tier, trap pipeline, audit pipeline)
+  - Complexity: Simple
+  - Dependencies: All groups
+
+- [ ] 41. Update README.md feature list with new capabilities
+  - Complexity: Simple
+  - Dependencies: All groups
+
+- [ ] 42. Create requirements traceability matrix -- `docs/REQUIREMENTS_TRACEABILITY.md`
+  - Maps every requirement line item to the phase/config that delivers it
+  - Distinguishes needs vs wants, covered vs decision-dependent
+  - Complexity: Medium
+  - Dependencies: All groups
+
+### Execution Order
+
+```
+Week 1:
+  Day 1-2:  Group A (probing) + Group B (file size, process monitoring)
+            All additive new files, zero risk to existing configs
+  Day 3-4:  Group C (dashboards, SLA, forecasting)
+            Depends on Group A for probing dashboard; SLA is standalone
+  Day 5:    Group D (alert dedup)
+            Recording rules first, then inhibition rules
+
+Week 2:
+  Day 6:    Group E (maintenance windows)
+            Independent of other groups
+  Day 7-8:  Group F (SNMP traps)
+            Most complex, new data flow pipeline
+  Day 9-10: Group G (audit logging)
+            Requires Grafana config understanding
+
+Week 3:
+  Day 11:   Group H (validation and documentation)
+            Runs validators, updates deployment configs, writes docs
+```
+
+### Risks
+
+- **ICMP probes require NET_RAW capability**: Blackbox exporter in a container needs the NET_RAW capability for ICMP. Mitigation: document container capability requirement, test in Docker Compose PoC.
+- **SNMP trap pipeline adds snmptrapd dependency**: New external component. Mitigation: document as optional, trap pipeline only deployed at sites that need it.
+- **Grafana audit log format may vary between versions**: Label extraction pipeline assumes specific JSON fields. Mitigation: pin expected log fields, document tested Grafana version.
+- **SLA recording rules cardinality on large fleets**: Per-host daily availability could be expensive. Mitigation: aggregate by role and datacenter in recording rules, per-host available via instant queries only.
+- **predict_linear confidence decreases over long extrapolation**: Mitigation: add panel description explaining projection methodology and limitations.
+
+### Success Criteria
+
+- All new alert rules load without error in Prometheus
+- All new dashboards pass validate_dashboards.py (JSON syntax, UID uniqueness, datasource refs)
+- All new recording rules pass validate_prometheus.py (YAML syntax, duration format, label compliance)
+- Docker Compose PoC starts cleanly with all new configs mounted
+- Helm chart templates render correctly with new ConfigMap entries
+- validate_all.py passes with zero failures
+- REQUIREMENTS_TRACEABILITY.md maps every non-decision-dependent requirement to a delivering phase
+
+### Human Actions Required
+
+None for Phase 9. All work is configuration. Deployment-time customization (probe target lists, process names, file paths, SLA targets, trap OID mappings) is documented but not hard-coded.
+
+---
+
 ## Human Actions Checklist
 
 > Consolidated list of all actions requiring human intervention.
@@ -1318,5 +1655,5 @@ All monitoring at each site uses two distinct Alloy deployment patterns:
 
 ---
 
-*Document Version: 1.9*
+*Document Version: 2.0*
 *Last Updated: 2026-03-09*
