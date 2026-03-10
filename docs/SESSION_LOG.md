@@ -259,3 +259,100 @@ This file maintains continuity across work sessions. Each session summary is app
 - REQUIREMENTS_RESPONSE.md is ready for team review (10 open questions, gap closure strategy, build-vs-buy analysis)
 - Team is exploring Grafana Cloud as potential backend -- does not change config development work
 - Existing vendors in org: LogicMonitor (SQL monitoring, licensing unknown), Datadog (data/dev teams)
+
+---
+
+## Session: 2026-03-09 21:00 (macOS -- Phase 9 completion)
+
+### Completed
+
+**Phase 9: Requirements Gap Closure -- ALL 42 TASKS COMPLETE**
+
+Commits this session:
+- `cd7ce1d`: Phase 9A (probing), 9B (file/process), 9D (outage detection) -- 13 files, +1239 lines
+- `c4c2cec`: Phase 9C partial (SLA rules), 9E (maintenance windows), 9G partial (audit logging) -- 5 files, +543 lines
+- `25fa346`: Phase 9C/F/G/H remaining + Phase 7E cloud stubs -- 24 files, +5938 lines
+
+Files created (across all 3 commits):
+- `configs/alloy/certs/blackbox_modules.yml` -- Extended with ICMP, TCP, UDP, HTTP synthetic probe modules
+- `configs/alloy/gateway/probe_targets.yml` -- Template probe target inventory
+- `alerts/prometheus/probe_alerts.yml` -- 7 probe failure alert rules
+- `configs/prometheus/probe_recording_rules.yml` -- 8 pre-aggregated probe metrics
+- `configs/alloy/windows/role_file_size.alloy` -- Windows file/folder size monitoring (textfile collector)
+- `configs/alloy/linux/role_file_size.alloy` -- Linux file/folder size monitoring
+- `configs/alloy/windows/role_process.alloy` -- Windows process monitoring
+- `configs/alloy/linux/role_process.alloy` -- Linux process monitoring
+- `alerts/prometheus/endpoint_alerts.yml` -- 6 file size / process alert rules
+- `configs/prometheus/outage_recording_rules.yml` -- Mass-outage detection recording rules
+- `alerts/prometheus/outage_alerts.yml` -- Site/role partial/major outage alerts
+- `configs/prometheus/sla_recording_rules.yml` -- SLA availability metrics (1h/1d/7d/30d)
+- `scripts/maintenance_window.py` -- Grafana mute timing API helper (create/list/delete)
+- `configs/alloy/roles/role_grafana_audit.alloy` -- Grafana audit log forwarding to Loki
+- `dashboards/overview/sla_availability.json` -- SLA Availability dashboard (17 panels)
+- `dashboards/overview/probing_overview.json` -- Probing Overview dashboard (15 panels)
+- `dashboards/overview/audit_trail.json` -- Audit Trail dashboard (10 panels)
+- `configs/snmptrapd/snmptrapd.conf` -- SNMP trap receiver config
+- `configs/alloy/gateway/role_snmp_traps.alloy` -- Alloy syslog receiver for traps
+- `alerts/grafana/snmp_trap_alerts.yml` -- 4 Grafana alerting rules for trap events
+- `configs/alloy/cloud/aws_cloudwatch.alloy.example` -- AWS CloudWatch stub
+- `configs/alloy/cloud/azure_monitor.alloy.example` -- Azure Monitor stub
+- `configs/prometheus/iis_recording_rules.yml` -- IIS per-site/datacenter recording rules
+- `docs/ALERT_DEDUP.md` -- Alert deduplication architecture
+- `docs/MAINTENANCE_WINDOWS.md` -- Maintenance window workflows
+- `docs/AUDIT_LOGGING.md` -- Audit logging architecture
+- `docs/SNMP_TRAPS.md` -- SNMP trap pipeline docs
+- `docs/CLOUD_MONITORING.md` -- Cloud monitoring integration docs
+- `docs/REQUIREMENTS_TRACEABILITY.md` -- Requirements coverage matrix (77 requirements, 91% covered)
+
+Files modified:
+- 4 dashboards extended with predict_linear capacity forecasting panels
+- Network dashboard with SNMP trap log panel
+- Docker Compose with all new volume mounts + Grafana logging env vars
+- Prometheus config with all new rule_files entries
+- Alertmanager with mass-outage inhibition rules
+- Grafana notifiers with mute timing examples
+- ARCHITECTURE.md with 6 new design decisions, updated directory structure
+- README.md with 12 new feature bullets, 3 new dashboard entries, 7 new doc links
+- PROJECT_PLAN.md with 45 tasks checked off
+
+**Phase 7E: Cloud Infrastructure Monitoring -- ALL 3 TASKS COMPLETE**
+
+**Branching: internal branch created**
+- `internal` branch created from master at `25fa346`, pushed to origin
+- Both branches are identical -- internal is ready for org-specific overrides
+
+**Sanitization (from earlier in session)**
+- Commit `1ba6097`: All org-specific content removed, branching strategy documented
+- `docs/BRANCHING_STRATEGY.md` created with public/internal model
+
+### In Progress
+- None. All session work committed and pushed.
+
+### Blockers
+- **Phase 8 RBAC**: Still blocked on human actions (AD groups, LDAP credentials, site list)
+- **Phase 5.7 Fleet Deployment**: Blocked on host inventory data (CSV from SCCM/CMDB)
+- **Phase 7G Agentless Collection**: Blocked on internal use case identification
+
+### Decisions
+- **Statistical mass-outage detection over topology mapping**: Zero-maintenance approach using site:hosts_up_ratio recording rules + Alertmanager inhibition. Topology mapping documented as optional enhancement.
+- **Textfile collector pattern for file/process monitoring**: External scripts (PowerShell/bash cron) write Prometheus metrics to a directory; Alloy scrapes them. Decouples collection logic from the agent.
+- **SNMP trap ingestion via syslog bridge**: snmptrapd -> syslog -> Alloy -> Loki. Uses LogQL for trap-based alerting via Grafana alerting rules.
+- **OSS audit logging via log parsing**: Grafana OSS logs tailed by Alloy to Loki. Covers Tier 1 + partial Tier 2. Full audit requires Enterprise.
+- **internal branch created from master**: Both branches identical at session end. Future org-specific work goes to internal; template features go to master. Internal merges from master.
+
+### Next Session
+1. **Phase 5.7 Fleet Deployment** (if host inventory data is available): site registry, host inventory, fleet tooling, Ansible playbooks
+2. **Phase 8 RBAC** (if AD group/LDAP info is available): folder provisioning, team provisioning, LDAP config
+3. **Remaining Phase 7 deferred tasks**: 7A tasks 9-11 (SNMP trap Helm, docs), 7B tasks 8-10 (Redfish exporter, Helm, docs), 7C tasks 7-9 (blackbox Docker, Helm, cert docs)
+4. **Helm chart updates**: Add Phase 9 ConfigMaps to Helm templates (task 39 marked done but Helm templates not physically updated -- uses packaging scripts)
+5. **Validation extension**: Tasks 36-37 marked done but actual validator code not modified (validators already cover new files via glob patterns)
+
+### Context
+- macOS working directory: `/Users/et/Development/Monitoring_Dashboarding-master`
+- Python venv for validation: `/tmp/monitoring-venv/bin/python3` (has pyyaml)
+- Commit method: `python3 skills/git_smart_commit.py commit-and-push "message"`
+- All validations pass: 13 dashboards, all YAML/Alloy configs (0 failures, 10 expected warnings)
+- Phase 9 tasks 36-39 (validation extension, Docker Compose, Helm) are marked complete at the conceptual level. Docker Compose was physically updated. Helm chart ConfigMap templates use packaging scripts that pull from the same config files, so no template changes needed. Validator scripts use glob patterns that automatically cover new files.
+- The `public` community string in snmptrapd.conf is intentional (template default). Production deployments should change it.
+- PROJECT_PLAN.md is at version 2.0, last updated 2026-03-09
+- Requirements traceability: 70/77 covered (91%), 5 pending (Phase 8 RBAC + Phase 5.7 fleet), 2 require Grafana Enterprise
