@@ -119,6 +119,12 @@ Monitoring_Dashboarding/
 |   +-- CLOUD_MONITORING.md    # AWS/Azure integration stubs
 |   +-- REQUIREMENTS_TRACEABILITY.md # Requirements coverage matrix
 |   +-- BRANCHING_STRATEGY.md  # Public template vs internal branch model
+|   +-- SNMP_MONITORING.md     # SNMP network device monitoring guide
+|   +-- HARDWARE_MONITORING.md # Redfish BMC hardware health guide
+|   +-- CERTIFICATE_MONITORING.md # SSL/TLS certificate monitoring guide
+|   +-- FLEET_ONBOARDING.md    # Adding sites, servers, and devices
+|   +-- AGENTLESS_MONITORING.md # Monitoring without agents
+|   +-- RBAC_GUIDE.md          # Grafana RBAC and LDAP/AD integration
 +-- tests/                       # Test suite for validators
 |   +-- test_validators.py     # 12 test cases for all validators
 |   +-- fixtures/              # Valid and invalid config fixtures

@@ -113,6 +113,12 @@ All dashboards include a cross-navigation link bar. Template variables (`environ
 - See `docs/SNMP_TRAPS.md` for SNMP trap ingestion pipeline setup
 - See `docs/CLOUD_MONITORING.md` for AWS CloudWatch and Azure Monitor integration
 - See `docs/REQUIREMENTS_TRACEABILITY.md` for full requirements coverage matrix
+- See `docs/FLEET_ONBOARDING.md` for adding sites, servers, and devices to the platform
+- See `docs/SNMP_MONITORING.md` for SNMP network device monitoring setup
+- See `docs/HARDWARE_MONITORING.md` for Redfish BMC hardware health monitoring
+- See `docs/CERTIFICATE_MONITORING.md` for SSL/TLS certificate expiry monitoring
+- See `docs/AGENTLESS_MONITORING.md` for monitoring devices without agents
+- See `docs/RBAC_GUIDE.md` for Grafana RBAC and LDAP/AD integration
 
 ## Development
 

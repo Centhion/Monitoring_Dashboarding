@@ -399,7 +399,7 @@
   - Accepts `--prometheus-url` (defaults to PROMETHEUS_URL env var)
   - Complexity: Medium
 
-- [ ] 6. Create onboarding runbook -- `docs/FLEET_ONBOARDING.md`
+- [x] 6. Create onboarding runbook -- `docs/FLEET_ONBOARDING.md`
   - Step-by-step guide: adding a new site, adding servers, bulk CSV import, decommissioning
   - Documents how to extend the role vocabulary and OS type list in sites.yml
   - Troubleshooting section for common deployment issues (WinRM, permissions, config conflicts)
@@ -638,7 +638,7 @@
 - [ ] 10. Add SNMP to Helm chart (deferred)
   - Will be addressed during Phase 5.8 Helm chart work
 
-- [ ] 11. Documentation -- `docs/SNMP_MONITORING.md` (deferred)
+- [x] 11. Documentation -- `docs/SNMP_MONITORING.md` (deferred)
   - Setup guide, adding devices, SNMPv3 auth, custom vendor MIBs
 
 ### Risks
@@ -715,7 +715,7 @@
   - Sidecar container definition alongside site gateway
   - Will be addressed during Phase 5.8 Helm chart work
 
-- [ ] 10. Documentation -- `docs/HARDWARE_MONITORING.md` (deferred)
+- [x] 10. Documentation -- `docs/HARDWARE_MONITORING.md` (deferred)
   - Redfish API prerequisites, adding servers, credential security
 
 ### Risks
@@ -800,7 +800,7 @@
   - Complexity: Simple
   - Dependencies: Task 7
 
-- [ ] 9. Documentation -- `docs/CERTIFICATE_MONITORING.md`
+- [x] 9. Documentation -- `docs/CERTIFICATE_MONITORING.md`
   - Adding endpoints to monitoring (internal and public)
   - Alert thresholds and response procedures
   - Internal PKI vs public cert workflows
@@ -944,7 +944,7 @@
   - Complexity: Simple
   - Dependencies: Task 3
 
-- [ ] 6. Documentation -- `docs/AGENTLESS_MONITORING.md`
+- [x] 6. Documentation -- `docs/AGENTLESS_MONITORING.md`
   - Decision tree: when to use agentless vs agent-based
   - Security considerations (credential storage, WinRM hardening, SSH key management)
   - Complexity: Simple
@@ -1137,7 +1137,7 @@
   - Complexity: Medium
   - Dependencies: Tasks 1-3
 
-- [ ] 8. Document RBAC setup and operations -- `docs/RBAC_GUIDE.md`
+- [x] 8. Document RBAC setup and operations -- `docs/RBAC_GUIDE.md`
   - Prerequisites: AD security groups created, LDAP service account, Grafana LDAP config
   - Step-by-step: adding a new site (folder + team + AD group + permissions)
   - Step-by-step: onboarding a new team member (AD group add only)

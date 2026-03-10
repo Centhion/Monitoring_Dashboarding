@@ -154,9 +154,12 @@ Dashboard JSON files live in `dashboards/`:
 
 | Directory | Dashboards |
 |-----------|-----------|
-| `dashboards/windows/` | Windows Server Overview |
+| `dashboards/windows/` | Windows Server Overview, IIS Overview |
 | `dashboards/linux/` | Linux Server Overview |
-| `dashboards/overview/` | Infrastructure Overview, Log Explorer |
+| `dashboards/overview/` | Enterprise NOC, Site Overview, Infrastructure Overview, SLA Availability, Probing Overview, Audit Trail, Log Explorer |
+| `dashboards/network/` | Network Infrastructure |
+| `dashboards/hardware/` | Hardware Health |
+| `dashboards/certs/` | Certificate Overview |
 
 Edit in Grafana UI, then export JSON and save to the appropriate directory.
 
