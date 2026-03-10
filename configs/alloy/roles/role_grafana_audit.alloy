@@ -1,0 +1,116 @@
+// =============================================================================
+// Grafana Audit Log Forwarding -- Alloy Config (Phase 9G)
+// =============================================================================
+// Tails Grafana server logs and forwards them to Loki for audit trail
+// dashboarding. Captures login events, dashboard CRUD operations,
+// permission changes, API key usage, and admin actions.
+//
+// This config runs on the same host/pod as Grafana. It reads the Grafana
+// server log file (JSON format) and enriches each entry with standard
+// labels before pushing to Loki.
+//
+// Prerequisites:
+//   - Grafana configured to log in JSON format (GF_LOG_MODE=file,
+//     GF_LOG_CONSOLE_FORMAT=json, or grafana.ini [log] mode = file)
+//   - Log file path accessible to Alloy (default: /var/log/grafana/grafana.log)
+//   - Loki endpoint reachable
+//
+// Environment variables:
+//   GRAFANA_LOG_PATH           -- Grafana log file path
+//   LOKI_WRITE_URL             -- Loki push endpoint
+//   ALLOY_DATACENTER           -- Site/datacenter label
+//   ALLOY_ENV                  -- Environment label (prod, staging, dev)
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Tail Grafana Server Logs
+// ---------------------------------------------------------------------------
+// Reads the Grafana server log file using loki.source.file (tail mode).
+// Grafana must be configured to write structured JSON logs for reliable
+// field extraction in the processing stage.
+// ---------------------------------------------------------------------------
+local.file_match "grafana_logs" {
+  path_targets = [{
+    __address__ = "localhost",
+    __path__    = sys.env("GRAFANA_LOG_PATH") != "" ? sys.env("GRAFANA_LOG_PATH") : "/var/log/grafana/grafana.log",
+    job         = "grafana_audit",
+    instance    = constants.hostname,
+  }]
+}
+
+loki.source.file "grafana_audit" {
+  targets    = local.file_match.grafana_logs.targets
+  forward_to = [loki.process.grafana_audit_labels.receiver]
+}
+
+// ---------------------------------------------------------------------------
+// Log Processing Pipeline
+// ---------------------------------------------------------------------------
+// Extracts structured fields from Grafana JSON logs and adds standard
+// labels for dashboard filtering and alerting.
+//
+// Grafana JSON log fields of interest:
+//   t       -- timestamp
+//   lvl     -- log level (info, warn, error)
+//   msg     -- log message
+//   logger  -- Grafana subsystem (e.g., "context", "login", "api")
+//   uname   -- username (when applicable)
+//   method  -- HTTP method (GET, POST, etc.)
+//   path    -- API path
+//   status  -- HTTP status code
+// ---------------------------------------------------------------------------
+loki.process "grafana_audit_labels" {
+  forward_to = [loki.write.audit.receiver]
+
+  // Add standard infrastructure labels for cross-correlation with
+  // other log sources in the same Loki instance.
+  stage.static_labels {
+    values = {
+      datacenter  = sys.env("ALLOY_DATACENTER"),
+      environment = sys.env("ALLOY_ENV"),
+      source      = "grafana",
+      log_type    = "audit",
+    }
+  }
+
+  // Parse JSON log entries and extract key audit fields as labels.
+  // Only extract low-cardinality fields as labels; high-cardinality
+  // fields (path, uname) stay in the log line for LogQL queries.
+  stage.json {
+    expressions = {
+      level  = "lvl",
+      logger = "logger",
+      method = "method",
+      status = "status",
+    }
+  }
+
+  stage.labels {
+    values = {
+      level  = "",
+      logger = "",
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Loki Write Target for Audit Logs
+// ---------------------------------------------------------------------------
+// Sends processed Grafana logs to Loki. Uses a separate loki.write block
+// (rather than the shared common/loki_push.alloy endpoint) to allow
+// independent tenant/auth configuration if needed for audit isolation.
+//
+// In most deployments, this can point to the same Loki instance as
+// the main log pipeline. Change the URL if audit logs should be routed
+// to a separate Loki tenant or instance for compliance.
+// ---------------------------------------------------------------------------
+loki.write "audit" {
+  endpoint {
+    url = sys.env("LOKI_WRITE_URL")
+  }
+
+  external_labels = {
+    datacenter  = sys.env("ALLOY_DATACENTER"),
+    environment = sys.env("ALLOY_ENV"),
+  }
+}

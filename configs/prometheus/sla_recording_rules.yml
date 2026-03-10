@@ -1,0 +1,98 @@
+# =============================================================================
+# SLA Availability Recording Rules (Phase 9C)
+# =============================================================================
+# Pre-compute availability metrics for SLA reporting. These rules calculate
+# daily, weekly, and monthly uptime percentages per host, per role, and
+# per site using the Prometheus `up` metric from agent remote_write.
+#
+# A host is considered "available" when its agent is successfully pushing
+# metrics (up == 1). Gaps in the up metric indicate the host was either
+# down or the agent was unreachable.
+#
+# Naming convention:
+#   sla:<scope>_availability:<window>  -- availability ratio over time window
+#
+# These rules feed the SLA Availability dashboard for management reporting.
+# =============================================================================
+
+groups:
+  # ---------------------------------------------------------------------------
+  # Per-Host Availability
+  # Calculates uptime ratios for individual hosts over multiple windows.
+  # ---------------------------------------------------------------------------
+  - name: sla_host_recording_rules
+    interval: 60s
+    rules:
+      # Hourly availability (for granular drill-down).
+      - record: sla:host_availability:1h
+        expr: |
+          avg_over_time(up{job=~"windows_base|linux_base"}[1h])
+
+      # Daily availability.
+      - record: sla:host_availability:1d
+        expr: |
+          avg_over_time(up{job=~"windows_base|linux_base"}[1d])
+
+      # Weekly availability (7-day rolling window).
+      - record: sla:host_availability:7d
+        expr: |
+          avg_over_time(up{job=~"windows_base|linux_base"}[7d])
+
+      # Monthly availability (30-day rolling window).
+      # This is the primary SLA metric for management reporting.
+      - record: sla:host_availability:30d
+        expr: |
+          avg_over_time(up{job=~"windows_base|linux_base"}[30d])
+
+  # ---------------------------------------------------------------------------
+  # Per-Role Availability
+  # Aggregates host availability to the role level (e.g., all IIS servers,
+  # all SQL servers) for service-level reporting.
+  # ---------------------------------------------------------------------------
+  - name: sla_role_recording_rules
+    interval: 60s
+    rules:
+      # Average availability across all hosts in a role (30-day window).
+      - record: sla:role_availability:30d
+        expr: |
+          avg by (datacenter, role) (
+            avg_over_time(up{job=~"windows_base|linux_base"}[30d])
+          )
+
+      # Minimum availability across all hosts in a role (worst performer).
+      - record: sla:role_availability_min:30d
+        expr: |
+          min by (datacenter, role) (
+            avg_over_time(up{job=~"windows_base|linux_base"}[30d])
+          )
+
+      # Count of hosts in role that are below 99.9% availability.
+      - record: sla:role_hosts_below_sla:count
+        expr: |
+          count by (datacenter, role) (
+            avg_over_time(up{job=~"windows_base|linux_base"}[30d]) < 0.999
+          ) or (
+            0 * group by (datacenter, role) (up{job=~"windows_base|linux_base"})
+          )
+
+  # ---------------------------------------------------------------------------
+  # Per-Site Availability
+  # Aggregates to the datacenter level for executive reporting.
+  # ---------------------------------------------------------------------------
+  - name: sla_site_recording_rules
+    interval: 60s
+    rules:
+      # Average availability across all hosts at a site (30-day window).
+      - record: sla:site_availability:30d
+        expr: |
+          avg by (datacenter) (
+            avg_over_time(up{job=~"windows_base|linux_base"}[30d])
+          )
+
+      # Total downtime minutes across all hosts at a site (30-day window).
+      # Calculated as: (1 - availability) * 30 days * 24 hours * 60 minutes.
+      - record: sla:site_downtime_minutes:30d
+        expr: |
+          sum by (datacenter) (
+            (1 - avg_over_time(up{job=~"windows_base|linux_base"}[30d])) * 30 * 24 * 60
+          )

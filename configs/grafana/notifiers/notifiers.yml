@@ -149,3 +149,48 @@ policies:
           - severity = info
         continue: false
         repeat_interval: 12h
+
+# ---------------------------------------------------------------------------
+# Mute Timings (Phase 9E)
+# Define maintenance windows during which alerts are suppressed.
+# Use these to silence expected noise during planned maintenance.
+#
+# To activate a mute timing:
+#   1. Define the timing below
+#   2. Reference it in a notification policy route using mute_time_intervals
+#   3. Or use the Grafana UI: Alerting -> Notification policies -> Mute timings
+#
+# For API-driven maintenance windows, see scripts/maintenance_window.py
+# which creates/removes mute timings programmatically.
+# ---------------------------------------------------------------------------
+muteTimes:
+  # Example: Weekly Tuesday maintenance window (00:00 - 06:00 UTC).
+  # Uncomment and adjust for your maintenance schedule.
+  # - orgId: 1
+  #   name: "Tuesday Maintenance"
+  #   time_intervals:
+  #     - times:
+  #         - start_time: "00:00"
+  #           end_time: "06:00"
+  #       weekdays: ["tuesday"]
+
+  # Example: Monthly patching window (first Saturday, all day).
+  # - orgId: 1
+  #   name: "Monthly Patching"
+  #   time_intervals:
+  #     - times:
+  #         - start_time: "00:00"
+  #           end_time: "23:59"
+  #       weekdays: ["saturday"]
+  #       days_of_month: ["1:7"]
+
+  # Example: Site-specific maintenance (combine with datacenter matcher).
+  # Reference this mute timing in a route with datacenter = site-a to
+  # only suppress alerts for a specific site during its maintenance window.
+  # - orgId: 1
+  #   name: "Site-A Maintenance"
+  #   time_intervals:
+  #     - times:
+  #         - start_time: "02:00"
+  #           end_time: "06:00"
+  #       weekdays: ["wednesday"]
