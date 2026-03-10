@@ -356,3 +356,55 @@ Files modified:
 - The `public` community string in snmptrapd.conf is intentional (template default). Production deployments should change it.
 - PROJECT_PLAN.md is at version 2.0, last updated 2026-03-09
 - Requirements traceability: 70/77 covered (91%), 5 pending (Phase 8 RBAC + Phase 5.7 fleet), 2 require Grafana Enterprise
+
+---
+
+## Session: 2026-03-09 22:30 (macOS -- Documentation completion)
+
+### Completed
+
+**Six comprehensive documentation guides created** (commit `40caa7f`):
+
+1. `docs/SNMP_MONITORING.md` (36KB) -- SNMP polling architecture, SNMPv3 auth profiles, 5 device modules (system, if_mib, paloalto, ubiquiti_unifi, apcups), recording rules, alert rules, trap ingestion, custom MIB workflow, deployment (Docker/K8s), troubleshooting
+2. `docs/HARDWARE_MONITORING.md` (21KB) -- Redfish BMC architecture, prerequisites (iLO/iDRAC service accounts), target configuration, metrics reference (health/thermal/power/components), recording rules, 8 alert rules with thresholds, exporter selection, credential management, security considerations
+3. `docs/CERTIFICATE_MONITORING.md` (12KB) -- Blackbox probe modules (https_cert_check, https_cert_check_internal, tcp_tls_cert_check), endpoint configuration, chain expiry behavior, recording rules, 5 alert rules (90d/30d/7d/expired/probe failure), internal PKI vs public cert workflows
+4. `docs/FLEET_ONBOARDING.md` (10KB) -- Label taxonomy (5 standard labels), adding sites, Windows server deployment (5 steps), Linux server deployment (5 steps), bulk onboarding via CSV/Ansible, decommissioning procedures, validation checklist
+5. `docs/RBAC_GUIDE.md` (11KB) -- LDAP/AD integration with full ldap.toml example, AD security group naming convention, folder-based RBAC model, team provisioning, folder permission API, user onboarding/offboarding lifecycle, security considerations (LDAPS, service accounts), troubleshooting
+6. `docs/AGENTLESS_MONITORING.md` (10KB) -- 6 collection methods (SNMP, traps, Redfish, blackbox, WMI, SSH), proxy collection architecture, device coverage matrix, limitations vs agent-based, security considerations
+
+**Documentation ecosystem updates:**
+- `README.md`: Added 6 new doc references in Documentation section
+- `ARCHITECTURE.md`: Added 6 new entries to docs directory tree
+- `QUICKSTART.md`: Expanded dashboard table from 3 to 6 directories, added all Phase 7/9 dashboards
+- `docs/PROJECT_PLAN.md`: Marked 6 documentation tasks complete (7A-11, 7B-10, 7C-9, 5.7-6, 7G-6, 8-8)
+
+**Branch synchronization:**
+- Both `master` and `internal` branches at commit `40caa7f`
+- Fast-forward merge from master to internal, pushed both
+
+### In Progress
+- None. All documentation work complete and committed.
+
+### Blockers
+- **Phase 5.7 Fleet Deployment**: Blocked on host inventory data (CSV from SCCM/CMDB), Ansible control node access, WinRM/SSH prerequisites on target servers
+- **Phase 8 RBAC**: Blocked on human actions (AD security group creation, LDAP service account, LDAP server details)
+- **Phase 7G Agentless Collection**: Blocked on internal use case identification (which devices cannot run agents)
+- **Phase 6 Mimir Migration**: Blocked on scale requirements and object storage provisioning
+
+### Decisions
+- **Documentation-as-product approach**: User directed that the template must be a complete, self-contained product that reduces overhead for anyone deploying. All documentation gaps filled to ensure success without tribal knowledge.
+- **Six parallel agent execution**: Used 6 background agents to create docs simultaneously, with 3 research agents gathering config context first. Total creation time ~3 minutes for 100KB of documentation.
+
+### Next Session
+1. **Phase 5.7 Fleet Deployment** -- Create site registry, host inventory schema, fleet_inventory.py, Ansible playbook, tag validation (6 tasks, blocked on human actions for actual deployment)
+2. **Phase 8 RBAC Config** -- Create ldap.toml, folder provisioning, team provisioning, validate_rbac.py (7 tasks, blocked on human actions for deployment)
+3. **Remaining Helm/Docker deferred tasks** -- 7A-9/10 (SNMP to Helm/Docker), 7B-8/9 (Redfish exporter selection/Helm), 7C-7/8 (blackbox Docker/Helm)
+4. **Phase 6 Mimir Migration** -- When team is ready to scale beyond single Prometheus
+
+### Context
+- macOS working directory: `/Users/et/Development/Monitoring_Dashboarding-master`
+- Commit method: `python3 skills/git_smart_commit.py commit-and-push "message"`
+- Total documentation: 27 files in docs/, plus QUICKSTART.md, README.md, ARCHITECTURE.md at repo root
+- Requirements traceability: 70/77 covered (91%), 5 pending (Phase 8 RBAC + Phase 5.7 fleet), 2 require Grafana Enterprise
+- All Phase 9 tasks complete. All documentation tasks for completed phases are now done.
+- The template is feature-complete for its current scope. Remaining work is deployment-specific (fleet tooling, RBAC config, Helm extensions) that requires human actions before implementation can proceed.
