@@ -1,0 +1,91 @@
+# =============================================================================
+# Grafana LDAP Configuration
+# =============================================================================
+# Connects Grafana to Active Directory for single sign-on and group-based
+# access control. Users authenticate with their AD credentials; group
+# membership determines their Grafana org role and team assignments.
+#
+# Prerequisites:
+#   - LDAP service account with read-only access to user and group OUs
+#   - Network access from Grafana to domain controller on port 636 (LDAPS)
+#   - AD security groups created (see docs/RBAC_GUIDE.md for naming convention)
+#
+# Deployment:
+#   - Docker Compose: Mount as volume to /etc/grafana/ldap.toml
+#   - Kubernetes: Create ConfigMap and mount in Grafana pod
+#   - Set LDAP_BIND_PASSWORD via environment variable or Kubernetes Secret
+#
+# See docs/RBAC_GUIDE.md for complete setup and troubleshooting guide.
+# =============================================================================
+
+[[servers]]
+host = "dc01.example.com"
+port = 636
+use_ssl = true
+start_tls = false
+ssl_skip_verify = false
+
+# Mount your internal CA certificate for LDAPS verification.
+# Without this, set ssl_skip_verify = true (not recommended for production).
+root_ca_cert = "/etc/grafana/ldap-ca.crt"
+
+# LDAP bind credentials. The password should NEVER be stored in this file.
+# Use environment variable substitution: $__env{LDAP_BIND_PASSWORD}
+# Or mount from Kubernetes Secret.
+bind_dn = "CN=svc-grafana-ldap,OU=Service Accounts,DC=corp,DC=example,DC=com"
+bind_password = "$__env{LDAP_BIND_PASSWORD}"
+
+# User search configuration
+search_filter = "(sAMAccountName=%s)"
+search_base_dns = ["OU=Users,DC=corp,DC=example,DC=com"]
+
+[servers.attributes]
+name = "displayName"
+surname = "sn"
+username = "sAMAccountName"
+member_of = "memberOf"
+email = "mail"
+
+# ---------------------------------------------------------------------------
+# Group Mappings -- Map AD security groups to Grafana org roles
+# ---------------------------------------------------------------------------
+# Each mapping connects an AD group to a Grafana organization role.
+# Users inherit the highest-privilege role from all their group memberships.
+#
+# Grafana roles:
+#   Admin  -- Full access (manage users, orgs, datasources, all dashboards)
+#   Editor -- Create and edit dashboards, run queries
+#   Viewer -- View dashboards only (no editing, no Explore)
+
+# Monitoring administrators -- full Grafana access
+[[servers.group_mappings]]
+group_dn = "CN=SG-Monitoring-Admins,OU=Security Groups,DC=corp,DC=example,DC=com"
+org_role = "Admin"
+grafana_admin = true
+
+# NOC / operations center -- view all dashboards
+[[servers.group_mappings]]
+group_dn = "CN=SG-Monitoring-NOC,OU=Security Groups,DC=corp,DC=example,DC=com"
+org_role = "Viewer"
+
+# Per-site operations teams -- edit dashboards for their site
+# Add one mapping per site. The org_role controls what they can do;
+# folder permissions (configured separately) control what they can see.
+[[servers.group_mappings]]
+group_dn = "CN=SG-Monitoring-SiteAlpha,OU=Security Groups,DC=corp,DC=example,DC=com"
+org_role = "Editor"
+
+[[servers.group_mappings]]
+group_dn = "CN=SG-Monitoring-SiteBeta,OU=Security Groups,DC=corp,DC=example,DC=com"
+org_role = "Editor"
+
+# Read-only stakeholders (management, reporting)
+[[servers.group_mappings]]
+group_dn = "CN=SG-Monitoring-Readonly,OU=Security Groups,DC=corp,DC=example,DC=com"
+org_role = "Viewer"
+
+# Catch-all: users in AD but not in any monitoring group.
+# Set to "Viewer" to allow access, or remove this block to deny access.
+[[servers.group_mappings]]
+group_dn = "*"
+org_role = "Viewer"

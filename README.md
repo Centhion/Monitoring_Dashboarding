@@ -42,12 +42,14 @@ python scripts/poc_setup.py
 | `configs/prometheus/` | Prometheus server configuration and recording rules |
 | `configs/loki/` | Loki server configuration |
 | `configs/alertmanager/` | Alertmanager routing, receivers, and inhibition rules |
-| `configs/grafana/` | Grafana provisioning (datasources, dashboards, notifiers) |
-| `dashboards/` | Grafana dashboard JSON (windows/, linux/, overview/, network/, hardware/, certs/, assets/) |
+| `configs/grafana/` | Grafana provisioning (datasources, dashboards, notifiers, LDAP, RBAC) |
+| `dashboards/` | Grafana dashboard JSON (windows/, linux/, overview/, network/, hardware/, certs/) |
 | `alerts/` | Prometheus alerting rules and Grafana alert policies |
 | `deploy/docker/` | Docker Compose stack for local testing and PoC |
 | `deploy/helm/` | Helm chart and value overlays for Kubernetes deployment |
-| `scripts/` | Python tooling for config validation, generation, and testing |
+| `inventory/` | Fleet inventory schemas (sites, hosts, CSV import template) |
+| `ansible/` | Ansible playbook for Alloy agent deployment across fleets |
+| `scripts/` | Python tooling for config validation, fleet management, RBAC, and testing |
 | `docs/` | Architecture docs, runbooks, and project tracking |
 | `.claude/` | Agent configuration (instructions, skills, agents, rules, commands) |
 | `skills/` | Universal helper scripts (Python) |
@@ -75,6 +77,10 @@ python scripts/poc_setup.py
 - **Audit Trail**: Grafana server log forwarding to Loki for login tracking, dashboard changes, and API activity visibility
 - **Cloud Monitoring Stubs**: Pre-built Alloy configs for AWS CloudWatch and Azure Monitor (disabled by default, ready to activate)
 - **Validation Tooling**: Python scripts to lint and validate configs before deployment
+- **Fleet Inventory System**: YAML-based site/host registry with CSV import, Ansible playbook for bulk Alloy deployment, and Prometheus tag compliance auditing
+- **RBAC and LDAP/AD Integration**: Grafana folder-based access control with LDAP config template, team provisioning, and API-driven permission management scripts
+- **Full Docker Compose Stack**: Blackbox exporter, snmptrapd, and Redfish exporter services alongside core Prometheus/Loki/Alertmanager/Grafana
+- **Complete Helm Chart**: Kubernetes deployment with templates for all services, value overlays for dev/staging/production, and optional SNMP/Redfish/LDAP components
 
 ## Dashboards
 
@@ -119,6 +125,9 @@ All dashboards include a cross-navigation link bar. Template variables (`environ
 - See `docs/CERTIFICATE_MONITORING.md` for SSL/TLS certificate expiry monitoring
 - See `docs/AGENTLESS_MONITORING.md` for monitoring devices without agents
 - See `docs/RBAC_GUIDE.md` for Grafana RBAC and LDAP/AD integration
+- See `docs/DEPLOYMENT_VALUES.md` for production configuration value reference
+- See `docs/BRANCHING_STRATEGY.md` for public template vs internal fork branch model
+- See `docs/TESTING_CHECKLIST.md` for post-deployment validation checklist
 
 ## Development
 

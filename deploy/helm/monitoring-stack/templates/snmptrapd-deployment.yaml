@@ -1,0 +1,49 @@
+{{- if .Values.snmptrapd.enabled }}
+# ---------------------------------------------------------------------------
+# SNMP Trap Receiver (snmptrapd) Deployment
+# ---------------------------------------------------------------------------
+# Receives SNMP traps on UDP 162 and forwards them as syslog messages
+# to the Alloy gateway for Loki ingestion.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "snmptrapd") }}
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "snmptrapd") | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "monitoring-stack.selectorLabels" (dict "context" . "component" "snmptrapd") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "snmptrapd") | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/snmptrapd-configmap.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: snmptrapd
+          image: "{{ .Values.snmptrapd.image.repository }}:{{ .Values.snmptrapd.image.tag }}"
+          imagePullPolicy: {{ .Values.snmptrapd.image.pullPolicy }}
+          ports:
+            - name: snmp-trap
+              containerPort: 162
+              protocol: UDP
+          resources:
+            {{- toYaml .Values.snmptrapd.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/snmp/snmptrapd.conf
+              subPath: snmptrapd.conf
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "snmptrapd") }}-config
+{{- end }}

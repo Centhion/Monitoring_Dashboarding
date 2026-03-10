@@ -1,0 +1,313 @@
+# Ansible Playbook -- Deploy Grafana Alloy Monitoring Agent
+#
+# Deploys and configures Alloy on Windows and Linux servers defined in
+# the inventory. Uses the host's site/role/OS metadata to select the
+# correct configuration files.
+#
+# Prerequisites:
+#   - Ansible 2.14+ with ansible.windows collection (for Windows targets)
+#   - WinRM enabled on Windows targets (or OpenSSH)
+#   - SSH key access to Linux targets
+#   - Alloy installer packages accessible (download or local mirror)
+#
+# Usage:
+#   # Deploy to all hosts in inventory
+#   ansible-playbook -i ansible/inventory.yml ansible/deploy_alloy.yml
+#
+#   # Deploy to a specific site only
+#   ansible-playbook -i ansible/inventory.yml ansible/deploy_alloy.yml -l "site_alpha"
+#
+#   # Deploy only to SQL servers
+#   ansible-playbook -i ansible/inventory.yml ansible/deploy_alloy.yml -l "role_sql"
+#
+#   # Dry run (check mode)
+#   ansible-playbook -i ansible/inventory.yml ansible/deploy_alloy.yml --check
+#
+#   # Only reconfigure (skip install)
+#   ansible-playbook -i ansible/inventory.yml ansible/deploy_alloy.yml --tags configure
+#
+#   # Only restart the service
+#   ansible-playbook -i ansible/inventory.yml ansible/deploy_alloy.yml --tags restart
+
+---
+
+###############################################################################
+# Variables -- Customize these for your environment
+###############################################################################
+
+# Alloy version and download URLs. Update these when upgrading the fleet.
+# The installer URLs default to Grafana's official release page.
+# For air-gapped environments, point these to your internal mirror.
+
+# Note: These variables are defined at the play level and can be overridden
+# via --extra-vars, group_vars, or host_vars as needed.
+
+
+###############################################################################
+# Play 1: Deploy Alloy on Windows Hosts
+###############################################################################
+
+- name: Deploy Grafana Alloy on Windows
+  hosts: windows
+  gather_facts: true
+
+  vars:
+    alloy_version: "1.4.2"
+    alloy_windows_installer_url: >-
+      https://github.com/grafana/alloy/releases/download/v{{ alloy_version }}/alloy-installer-windows-amd64.exe
+    alloy_install_dir: 'C:\Program Files\GrafanaLabs\Alloy'
+    alloy_config_dir: 'C:\ProgramData\GrafanaLabs\Alloy'
+    alloy_service_name: "Alloy"
+
+    # Remote write endpoint for metrics. Override per-environment as needed.
+    remote_write_url: "http://mimir.example.com:9009/api/v1/push"
+    loki_push_url: "http://loki.example.com:3100/loki/api/v1/push"
+
+    # Alloy configuration files to deploy. The base config is always included;
+    # role-specific configs are layered on top based on inventory roles.
+    alloy_base_config: "configs/alloy/windows/base.alloy"
+    alloy_role_config_dir: "configs/alloy/windows"
+
+  tasks:
+    # ------------------------------------------------------------------
+    # Install
+    # ------------------------------------------------------------------
+    - name: Create Alloy config directory
+      tags: [install, configure]
+      ansible.windows.win_file:
+        path: "{{ alloy_config_dir }}"
+        state: directory
+
+    - name: Download Alloy installer
+      tags: [install]
+      ansible.windows.win_get_url:
+        url: "{{ alloy_windows_installer_url }}"
+        dest: "{{ alloy_config_dir }}\\alloy-installer.exe"
+        force: false  # Skip download if installer already present
+
+    - name: Install Alloy silently
+      tags: [install]
+      ansible.windows.win_package:
+        path: "{{ alloy_config_dir }}\\alloy-installer.exe"
+        arguments: /S
+        state: present
+      notify: restart alloy windows
+
+    # ------------------------------------------------------------------
+    # Configure
+    # ------------------------------------------------------------------
+    - name: Set Alloy environment variables for datacenter labeling
+      tags: [configure]
+      ansible.windows.win_environment:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        level: machine
+        state: present
+      loop:
+        - name: ALLOY_DATACENTER
+          value: "{{ hostvars[inventory_hostname].site | default('unknown') }}"
+        - name: ALLOY_REMOTE_WRITE_URL
+          value: "{{ remote_write_url }}"
+        - name: ALLOY_LOKI_PUSH_URL
+          value: "{{ loki_push_url }}"
+      notify: restart alloy windows
+
+    - name: Deploy base Alloy configuration
+      tags: [configure]
+      ansible.windows.win_copy:
+        src: "{{ alloy_base_config }}"
+        dest: "{{ alloy_config_dir }}\\config.alloy"
+      notify: restart alloy windows
+
+    - name: Deploy role-specific Alloy configurations
+      tags: [configure]
+      ansible.windows.win_copy:
+        src: "{{ alloy_role_config_dir }}/role_{{ item }}.alloy"
+        dest: "{{ alloy_config_dir }}\\role_{{ item }}.alloy"
+      loop: "{{ hostvars[inventory_hostname].roles | default([]) }}"
+      # Role config files are optional; skip if the source does not exist
+      ignore_errors: true
+      notify: restart alloy windows
+
+    # ------------------------------------------------------------------
+    # Service management
+    # ------------------------------------------------------------------
+    - name: Ensure Alloy service is running
+      tags: [install, configure, restart]
+      ansible.windows.win_service:
+        name: "{{ alloy_service_name }}"
+        start_mode: auto
+        state: started
+
+  handlers:
+    - name: restart alloy windows
+      ansible.windows.win_service:
+        name: "{{ alloy_service_name }}"
+        state: restarted
+
+
+###############################################################################
+# Play 2: Deploy Alloy on Linux Hosts
+###############################################################################
+
+- name: Deploy Grafana Alloy on Linux
+  hosts: linux
+  become: true
+  gather_facts: true
+
+  vars:
+    alloy_version: "1.4.2"
+    alloy_config_dir: "/etc/alloy"
+    alloy_service_name: "alloy"
+
+    # Grafana APT/YUM repository configuration. These defaults point to
+    # the official Grafana package repository. For air-gapped environments,
+    # mirror the repository or use a local .deb/.rpm package.
+    grafana_apt_repo: "deb https://apt.grafana.com stable main"
+    grafana_apt_key_url: "https://apt.grafana.com/gpg.key"
+    grafana_yum_repo_url: "https://rpm.grafana.com"
+    grafana_yum_gpg_key: "https://rpm.grafana.com/gpg.key"
+
+    # Remote write endpoints -- same as Windows play, override as needed
+    remote_write_url: "http://mimir.example.com:9009/api/v1/push"
+    loki_push_url: "http://loki.example.com:3100/loki/api/v1/push"
+
+    alloy_base_config: "configs/alloy/linux/base.alloy"
+    alloy_role_config_dir: "configs/alloy/linux"
+
+  tasks:
+    # ------------------------------------------------------------------
+    # Install (Debian/Ubuntu)
+    # ------------------------------------------------------------------
+    - name: Add Grafana APT signing key
+      tags: [install]
+      ansible.builtin.apt_key:
+        url: "{{ grafana_apt_key_url }}"
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Add Grafana APT repository
+      tags: [install]
+      ansible.builtin.apt_repository:
+        repo: "{{ grafana_apt_repo }}"
+        state: present
+        filename: grafana
+      when: ansible_os_family == "Debian"
+
+    - name: Install Alloy via APT
+      tags: [install]
+      ansible.builtin.apt:
+        name: "alloy={{ alloy_version }}*"
+        state: present
+        update_cache: true
+      when: ansible_os_family == "Debian"
+      notify: restart alloy linux
+
+    # ------------------------------------------------------------------
+    # Install (RHEL/CentOS/Rocky)
+    # ------------------------------------------------------------------
+    - name: Add Grafana YUM repository
+      tags: [install]
+      ansible.builtin.yum_repository:
+        name: grafana
+        description: "Grafana OSS Repository"
+        baseurl: "{{ grafana_yum_repo_url }}"
+        gpgcheck: true
+        gpgkey: "{{ grafana_yum_gpg_key }}"
+      when: ansible_os_family == "RedHat"
+
+    - name: Install Alloy via YUM
+      tags: [install]
+      ansible.builtin.yum:
+        name: "alloy-{{ alloy_version }}"
+        state: present
+      when: ansible_os_family == "RedHat"
+      notify: restart alloy linux
+
+    # ------------------------------------------------------------------
+    # Configure
+    # ------------------------------------------------------------------
+    - name: Create Alloy config directory
+      tags: [install, configure]
+      ansible.builtin.file:
+        path: "{{ alloy_config_dir }}"
+        state: directory
+        owner: alloy
+        group: alloy
+        mode: "0755"
+
+    - name: Deploy Alloy environment file with datacenter label
+      tags: [configure]
+      ansible.builtin.copy:
+        dest: /etc/default/alloy
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          # Alloy environment variables -- managed by Ansible
+          # Do not edit manually; changes will be overwritten on next deployment.
+          ALLOY_DATACENTER={{ hostvars[inventory_hostname].site | default('unknown') }}
+          ALLOY_REMOTE_WRITE_URL={{ remote_write_url }}
+          ALLOY_LOKI_PUSH_URL={{ loki_push_url }}
+      notify: restart alloy linux
+
+    - name: Deploy base Alloy configuration
+      tags: [configure]
+      ansible.builtin.copy:
+        src: "{{ alloy_base_config }}"
+        dest: "{{ alloy_config_dir }}/config.alloy"
+        owner: alloy
+        group: alloy
+        mode: "0644"
+      notify: restart alloy linux
+
+    - name: Deploy role-specific Alloy configurations
+      tags: [configure]
+      ansible.builtin.copy:
+        src: "{{ alloy_role_config_dir }}/role_{{ item }}.alloy"
+        dest: "{{ alloy_config_dir }}/role_{{ item }}.alloy"
+        owner: alloy
+        group: alloy
+        mode: "0644"
+      loop: "{{ hostvars[inventory_hostname].roles | default([]) }}"
+      ignore_errors: true
+      notify: restart alloy linux
+
+    # ------------------------------------------------------------------
+    # User and permissions
+    # ------------------------------------------------------------------
+    - name: Ensure alloy user exists
+      tags: [install]
+      ansible.builtin.user:
+        name: alloy
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+
+    - name: Add alloy user to required groups for log access
+      tags: [install]
+      ansible.builtin.user:
+        name: alloy
+        groups:
+          - adm       # Access to /var/log on Debian-family
+          - systemd-journal  # Access to journald logs
+        append: true
+      ignore_errors: true  # Groups may not exist on all distributions
+
+    # ------------------------------------------------------------------
+    # Service management
+    # ------------------------------------------------------------------
+    - name: Enable and start Alloy service
+      tags: [install, configure, restart]
+      ansible.builtin.systemd:
+        name: "{{ alloy_service_name }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+
+  handlers:
+    - name: restart alloy linux
+      ansible.builtin.systemd:
+        name: "{{ alloy_service_name }}"
+        state: restarted
+        daemon_reload: true

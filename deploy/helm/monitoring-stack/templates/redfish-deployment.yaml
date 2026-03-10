@@ -1,0 +1,75 @@
+{{- if .Values.redfishExporter.enabled }}
+# ---------------------------------------------------------------------------
+# Redfish Exporter Deployment
+# ---------------------------------------------------------------------------
+# Proxies Redfish API requests to server BMCs (iLO, iDRAC) using the
+# multi-target pattern. Prometheus/Alloy sends ?target=<BMC_IP> and
+# this exporter queries the BMC's Redfish API for hardware health metrics.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "redfish-exporter") }}
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "redfish-exporter") | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "monitoring-stack.selectorLabels" (dict "context" . "component" "redfish-exporter") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "redfish-exporter") | nindent 8 }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsUser: 65534
+        runAsNonRoot: true
+      containers:
+        - name: redfish-exporter
+          image: "{{ .Values.redfishExporter.image.repository }}:{{ .Values.redfishExporter.image.tag }}"
+          imagePullPolicy: {{ .Values.redfishExporter.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 9220
+              protocol: TCP
+          env:
+            - name: REDFISH_USER
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.redfishExporter.credentials.existingSecret }}
+                  name: {{ .Values.redfishExporter.credentials.existingSecret }}
+                  {{- else }}
+                  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "redfish-exporter") }}-secret
+                  {{- end }}
+                  key: redfish-user
+            - name: REDFISH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.redfishExporter.credentials.existingSecret }}
+                  name: {{ .Values.redfishExporter.credentials.existingSecret }}
+                  {{- else }}
+                  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "redfish-exporter") }}-secret
+                  {{- end }}
+                  key: redfish-password
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.redfishExporter.resources | nindent 12 }}
+{{- end }}

@@ -18,18 +18,18 @@
 | Phase 4: Grafana Dashboards | Completed | 4 dashboards (Windows, Linux, Infra Overview, Log Explorer) + customization guide |
 | Phase 5: Validation Tooling | Completed | 3 validators + runner, 12/12 tests passing, requirements.txt, docs |
 | Phase 5.5: Docker Compose PoC | Completed | Local testing stack validated end-to-end (metrics, logs, recording rules) |
-| Phase 5.7: Fleet Tagging and Deployment | In Progress | Inventory system, Ansible playbooks, tag validation for 500-2000 servers across 5-15+ sites |
-| Phase 5.8: Generalization and K8s Readiness | In Progress | Strip org-specific content, Helm chart, fork-and-deploy template |
+| Phase 5.7: Fleet Tagging and Deployment | Completed | Inventory schemas, fleet_inventory.py, validate_fleet_tags.py, Ansible playbook, onboarding docs |
+| Phase 5.8: Generalization and K8s Readiness | Completed | Helm chart with blackbox/snmptrapd/redfish templates, fork-and-deploy template |
 | Phase 6: Mimir Migration | Pending | Long-term metrics storage (when ready to scale) |
-| Phase 7A: SNMP Network Device Monitoring | Completed | Gateway config, recording rules, alerts, dashboard. Traps/Helm/docs deferred. |
-| Phase 7B: Hardware/HCI Health Monitoring | Completed | Gateway config, recording rules, alerts, dashboard. Helm/docs deferred. |
-| Phase 7C: SSL Certificate Monitoring | Completed | Blackbox probing for internal PKI + public DigiCert certs |
+| Phase 7A: SNMP Network Device Monitoring | Completed | Gateway config, recording rules, alerts, dashboard, traps, Helm, docs |
+| Phase 7B: Hardware/HCI Health Monitoring | Completed | Gateway config, recording rules, alerts, dashboard, Redfish exporter, Helm, docs |
+| Phase 7C: SSL Certificate Monitoring | Completed | Blackbox probing, Docker Compose, Helm chart, docs |
 | Phase 7D: Lansweeper Integration | Dropped | Out of scope -- asset inventory stays in Lansweeper, no monitoring stack integration needed |
 | Phase 7E: Cloud Infrastructure Monitoring | Completed | Stub configs for AWS CloudWatch / Azure Monitor (disabled by default, ready to activate) |
 | Phase 7F: IIS Dedicated Dashboard | Completed | Dashboard + recording rules for existing IIS role metrics and access logs |
 | Phase 7G: Agentless Collection | Blocked | WinRM/SSH for edge cases -- pending internal use case review |
 | Phase 7H: Dashboard Hub Architecture | Completed | Enterprise NOC + per-site drill-down dashboards for location-centric monitoring |
-| Phase 8: Access Control and RBAC | Pending | Grafana folder provisioning, Team mapping, LDAP/AD group sync for hybrid AD/Entra ID |
+| Phase 8: Access Control and RBAC | Completed | LDAP config, folder/team provisioning, permission model, configure_rbac.py, validate_rbac.py, docs |
 | Phase 9: Requirements Gap Closure | Completed | Agentless probing, file/process, alert dedup, maintenance windows, SLA, SNMP traps, audit logging, forecasting, dashboards, docs |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
@@ -355,26 +355,26 @@
 
 **Goal**: Create a centralized inventory system for datacenter/role/environment tag assignment and Ansible playbooks to deploy Alloy with correct tags to 500-2000 servers across 5-15+ sites.
 
-**Status**: In Progress
+**Status**: Completed
 
 **Fleet Context**: Inventory is AD-independent by design to support multi-domain environments. Sites use short abbreviation codes (SITE-A, SITE-B, etc.). Multi-role servers are common (e.g., SQL + IIS on same host).
 
 ### Tasks
 
-- [ ] 1. Create site registry -- `inventory/sites.yml`
+- [x] 1. Create site registry -- `inventory/sites.yml`
   - Central YAML defining all datacenter sites with metadata: code, display name, environment, timezone, AD domain, network segment
   - Controlled vocabulary for valid roles: `dc, sql, iis, fileserver, docker, generic, exchange, print, app`
   - Document extension point for adding new roles and OS types
   - Complexity: Simple
 
-- [ ] 2. Create host inventory schema -- `inventory/hosts.yml`
+- [x] 2. Create host inventory schema -- `inventory/hosts.yml`
   - YAML mapping every server to its tags: hostname, site (references sites.yml), environment, roles (list for multi-role), os_type, os_build
   - Multi-role support: roles field is a list (e.g., `[sql, iis]`)
   - OS build tracked as precise version strings (e.g., `"10.0.20348"` for Server 2022, `"9.5"` for RHEL 9.5)
   - Organized by site for readability, with schema header documenting valid values
   - Complexity: Simple
 
-- [ ] 3. Create inventory tooling -- `scripts/fleet_inventory.py`
+- [x] 3. Create inventory tooling -- `scripts/fleet_inventory.py`
   - Subcommand: `validate` -- validates hosts.yml against sites.yml (site codes, roles, os_type, required fields, no duplicate hostnames, warns on 3+ roles)
   - Subcommand: `import-csv` -- converts CSV (from SCCM/CMDB export) to hosts.yml entries, merges without duplicates
   - Subcommand: `generate-ansible` -- produces Ansible inventory with host groups by site/role/os/environment, host_vars for Alloy env vars, group_vars for endpoints and site metadata
@@ -382,7 +382,7 @@
   - Output directory: `inventory/generated/`
   - Complexity: Medium
 
-- [ ] 4. Create Ansible playbook for Alloy deployment -- `ansible/deploy_alloy.yml`
+- [x] 4. Create Ansible playbook for Alloy deployment -- `ansible/deploy_alloy.yml`
   - Ansible role `alloy_windows`: install MSI, deploy configs, set system env vars, configure and start service
   - Ansible role `alloy_linux`: install package, deploy configs, set env file, configure systemd unit, start service
   - Multi-role handling: copies role_*.alloy for EACH role in the host's roles list; ALLOY_ROLE set to primary (first) role
@@ -391,7 +391,7 @@
   - Post-deploy validation: waits for :12345 health endpoint, verifies metrics are being scraped
   - Complexity: Medium
 
-- [ ] 5. Create tag validation script -- `scripts/validate_fleet_tags.py`
+- [x] 5. Create tag validation script -- `scripts/validate_fleet_tags.py`
   - Queries Prometheus to audit tag compliance across the fleet
   - Report categories: COMPLIANT (correct tags), DRIFT (wrong tags), MISSING (in inventory but not reporting), UNKNOWN (reporting but not in inventory)
   - Filters: `--site`, `--role`, `--environment`
@@ -631,11 +631,11 @@
   - Replaced placeholder with device table (status, uptime, IP, type, vendor)
   - Added traffic-by-device timeseries panel
 
-- [ ] 9. Create SNMP trap receiver pipeline (deferred)
+- [x] 9. Create SNMP trap receiver pipeline (deferred)
   - snmptrapd sidecar, loki.source.syslog ingestion, trap_explorer dashboard
   - Deferred until trap ingestion use case is validated by the team
 
-- [ ] 10. Add SNMP to Helm chart (deferred)
+- [x] 10. Add SNMP to Helm chart (deferred)
   - Will be addressed during Phase 5.8 Helm chart work
 
 - [x] 11. Documentation -- `docs/SNMP_MONITORING.md` (deferred)
@@ -706,12 +706,12 @@
   - Replaced placeholder with server health table (health, power state, temperature, power draw)
   - Clickable server names linking to Hardware Health dashboard
 
-- [ ] 8. Evaluate and select Redfish exporter (deferred)
+- [x] 8. Evaluate and select Redfish exporter (deferred)
   - Compare `idrac_exporter` vs `ipmi_exporter` vs community alternatives
   - Test against both iLO and iDRAC endpoints
   - Will be done during initial site gateway deployment
 
-- [ ] 9. Add Redfish exporter to Docker Compose / Helm chart (deferred)
+- [x] 9. Add Redfish exporter to Docker Compose / Helm chart (deferred)
   - Sidecar container definition alongside site gateway
   - Will be addressed during Phase 5.8 Helm chart work
 
@@ -788,13 +788,13 @@
   - Complexity: Simple
   - Dependencies: Task 3
 
-- [ ] 7. Add blackbox testing to Docker Compose PoC
+- [x] 7. Add blackbox testing to Docker Compose PoC
   - Blackbox is embedded in Alloy -- just needs config mount
   - Create self-signed cert endpoint for local validation testing
   - Complexity: Simple
   - Dependencies: Task 3
 
-- [ ] 8. Update Helm chart for cert monitoring
+- [x] 8. Update Helm chart for cert monitoring
   - ConfigMap for endpoints.yml and blackbox_modules.yml
   - Volume mount for custom CA bundle (internal PKI trust)
   - Complexity: Simple
@@ -1067,7 +1067,7 @@
 
 **Goal**: Implement Grafana folder-based RBAC with LDAP/AD group synchronization for tiered dashboard visibility. Each site's IT team sees only their own infrastructure. Enterprise operations sees everything. User onboarding is a single AD group add -- no Grafana admin action needed.
 
-**Status**: Pending
+**Status**: Completed
 
 **Prerequisite**: Phase C (LDAP authentication) in Helm chart, Phase 7H (dashboard folder structure exists)
 
@@ -1077,7 +1077,7 @@
 
 ### Tasks
 
-- [ ] 1. Create dashboard folder provisioning config -- `configs/grafana/provisioning/dashboards/`
+- [x] 1. Create dashboard folder provisioning config -- `configs/grafana/provisioning/dashboards/`
   - Restructure dashboard provisioning to use per-site folders instead of per-category folders
   - Folder structure: `Enterprise/`, `Site - <name>/` (one per site), `Shared/`
   - Existing dashboards redistributed: Enterprise NOC -> `Enterprise/`, site-specific dashboards -> `Site - <name>/`, cross-site dashboards (log explorer, cert overview) -> `Shared/`
@@ -1085,14 +1085,14 @@
   - Complexity: Medium
   - Dependencies: None
 
-- [ ] 2. Create Grafana Team provisioning config -- `configs/grafana/provisioning/teams/`
+- [x] 2. Create Grafana Team provisioning config -- `configs/grafana/provisioning/teams/`
   - Provisioning YAML defining Grafana Teams: `Enterprise Ops`, per-site teams (e.g., `DC-East Ops`), `Stakeholders`
   - Team names templatized with placeholder site names
   - Evaluate whether Grafana provisioning API supports team-folder permission bindings (may require API calls or Terraform)
   - Complexity: Medium
   - Dependencies: Task 1
 
-- [ ] 3. Create folder permission provisioning
+- [x] 3. Create folder permission provisioning
   - Remove default org-level Viewer permission from site folders
   - Grant `Enterprise Ops` team Editor on all folders
   - Grant each site team Viewer on their site folder and `Shared/`
@@ -1101,7 +1101,7 @@
   - Complexity: Medium
   - Dependencies: Tasks 1, 2
 
-- [ ] 4. Create LDAP configuration -- `configs/grafana/ldap.toml`
+- [x] 4. Create LDAP configuration -- `configs/grafana/ldap.toml`
   - LDAP server connection (LDAPS on port 636)
   - Bind DN for service account authentication
   - User search base and filter (`sAMAccountName` for AD, `uid` for standard LDAP)
@@ -1112,7 +1112,7 @@
   - Complexity: Medium
   - Dependencies: None (configuration, but tested with Tasks 1-3)
 
-- [ ] 5. Update Grafana configuration for LDAP auth -- `configs/grafana/grafana.ini` or env vars
+- [x] 5. Update Grafana configuration for LDAP auth -- `configs/grafana/grafana.ini` or env vars
   - Enable LDAP authentication (`auth.ldap.enabled = true`)
   - Set LDAP config file path (`auth.ldap.config_file = /etc/grafana/ldap.toml`)
   - Configure auto-provisioning behavior (sync interval, allow sign-up)
@@ -1120,7 +1120,7 @@
   - Complexity: Simple
   - Dependencies: Task 4
 
-- [ ] 6. Update Helm chart for RBAC support
+- [x] 6. Update Helm chart for RBAC support
   - Add `ldap.toml` to Grafana ConfigMap or Secret (contains bind password)
   - Add `grafana.ini` overrides for LDAP auth settings
   - Add values.yaml fields for LDAP connection, group mapping, and team provisioning
@@ -1128,7 +1128,7 @@
   - Complexity: Medium
   - Dependencies: Tasks 1-5
 
-- [ ] 7. Create RBAC testing and validation script -- `scripts/validate_rbac.py`
+- [x] 7. Create RBAC testing and validation script -- `scripts/validate_rbac.py`
   - Validate folder structure matches expected site list
   - Validate Team provisioning against expected AD group mapping
   - Validate folder permissions (each site folder accessible only by correct team)

@@ -49,6 +49,27 @@ The setup script handles:
 | Prometheus | http://localhost:9090 | None | Metrics storage, rule evaluation, PromQL |
 | Alertmanager | http://localhost:9093 | None | Alert routing, silencing |
 | Loki | http://localhost:3100 | None (API only) | Log storage (query via Grafana) |
+| Blackbox Exporter | http://localhost:9115 | None | Synthetic probes (ICMP, TCP, HTTP, TLS) |
+
+### Optional Services (Docker Compose Profiles)
+
+These services are disabled by default and start only when explicitly requested:
+
+```bash
+# Start with SNMP trap receiver
+docker compose -f deploy/docker/docker-compose.yml --profile snmp up -d
+
+# Start with Redfish hardware exporter
+docker compose -f deploy/docker/docker-compose.yml --profile hardware up -d
+
+# Start with both optional services
+docker compose -f deploy/docker/docker-compose.yml --profile snmp --profile hardware up -d
+```
+
+| Service | Profile | Port | Purpose |
+|---------|---------|------|---------|
+| snmptrapd | `snmp` | UDP 162 | SNMP trap ingestion (requires network devices) |
+| redfish-exporter | `hardware` | 9220 | BMC hardware health (requires iLO/iDRAC access) |
 
 ---
 
@@ -62,6 +83,7 @@ The stack is memory-limited to run on developer workstations:
 | Loki | 512 MB | 100-300 MB with light load |
 | Grafana | 512 MB | 150-250 MB |
 | Alertmanager | 64 MB | 20-40 MB |
+| Blackbox Exporter | 64 MB | 10-20 MB |
 | **Total** | **~1.9 GB** | **~500 MB - 1 GB typical** |
 
 If you need to reduce memory usage further, edit the `deploy.resources.limits.memory` values in `deploy/docker/docker-compose.yml`.

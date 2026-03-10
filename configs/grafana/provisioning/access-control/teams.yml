@@ -1,0 +1,33 @@
+# Grafana Team Provisioning
+# Maps Grafana Teams to dashboard folders for per-site access control.
+# Teams are populated via LDAP group sync (see ldap.toml).
+#
+# This file is provisioned at Grafana startup. Changes require restart.
+# For runtime changes, use the Grafana API: POST /api/teams
+#
+# See docs/RBAC_GUIDE.md for the complete access control model.
+
+apiVersion: 1
+
+teams:
+  # -- Monitoring administrators (all folders, all permissions)
+  - name: "Admins"
+    # orgId is optional, defaults to 1
+    members: []  # Populated via LDAP sync, not static config
+
+  # -- NOC / operations center (all folders, view-only)
+  - name: "NOC"
+    members: []
+
+  # -- Per-site teams (add one per site/datacenter)
+  # Team membership is synced from AD groups defined in ldap.toml.
+  # Folder permissions are assigned separately (see folder-permissions.yml).
+  - name: "Team-SiteAlpha"
+    members: []
+
+  - name: "Team-SiteBeta"
+    members: []
+
+  # -- Read-only stakeholders
+  - name: "Readonly"
+    members: []

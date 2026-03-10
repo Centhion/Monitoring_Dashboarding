@@ -1,0 +1,23 @@
+{{- if .Values.snmptrapd.enabled }}
+# ---------------------------------------------------------------------------
+# SNMP Trap Receiver Service (UDP)
+# ---------------------------------------------------------------------------
+# Exposes the snmptrapd UDP listener within the cluster.
+# Network devices send SNMP traps to this service endpoint.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "snmptrapd") }}
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "snmptrapd") | nindent 4 }}
+spec:
+  type: {{ .Values.snmptrapd.service.type }}
+  ports:
+    - port: {{ .Values.snmptrapd.service.port }}
+      targetPort: snmp-trap
+      protocol: {{ .Values.snmptrapd.service.protocol }}
+      name: snmp-trap
+  selector:
+    {{- include "monitoring-stack.selectorLabels" (dict "context" . "component" "snmptrapd") | nindent 4 }}
+{{- end }}

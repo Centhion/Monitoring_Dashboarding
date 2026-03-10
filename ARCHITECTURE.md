@@ -87,6 +87,8 @@ Monitoring_Dashboarding/
 |       +-- datasources/        # Datasource provisioning YAML
 |       +-- dashboards/         # Dashboard provisioning YAML (points to dashboards/)
 |       +-- notifiers/          # Contact point provisioning
+|       +-- ldap.toml           # LDAP/AD authentication template (Phase 8)
+|       +-- provisioning/access-control/ # Team and folder permission definitions
 +-- dashboards/                  # Grafana dashboard JSON files
 |   +-- windows/                # Windows Server dashboards (windows_overview, iis_overview)
 |   +-- linux/                  # Linux Server dashboards (linux_overview)
@@ -104,6 +106,17 @@ Monitoring_Dashboarding/
 |   +-- validate_all.py        # Unified validation runner
 |   +-- validate_on_save.py    # PostToolUse hook for fast syntax checks
 |   +-- maintenance_window.py  # Grafana mute timing API helper (create/list/delete)
+|   +-- fleet_inventory.py    # Inventory management (validate, report, import CSV)
+|   +-- validate_fleet_tags.py # Tag compliance audit against Prometheus
+|   +-- configure_rbac.py     # Apply RBAC folder permissions via Grafana API
+|   +-- validate_rbac.py      # Validate RBAC state against config
++-- inventory/                   # Fleet inventory
+|   +-- sites.yml              # Site/datacenter registry
+|   +-- hosts.yml              # Server inventory (hostname, site, role, OS)
+|   +-- hosts.csv.example      # CSV import template
++-- ansible/                     # Deployment automation
+|   +-- deploy_alloy.yml      # Ansible playbook for Alloy agent deployment
+|   +-- inventory.yml          # Ansible inventory template
 +-- skills/                      # Universal helper scripts
 +-- docs/                        # Documentation
 |   +-- PROJECT_PLAN.md         # Task tracking (single source of truth)

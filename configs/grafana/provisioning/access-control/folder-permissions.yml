@@ -1,0 +1,89 @@
+# Grafana Folder Permissions Reference
+# =====================================================================
+# Grafana OSS does not support provisioning folder permissions via YAML.
+# This file documents the intended permission model. Apply via Grafana API
+# or UI after deployment.
+#
+# To apply programmatically, use scripts/configure_rbac.py (see below)
+# or the Grafana API directly:
+#   curl -X POST http://grafana:3000/api/folders/<uid>/permissions \
+#     -H "Authorization: Bearer <api-key>" \
+#     -H "Content-Type: application/json" \
+#     -d '{"items": [{"teamId": <id>, "permission": 2}]}'
+#
+# Permission levels: 1=View, 2=Edit, 4=Admin
+# =====================================================================
+
+folders:
+  # Infrastructure folder -- NOC and Admins have access
+  - uid: infrastructure
+    title: "Infrastructure"
+    permissions:
+      - team: "Admins"
+        permission: 4  # Admin
+      - team: "NOC"
+        permission: 1  # View
+      - team: "Readonly"
+        permission: 1  # View
+      # All site teams get View access to infrastructure dashboards
+      - team: "Team-SiteAlpha"
+        permission: 1
+      - team: "Team-SiteBeta"
+        permission: 1
+
+  # Windows Servers folder
+  - uid: windows-servers
+    title: "Windows Servers"
+    permissions:
+      - team: "Admins"
+        permission: 4
+      - team: "Team-SiteAlpha"
+        permission: 2  # Edit
+      - team: "Team-SiteBeta"
+        permission: 2
+
+  # Linux Servers folder
+  - uid: linux-servers
+    title: "Linux Servers"
+    permissions:
+      - team: "Admins"
+        permission: 4
+      - team: "Team-SiteAlpha"
+        permission: 2
+      - team: "Team-SiteBeta"
+        permission: 2
+
+  # Network folder
+  - uid: network
+    title: "Network"
+    permissions:
+      - team: "Admins"
+        permission: 4
+      - team: "NOC"
+        permission: 1
+      - team: "Team-SiteAlpha"
+        permission: 2
+      - team: "Team-SiteBeta"
+        permission: 2
+
+  # Hardware folder
+  - uid: hardware
+    title: "Hardware"
+    permissions:
+      - team: "Admins"
+        permission: 4
+      - team: "Team-SiteAlpha"
+        permission: 2
+      - team: "Team-SiteBeta"
+        permission: 2
+
+  # Certificates folder
+  - uid: certificates
+    title: "Certificates"
+    permissions:
+      - team: "Admins"
+        permission: 4
+      - team: "Team-SiteAlpha"
+        permission: 1
+      - team: "Team-SiteBeta"
+        permission: 1

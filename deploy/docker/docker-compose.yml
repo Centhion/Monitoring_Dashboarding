@@ -50,6 +50,13 @@ services:
       - ../../configs/prometheus/outage_recording_rules.yml:/etc/prometheus/rules/outage_recording_rules.yml:ro
       - ../../configs/prometheus/sla_recording_rules.yml:/etc/prometheus/rules/sla_recording_rules.yml:ro
       - ../../configs/prometheus/iis_recording_rules.yml:/etc/prometheus/rules/iis_recording_rules.yml:ro
+      # Phase 7 rule files -- SNMP, hardware, and certificate monitoring
+      - ../../configs/prometheus/snmp_recording_rules.yml:/etc/prometheus/rules/snmp_recording_rules.yml:ro
+      - ../../configs/prometheus/hardware_recording_rules.yml:/etc/prometheus/rules/hardware_recording_rules.yml:ro
+      - ../../configs/prometheus/cert_recording_rules.yml:/etc/prometheus/rules/cert_recording_rules.yml:ro
+      - ../../alerts/prometheus/snmp_alerts.yml:/etc/prometheus/rules/snmp_alerts.yml:ro
+      - ../../alerts/prometheus/hardware_alerts.yml:/etc/prometheus/rules/hardware_alerts.yml:ro
+      - ../../alerts/prometheus/cert_alerts.yml:/etc/prometheus/rules/cert_alerts.yml:ro
       # Persistent TSDB storage -- mounted at /prometheus (image default, writable by nobody)
       - prometheus_data:/prometheus
     command:
@@ -205,6 +212,90 @@ services:
         condition: service_healthy
       loki:
         condition: service_healthy
+    networks:
+      - monitoring
+
+  # -------------------------------------------------------------------------
+  # Blackbox Exporter -- Synthetic Probing and Certificate Monitoring
+  # -------------------------------------------------------------------------
+  # Performs ICMP, TCP, HTTP, and TLS probes against configured targets.
+  # Used by the site gateway Alloy config for certificate monitoring and
+  # synthetic reachability checks. Runs embedded in Alloy in production;
+  # standalone here for local testing without a full Alloy gateway.
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.25.0
+    container_name: mon-blackbox
+    restart: unless-stopped
+    ports:
+      - "9115:9115"
+    volumes:
+      - ../../configs/alloy/certs/blackbox_modules.yml:/etc/blackbox_exporter/config.yml:ro
+    command:
+      - "--config.file=/etc/blackbox_exporter/config.yml"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9115/-/healthy"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - monitoring
+
+  # -------------------------------------------------------------------------
+  # SNMP Trap Receiver -- SNMP Trap Ingestion
+  # -------------------------------------------------------------------------
+  # Receives SNMP traps (UDP 162) and forwards them as syslog messages
+  # to the Alloy gateway for Loki ingestion. In production, this runs as
+  # a sidecar alongside the site gateway container.
+  #
+  # Disabled by default in local testing (most developers don't have SNMP
+  # devices). Uncomment the profiles line to include in `docker compose up`.
+  snmptrapd:
+    image: polinux/snmptrapd:latest
+    container_name: mon-snmptrapd
+    restart: unless-stopped
+    profiles:
+      - snmp    # Only starts with: docker compose --profile snmp up
+    ports:
+      - "162:162/udp"
+    volumes:
+      - ../../configs/snmptrapd/snmptrapd.conf:/etc/snmp/snmptrapd.conf:ro
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+    networks:
+      - monitoring
+
+  # -------------------------------------------------------------------------
+  # Redfish Exporter -- Hardware Health via BMC API
+  # -------------------------------------------------------------------------
+  # Proxies Redfish API requests to server BMCs (iLO, iDRAC). Uses the
+  # multi-target pattern: Prometheus/Alloy sends ?target=<BMC_IP> and
+  # this exporter queries the BMC's Redfish API.
+  #
+  # Disabled by default in local testing (requires BMC network access).
+  # Uncomment the profiles line to include in `docker compose --profile hardware up`.
+  redfish-exporter:
+    image: jenningsloy318/redfish_exporter:latest
+    container_name: mon-redfish
+    restart: unless-stopped
+    profiles:
+      - hardware    # Only starts with: docker compose --profile hardware up
+    ports:
+      - "9220:9220"
+    environment:
+      # BMC credentials -- override in .env for testing against real hardware
+      REDFISH_USER: "${REDFISH_USER:-admin}"
+      REDFISH_PASSWORD: "${REDFISH_PASSWORD:-changeme}"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
     networks:
       - monitoring
 

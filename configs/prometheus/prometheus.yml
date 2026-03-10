@@ -56,6 +56,12 @@ rule_files:
   - "/etc/prometheus/rules/outage_recording_rules.yml"
   - "/etc/prometheus/rules/sla_recording_rules.yml"
   - "/etc/prometheus/rules/iis_recording_rules.yml"
+  - "/etc/prometheus/rules/snmp_recording_rules.yml"
+  - "/etc/prometheus/rules/hardware_recording_rules.yml"
+  - "/etc/prometheus/rules/cert_recording_rules.yml"
+  - "/etc/prometheus/rules/snmp_alerts.yml"
+  - "/etc/prometheus/rules/hardware_alerts.yml"
+  - "/etc/prometheus/rules/cert_alerts.yml"
 
 # ---------------------------------------------------------------------------
 # Alertmanager Configuration

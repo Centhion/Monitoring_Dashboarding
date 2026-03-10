@@ -1,0 +1,68 @@
+{{- if .Values.blackboxExporter.enabled }}
+# ---------------------------------------------------------------------------
+# Blackbox Exporter Deployment
+# ---------------------------------------------------------------------------
+# Performs ICMP, TCP, HTTP, and TLS probes against configured targets.
+# Used for synthetic monitoring and certificate expiry checks.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "blackbox-exporter") }}
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "blackbox-exporter") | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "monitoring-stack.selectorLabels" (dict "context" . "component" "blackbox-exporter") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "blackbox-exporter") | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/blackbox-configmap.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsUser: 65534
+        runAsNonRoot: true
+      containers:
+        - name: blackbox-exporter
+          image: "{{ .Values.blackboxExporter.image.repository }}:{{ .Values.blackboxExporter.image.tag }}"
+          imagePullPolicy: {{ .Values.blackboxExporter.image.pullPolicy }}
+          args:
+            - "--config.file=/etc/blackbox_exporter/config.yml"
+          ports:
+            - name: http
+              containerPort: 9115
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.blackboxExporter.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/blackbox_exporter/config.yml
+              subPath: blackbox_modules.yml
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "blackbox-exporter") }}-config
+{{- end }}

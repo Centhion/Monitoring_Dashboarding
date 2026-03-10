@@ -290,6 +290,76 @@ dashboards:
   enabled: true
 
 # =============================================================================
+# Blackbox Exporter -- Synthetic Probing and Certificate Monitoring
+# =============================================================================
+blackboxExporter:
+  # -- Enable blackbox exporter for ICMP/TCP/HTTP/TLS probing
+  enabled: true
+  image:
+    repository: prom/blackbox-exporter
+    tag: "v0.25.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+  service:
+    type: ClusterIP
+    port: 9115
+
+# =============================================================================
+# SNMP Trap Receiver (snmptrapd) -- SNMP Trap Ingestion
+# =============================================================================
+snmptrapd:
+  # -- Enable SNMP trap receiver. Requires UDP 162 access from network devices.
+  enabled: false
+  image:
+    repository: polinux/snmptrapd
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+  service:
+    type: ClusterIP
+    port: 162
+    protocol: UDP
+
+# =============================================================================
+# Redfish Exporter -- Hardware Health via BMC API
+# =============================================================================
+redfishExporter:
+  # -- Enable Redfish exporter for iLO/iDRAC hardware monitoring.
+  # Requires HTTPS access to BMC management network.
+  enabled: false
+  image:
+    repository: jenningsloy318/redfish_exporter
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+  service:
+    type: ClusterIP
+    port: 9220
+  # -- BMC credentials. Use existingSecret for production.
+  credentials:
+    user: "admin"
+    password: "changeme"
+    existingSecret: ""  # Secret must have keys "redfish-user" and "redfish-password"
+
+# =============================================================================
 # Ingress (Phase B -- Not Available in Phase A)
 # =============================================================================
 # Ingress is disabled in Phase A. These values are stubbed for forward
@@ -317,15 +387,20 @@ ingress:
 # for forward compatibility. Phase C will add LDAP configuration for
 # Grafana and potentially OAuth2 proxy for Prometheus/Alertmanager.
 auth:
-  # -- Enable LDAP authentication for Grafana. Phase C feature.
   ldap:
     enabled: false
-  #   host: ldap.example.com
-  #   port: 636
-  #   useSsl: true
-  #   bindDn: "cn=readonly,dc=example,dc=com"
-  #   searchBaseDn: "ou=users,dc=example,dc=com"
-  #   searchFilter: "(sAMAccountName=%s)"
+    # -- LDAP configuration file. The chart mounts configs/grafana/ldap.toml
+    # when enabled. Override with --set-file to use a custom ldap.toml.
+    configFile: ""
+    # -- LDAP bind password. Stored in Kubernetes Secret.
+    bindPassword: ""
+    # -- Use existing Secret for LDAP bind password.
+    # Secret must have key "ldap-bind-password".
+    existingSecret: ""
+    # -- Mount path for internal CA certificate (for LDAPS verification)
+    caCertPath: ""
+    # -- Allow auto-creation of Grafana users on first LDAP login
+    allowSignUp: true
 
 # =============================================================================
 # High Availability (Phase C -- Not Available in Phase A)

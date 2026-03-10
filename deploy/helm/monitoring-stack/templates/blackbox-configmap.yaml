@@ -1,0 +1,17 @@
+{{- if .Values.blackboxExporter.enabled }}
+# ---------------------------------------------------------------------------
+# Blackbox Exporter ConfigMap
+# ---------------------------------------------------------------------------
+# Contains the blackbox probe module definitions (HTTP, TCP, ICMP, TLS).
+# Loaded from the chart's files/ directory during packaging.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "blackbox-exporter") }}-config
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "blackbox-exporter") | nindent 4 }}
+data:
+  blackbox_modules.yml: |-
+    {{ .Files.Get "files/blackbox_modules.yml" | nindent 4 }}
+{{- end }}

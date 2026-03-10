@@ -1,0 +1,6 @@
+hostname,site,roles,os,ip,notes
+srv-web-01,site-alpha,iis,windows,10.0.1.10,"Production web server"
+srv-sql-01,site-alpha,sql,windows,10.0.1.20,"SQL Server 2019"
+srv-docker-01,site-alpha,docker,linux,10.0.2.10,"Docker host"
+srv-dc-01,site-beta,dc,windows,10.1.0.10,"Primary DC"
+srv-file-01,site-beta,fileserver,windows,10.1.0.20,"DFS namespace root"

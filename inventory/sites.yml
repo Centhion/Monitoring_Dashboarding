@@ -1,0 +1,44 @@
+# Site Registry -- Datacenter and Site Definitions
+# Each site represents a physical or logical datacenter where Alloy agents report from.
+# The site code becomes the ALLOY_DATACENTER label on all metrics and logs from that site.
+#
+# Usage: Edit this file to define your sites, then run:
+#   python3 scripts/fleet_inventory.py validate
+#   python3 scripts/fleet_inventory.py report
+
+# Valid roles that can be assigned to hosts. Extend as needed.
+valid_roles:
+  - dc           # Domain Controller (AD DS, DNS, DHCP)
+  - sql          # SQL Server
+  - iis          # IIS Web Server
+  - fileserver   # File Server (SMB, DFS)
+  - docker       # Docker/container host
+  - generic      # Base OS monitoring only
+
+# Valid OS types
+valid_os:
+  - windows
+  - linux
+
+sites:
+  # -- Example site definition (uncomment and customize)
+  # site-alpha:
+  #   display_name: "Site Alpha (US-East)"
+  #   timezone: "America/New_York"
+  #   environment: prod           # prod, staging, dev
+  #   ad_domain: corp.example.com # Optional: AD domain for this site
+  #   network_segment: "10.0.0.0/16"  # Optional: for documentation
+  #   contact_email: site-alpha-ops@example.com
+  #   gateway:
+  #     enabled: true             # Deploy a site gateway for SNMP/Redfish/certs
+  #     snmp_targets: true
+  #     redfish_targets: true
+  #     cert_targets: true
+  #
+  # site-beta:
+  #   display_name: "Site Beta (US-West)"
+  #   timezone: "America/Los_Angeles"
+  #   environment: prod
+  #   contact_email: site-beta-ops@example.com
+  #   gateway:
+  #     enabled: false

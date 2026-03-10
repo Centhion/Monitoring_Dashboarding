@@ -1,0 +1,63 @@
+# Ansible Inventory -- Generated from inventory/hosts.yml
+#
+# This file demonstrates the inventory group structure. For production use,
+# either maintain this file manually or generate it from hosts.yml:
+#   python3 scripts/fleet_inventory.py ansible-inventory > ansible/inventory.yml
+#
+# Group naming conventions:
+#   - OS groups: windows, linux
+#   - Site groups: site_alpha, site_beta (hyphens replaced with underscores)
+#   - Role groups: role_dc, role_sql, role_iis, role_fileserver, role_docker, role_generic
+#
+# Hosts can belong to multiple groups. Ansible variables (site, roles, etc.)
+# are set as host_vars so playbooks can reference them for configuration selection.
+
+all:
+  children:
+    # -- OS groups
+    windows:
+      hosts: {}
+      # Example:
+      # hosts:
+      #   srv-web-01:
+      #     ansible_host: 10.0.1.10
+      #     ansible_connection: winrm
+      #     ansible_winrm_transport: ntlm
+      #     site: site-alpha
+      #     roles: [iis]
+
+    linux:
+      hosts: {}
+      # Example:
+      # hosts:
+      #   srv-docker-01:
+      #     ansible_host: 10.0.2.10
+      #     ansible_user: deploy
+      #     site: site-alpha
+      #     roles: [docker]
+
+    # -- Site groups
+    site_alpha:
+      hosts: {}
+
+    site_beta:
+      hosts: {}
+
+    # -- Role groups
+    role_dc:
+      hosts: {}
+
+    role_sql:
+      hosts: {}
+
+    role_iis:
+      hosts: {}
+
+    role_fileserver:
+      hosts: {}
+
+    role_docker:
+      hosts: {}
+
+    role_generic:
+      hosts: {}

@@ -1,0 +1,17 @@
+{{- if .Values.snmptrapd.enabled }}
+# ---------------------------------------------------------------------------
+# SNMP Trap Receiver ConfigMap
+# ---------------------------------------------------------------------------
+# Contains the snmptrapd configuration that defines trap handling,
+# community strings, and forwarding behavior.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "monitoring-stack.componentFullname" (dict "context" . "component" "snmptrapd") }}-config
+  namespace: {{ include "monitoring-stack.namespace" . }}
+  labels:
+    {{- include "monitoring-stack.componentLabels" (dict "context" . "component" "snmptrapd") | nindent 4 }}
+data:
+  snmptrapd.conf: |-
+    {{ .Files.Get "files/snmptrapd.conf" | nindent 4 }}
+{{- end }}
