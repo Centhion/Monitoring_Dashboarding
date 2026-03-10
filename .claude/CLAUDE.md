@@ -26,8 +26,7 @@ This repo serves **two purposes** and agents must understand the boundary:
 2. **All new configs, dashboards, alert rules, and scripts go on `master`** with placeholder values. They are generic by default.
 3. **The `internal` branch overrides placeholders** with real values via environment-specific files (`.env`, Helm values overlays, inventory files). It does NOT duplicate configs.
 4. **When sanitizing, replace with meaningful placeholders**: `site-alpha` not `xxx`, `ldap.example.com` not `REDACTED`, `dc-east` not `datacenter1`.
-5. **SESSION_LOG.md and REQUIREMENTS_RESPONSE.md** exist on master and must stay sanitized. No team member names, no org acronyms, no internal project codenames.
-6. **Test with grep before committing**: `grep -ri "resort\|<any-org-term>" --include="*.md" --include="*.yml" --include="*.yaml" --include="*.json" --include="*.alloy"` should return zero org-specific hits.
+5. **Test with grep before committing**: `grep -ri "resort\|<any-org-term>" --include="*.md" --include="*.yml" --include="*.yaml" --include="*.json" --include="*.alloy"` should return zero org-specific hits.
 
 ### What Goes Where
 

@@ -1177,11 +1177,11 @@
 
 ## Phase 9: Requirements Gap Closure
 
-**Goal**: Close all internally-solvable gaps identified in the team requirements analysis (see `docs/REQUIREMENTS_RESPONSE.md`). Eliminates the 15-20% feature delta between the internal stack and paid platforms, making the build-vs-buy decision definitive on cost.
+**Goal**: Close all remaining feature gaps to deliver a complete monitoring platform. Covers agentless probing, file/process monitoring, alert deduplication, maintenance windows, SLA reporting, SNMP traps, audit logging, and capacity forecasting.
 
 **Status**: Completed
 
-**Prerequisite**: None. All work is additive configuration. No dependency on team decisions (Q1-Q10 in REQUIREMENTS_RESPONSE.md) or on Phases 5.7, 6, 7E, 7G, or 8.
+**Prerequisite**: None. All work is additive configuration. No dependency on Phases 5.7, 6, 7E, 7G, or 8.
 
 **Estimated effort**: 10-14 days of configuration work (completed across 3 sessions).
 

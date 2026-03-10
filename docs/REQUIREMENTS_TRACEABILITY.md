@@ -2,7 +2,7 @@
 
 ## Overview
 
-Maps every requirement from the internal team analysis (`docs/REQUIREMENTS_RESPONSE.md`) to the specific phase, configuration file, or component that delivers it. This matrix demonstrates complete coverage of the build-vs-buy feature gap.
+Maps every project requirement to the specific phase, configuration file, or component that delivers it. This matrix demonstrates complete coverage of the monitoring platform feature set.
 
 ## Requirement Categories
 

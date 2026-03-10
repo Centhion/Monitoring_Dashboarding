@@ -92,7 +92,6 @@ grep -ri "TERM1\|TERM2\|TERM3" \
 
 Known safe terms that look org-specific but are not:
 - `PSU` in hardware alerts = Power Supply Unit (hardware component)
-- `LogicMonitor`, `Datadog` in REQUIREMENTS_RESPONSE.md = generic vendor comparison (no contract details)
 - `Nutanix NKP` in architecture docs = platform choice (public knowledge)
 
 ---

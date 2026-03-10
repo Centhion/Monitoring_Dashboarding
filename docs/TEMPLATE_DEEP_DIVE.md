@@ -52,7 +52,6 @@ Skills are **universal Python scripts** that work across all agent types (Claude
 | File | Purpose |
 |------|---------|
 | `PROJECT_PLAN.md` | Task tracking, phase status, human actions required |
-| `SESSION_LOG.md` | Session continuity notes via /handoff command |
 | `DECISIONS.md` | Architectural decision log with rationale |
 
 The agent updates these files after completing significant work, ensuring continuity across sessions.
