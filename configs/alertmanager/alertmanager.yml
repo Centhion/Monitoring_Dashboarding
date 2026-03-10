@@ -187,6 +187,44 @@ inhibit_rules:
     target_matchers:
       - alertname =~ "Fleet.*"
 
+  # -----------------------------------------------------------------------
+  # Mass-Outage Inhibition (Phase 9D)
+  # When a site-level outage is detected, suppress individual host-down
+  # and service-level alerts for that site. The SitePartialOutage or
+  # SiteMajorOutage alert is the actionable signal; per-host alerts are
+  # noise during a mass event.
+  # -----------------------------------------------------------------------
+
+  # Major outage suppresses all per-host critical and warning alerts at the site.
+  - source_matchers:
+      - alertname = "SiteMajorOutage"
+    target_matchers:
+      - severity =~ "critical|warning"
+      - outage_scope != "site"
+    equal:
+      - datacenter
+
+  # Partial outage suppresses per-host warning alerts at the site.
+  # Critical per-host alerts still fire alongside the partial outage
+  # alert, since a partial outage may not explain every individual failure.
+  - source_matchers:
+      - alertname = "SitePartialOutage"
+    target_matchers:
+      - severity = "warning"
+      - outage_scope != "site"
+    equal:
+      - datacenter
+
+  # Role-level outage suppresses per-host warnings for that role at that site.
+  - source_matchers:
+      - alertname = "RolePartialOutage"
+    target_matchers:
+      - severity = "warning"
+      - outage_scope != "role"
+    equal:
+      - datacenter
+      - role
+
 # ---------------------------------------------------------------------------
 # Receivers
 # Define how notifications are delivered for each channel.

@@ -1,15 +1,22 @@
 # =============================================================================
-# Blackbox Exporter Module Definitions (Phase 7C)
+# Blackbox Exporter Module Definitions (Phase 7C + Phase 9A)
 # =============================================================================
-# Defines probe modules for SSL/TLS certificate monitoring. Referenced by
-# the cert monitoring Alloy config (role_cert_monitor.alloy) via config_file.
+# Defines probe modules for certificate monitoring, synthetic probing, and
+# reachability checks. Referenced by the site gateway Alloy config and
+# role_cert_monitor.alloy via config_file.
 #
-# Two module types:
-#   https_cert_check     -- for standard HTTPS web endpoints (public + internal)
-#   tcp_tls_cert_check   -- for non-HTTP TLS services (LDAPS, SMTP/TLS, etc.)
+# Module categories:
+#   Certificate monitoring (Phase 7C):
+#     https_cert_check          -- HTTPS cert expiry (public endpoints)
+#     https_cert_check_internal -- HTTPS cert expiry (internal PKI, skip verify)
+#     tcp_tls_cert_check        -- TLS cert expiry for non-HTTP services
 #
-# Both probers extract probe_ssl_earliest_cert_expiry automatically from the
-# TLS handshake. No additional configuration is needed for cert expiry metrics.
+#   Reachability probing (Phase 9A):
+#     icmp_check                -- ICMP ping (availability + latency)
+#     tcp_check                 -- TCP port open check (any port)
+#     udp_check                 -- UDP port check (DNS resolvers, etc.)
+#     http_synthetic            -- HTTP GET with status code + body validation
+#     http_post_synthetic       -- HTTP POST with payload and response check
 #
 # Internal PKI: If probing services with private CA certs, either:
 #   a) Set ca_file in tls_config to your CA bundle path, OR
@@ -89,3 +96,116 @@ modules:
         # When internal CA bundle is mounted, replace with:
         # insecure_skip_verify: false
         # ca_file: /etc/alloy/certs/internal-ca-bundle.pem
+
+  # ===========================================================================
+  # Reachability Probing Modules (Phase 9A)
+  # ===========================================================================
+  # Synthetic probes for verifying infrastructure reachability. Use these to
+  # monitor services where no agent is installed or where external-facing
+  # availability matters (web apps, mail relays, DNS resolvers, database
+  # listeners, load balancers, etc.)
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  # ICMP Ping Check
+  # ---------------------------------------------------------------------------
+  # Validates host reachability via ICMP echo. Reports probe_success (0/1),
+  # probe_duration_seconds, and probe_icmp_duration_seconds.
+  #
+  # NOTE: ICMP requires either root/CAP_NET_RAW or the blackbox exporter
+  # running with the appropriate capabilities. In containers, set
+  # CAP_NET_RAW on the Alloy binary or run with --cap-add=NET_RAW.
+  # ---------------------------------------------------------------------------
+  icmp_check:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: ip4
+      ip_protocol_fallback: true
+      dont_fragment: false           # Allow fragmentation for compatibility
+
+  # ---------------------------------------------------------------------------
+  # TCP Port Check
+  # ---------------------------------------------------------------------------
+  # Validates that a TCP port is open and accepting connections. Does NOT
+  # perform TLS or application-level handshakes (use tcp_tls_cert_check
+  # or http_synthetic for that). Suitable for database listeners (1433,
+  # 5432, 3306), RDP (3389), SMB (445), custom app ports, etc.
+  # ---------------------------------------------------------------------------
+  tcp_check:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: ip4
+      ip_protocol_fallback: true
+
+  # ---------------------------------------------------------------------------
+  # UDP Port Check (DNS Resolver Probe)
+  # ---------------------------------------------------------------------------
+  # Validates DNS resolvers respond to queries. Sends a DNS A-record
+  # query and checks for a valid response. Use this for monitoring
+  # internal DNS servers, AD domain controllers (DNS role), or public
+  # resolvers.
+  #
+  # For non-DNS UDP services, duplicate this module and adjust the
+  # query_name or switch to a raw UDP payload via query_response.
+  # ---------------------------------------------------------------------------
+  udp_dns_check:
+    prober: dns
+    timeout: 5s
+    dns:
+      preferred_ip_protocol: ip4
+      ip_protocol_fallback: true
+      transport_protocol: udp
+      query_name: "example.com"      # Replace with a known-resolvable domain
+      query_type: "A"
+      valid_rcodes:
+        - NOERROR
+
+  # ---------------------------------------------------------------------------
+  # HTTP Synthetic Probe (GET)
+  # ---------------------------------------------------------------------------
+  # Full HTTP GET probe with configurable response validation. Goes beyond
+  # basic reachability to verify that web applications return expected
+  # status codes and (optionally) expected content in the response body.
+  #
+  # Use for: internal web apps, API health endpoints, load balancer VIPs,
+  # intranet portals, vendor appliance web UIs.
+  # ---------------------------------------------------------------------------
+  http_synthetic:
+    prober: http
+    timeout: 10s
+    http:
+      preferred_ip_protocol: ip4
+      ip_protocol_fallback: true
+      valid_status_codes: [200, 201, 202, 204, 301, 302]
+      method: GET
+      follow_redirects: true
+      fail_if_ssl: false
+      fail_if_not_ssl: false         # Allow both HTTP and HTTPS targets
+      # Uncomment to validate response body contains expected string:
+      # fail_if_body_not_matches_regexp:
+      #   - "healthy"
+      #   - "ok"
+
+  # ---------------------------------------------------------------------------
+  # HTTP Synthetic Probe (POST)
+  # ---------------------------------------------------------------------------
+  # HTTP POST probe for APIs that require request bodies. Sends a JSON
+  # payload and validates the response. Use for health-check endpoints
+  # that expect POST requests.
+  # ---------------------------------------------------------------------------
+  http_post_synthetic:
+    prober: http
+    timeout: 10s
+    http:
+      preferred_ip_protocol: ip4
+      ip_protocol_fallback: true
+      valid_status_codes: [200, 201, 202, 204]
+      method: POST
+      follow_redirects: false
+      headers:
+        Content-Type: application/json
+      body: '{"check": "health"}'
+      fail_if_ssl: false
+      fail_if_not_ssl: false

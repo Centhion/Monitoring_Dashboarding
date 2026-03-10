@@ -1,0 +1,142 @@
+# =============================================================================
+# Probe Alert Rules (Phase 9A)
+# =============================================================================
+# Alert rules for synthetic probing and reachability monitoring. Fires when
+# blackbox probe targets fail health checks (HTTP, ICMP, TCP, DNS).
+#
+# These complement agent-based alerts by covering infrastructure where
+# no agent is installed (network appliances, external services, VIPs)
+# and validating external-facing availability of internal services.
+#
+# Naming convention: <Protocol>Probe<Condition>
+# =============================================================================
+
+groups:
+  - name: probe_alerts
+    rules:
+      # -----------------------------------------------------------------
+      # HTTP Probe Failures
+      # Fires when an HTTP/HTTPS endpoint fails probe_success checks.
+      # Covers both http_synthetic and http_post_synthetic modules.
+      # -----------------------------------------------------------------
+      - alert: HTTPProbeFailed
+        expr: probe_success{job="probe_http"} == 0
+        for: 3m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "HTTP probe failed for {{ $labels.service }} ({{ $labels.instance }})"
+          description: >-
+            HTTP probe to {{ $labels.instance }} has been failing for 3+ minutes.
+            The endpoint is either unreachable, returning an unexpected status code,
+            or the response body does not match the expected pattern.
+          runbook_url: "docs/ALERT_RUNBOOKS.md#httpprobefailed"
+
+      # HTTP probe returning slow responses (>5 seconds average over 5 minutes).
+      # Indicates degraded performance before a full outage.
+      - alert: HTTPProbeSlow
+        expr: avg_over_time(probe_duration_seconds{job="probe_http"}[5m]) > 5
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "HTTP probe slow for {{ $labels.service }} ({{ $labels.instance }})"
+          description: >-
+            HTTP probe to {{ $labels.instance }} has averaged over 5 seconds
+            response time for 10+ minutes. Current average:
+            {{ $value | printf "%.2f" }}s.
+          runbook_url: "docs/ALERT_RUNBOOKS.md#httpprobefailed"
+
+      # -----------------------------------------------------------------
+      # ICMP Probe Failures
+      # Fires when a host does not respond to ICMP ping.
+      # -----------------------------------------------------------------
+      - alert: ICMPProbeFailed
+        expr: probe_success{job="probe_icmp"} == 0
+        for: 3m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "ICMP probe failed for {{ $labels.service }} ({{ $labels.instance }})"
+          description: >-
+            Host {{ $labels.instance }} has not responded to ICMP ping for 3+
+            minutes. The host may be down, unreachable, or ICMP may be blocked
+            by a firewall.
+          runbook_url: "docs/ALERT_RUNBOOKS.md#icmpprobefailed"
+
+      # High ICMP latency indicates network congestion or routing issues.
+      - alert: ICMPProbeHighLatency
+        expr: probe_duration_seconds{job="probe_icmp"} > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "High ICMP latency to {{ $labels.service }} ({{ $labels.instance }})"
+          description: >-
+            ICMP latency to {{ $labels.instance }} has exceeded 500ms for 10+
+            minutes. Current latency: {{ $value | printf "%.0f" }}ms.
+          runbook_url: "docs/ALERT_RUNBOOKS.md#icmpprobefailed"
+
+      # -----------------------------------------------------------------
+      # TCP Probe Failures
+      # Fires when a TCP port is not accepting connections.
+      # -----------------------------------------------------------------
+      - alert: TCPProbeFailed
+        expr: probe_success{job="probe_tcp"} == 0
+        for: 3m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "TCP probe failed for {{ $labels.service }} ({{ $labels.instance }})"
+          description: >-
+            TCP connection to {{ $labels.instance }} has been failing for 3+
+            minutes. The service may be down, the port may be blocked, or the
+            host may be unreachable.
+          runbook_url: "docs/ALERT_RUNBOOKS.md#tcpprobefailed"
+
+      # -----------------------------------------------------------------
+      # DNS/UDP Probe Failures
+      # Fires when a DNS resolver does not respond to queries.
+      # -----------------------------------------------------------------
+      - alert: DNSProbeFailed
+        expr: probe_success{job="probe_dns"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "DNS probe failed for {{ $labels.service }} ({{ $labels.instance }})"
+          description: >-
+            DNS resolver {{ $labels.instance }} has not responded to queries
+            for 2+ minutes. DNS failures cascade into authentication failures
+            (AD/Kerberos), service discovery failures, and GPO processing
+            failures. Investigate immediately.
+          runbook_url: "docs/ALERT_RUNBOOKS.md#dnsprobefailed"
+
+      # -----------------------------------------------------------------
+      # Probe Target Disappearance
+      # Fires when a probe target stops being scraped entirely (the target
+      # was removed or the gateway lost its config). Uses absent_over_time
+      # to detect targets that were previously reporting and stopped.
+      # -----------------------------------------------------------------
+      - alert: ProbeTargetMissing
+        expr: |
+          count by (datacenter) (probe_success) < count by (datacenter) (probe_success offset 1h)
+            unless count by (datacenter) (probe_success offset 1h) == 0
+        for: 15m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Probe target count dropped in {{ $labels.datacenter }}"
+          description: >-
+            The number of probe targets in datacenter {{ $labels.datacenter }}
+            has decreased compared to 1 hour ago. A target may have been
+            removed from the probe inventory or the gateway config may have
+            been modified. Verify this was intentional.
+          runbook_url: "docs/ALERT_RUNBOOKS.md#probetargetmissing"

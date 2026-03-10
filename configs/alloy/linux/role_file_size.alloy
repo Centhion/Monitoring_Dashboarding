@@ -1,0 +1,92 @@
+// =============================================================================
+// Linux Server Role -- File/Folder Size Monitoring (Phase 9B)
+// =============================================================================
+// Monitors specific files and directories for size thresholds. Deploy
+// alongside base.alloy when you need alerts on individual file or folder
+// growth (application logs, database dumps, tmp directories, etc.).
+//
+// Uses the node_exporter textfile collector: a cron job runs a shell script
+// that writes Prometheus-format metrics to a .prom file. Alloy's unix
+// exporter reads the textfile directory on each scrape.
+//
+// Prerequisites:
+//   - Textfile collector directory exists (default: /var/lib/alloy/textfile)
+//   - The monitoring cron script is deployed via Ansible (see docs/FLEET_ONBOARDING.md)
+//   - du and stat commands available (standard on all Linux distros)
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Textfile Collector for File Size Metrics
+// ---------------------------------------------------------------------------
+// Reads .prom files from the textfile directory. The file_size_monitor.sh
+// cron script writes metrics in Prometheus exposition format.
+//
+// Metrics produced by the script:
+//   linux_file_size_bytes{path="...", name="..."}
+//   linux_directory_size_bytes{path="...", name="..."}
+//   linux_file_age_seconds{path="...", name="..."}
+//
+// The "name" label is a human-readable alias for the monitored path.
+// ---------------------------------------------------------------------------
+prometheus.exporter.unix "file_size" {
+  enable_collectors = ["textfile"]
+
+  textfile {
+    directory = sys.env("ALLOY_TEXTFILE_DIR") != "" ? sys.env("ALLOY_TEXTFILE_DIR") : "/var/lib/alloy/textfile"
+  }
+}
+
+prometheus.scrape "file_size_metrics" {
+  targets         = prometheus.exporter.unix.file_size.targets
+  forward_to      = [prometheus.relabel.add_standard_labels.receiver]
+  scrape_interval = "60s"
+  scrape_timeout  = "15s"
+  job_name        = "linux_file_size"
+}
+
+// ---------------------------------------------------------------------------
+// Example cron script (deploy via Ansible, not managed by Alloy):
+// ---------------------------------------------------------------------------
+// #!/bin/bash
+// # file_size_monitor.sh
+// # Writes Prometheus metrics for monitored files and directories.
+// # Cron: * * * * * /opt/alloy/scripts/file_size_monitor.sh
+// #
+// # Configuration: edit the arrays below.
+// #
+// # TEXTFILE_DIR="/var/lib/alloy/textfile"
+// # OUTPUT="${TEXTFILE_DIR}/file_sizes.prom"
+// #
+// # # Files to monitor: "path|name"
+// # FILES=(
+// #   "/var/log/syslog|syslog"
+// #   "/var/log/application/app.log|app_log"
+// #   "/tmp/large_export.csv|export_csv"
+// # )
+// #
+// # # Directories to monitor: "path|name"
+// # DIRS=(
+// #   "/var/log|var_log"
+// #   "/tmp|tmp"
+// #   "/var/lib/docker|docker_data"
+// # )
+// #
+// # : > "${OUTPUT}.tmp"
+// # for entry in "${FILES[@]}"; do
+// #   IFS='|' read -r path name <<< "$entry"
+// #   if [ -f "$path" ]; then
+// #     size=$(stat -c%s "$path" 2>/dev/null || echo 0)
+// #     age=$(( $(date +%s) - $(stat -c%Y "$path" 2>/dev/null || echo $(date +%s)) ))
+// #     echo "linux_file_size_bytes{path=\"${path}\",name=\"${name}\"} ${size}" >> "${OUTPUT}.tmp"
+// #     echo "linux_file_age_seconds{path=\"${path}\",name=\"${name}\"} ${age}" >> "${OUTPUT}.tmp"
+// #   fi
+// # done
+// # for entry in "${DIRS[@]}"; do
+// #   IFS='|' read -r path name <<< "$entry"
+// #   if [ -d "$path" ]; then
+// #     size=$(du -sb "$path" 2>/dev/null | cut -f1 || echo 0)
+// #     echo "linux_directory_size_bytes{path=\"${path}\",name=\"${name}\"} ${size}" >> "${OUTPUT}.tmp"
+// #   fi
+// # done
+// # mv "${OUTPUT}.tmp" "$OUTPUT"
+// ---------------------------------------------------------------------------

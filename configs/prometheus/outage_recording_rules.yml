@@ -1,0 +1,85 @@
+# =============================================================================
+# Mass-Outage Detection Recording Rules (Phase 9D)
+# =============================================================================
+# Pre-compute site-level and role-level availability metrics for mass-outage
+# detection. These rules aggregate per-instance up/down status into
+# site-wide and role-wide percentages, enabling "partial outage" alerts
+# when a significant portion of a site or role goes down simultaneously.
+#
+# The key insight: when 30%+ of a site's hosts go down at the same time,
+# the root cause is almost always a shared dependency (switch failure,
+# power event, WAN outage) rather than individual host issues. Alerting
+# on this pattern prevents a flood of per-host alerts and highlights the
+# real problem.
+#
+# Naming convention:
+#   site:outage_<metric>:<aggregation>  -- per-datacenter aggregations
+#   role:outage_<metric>:<aggregation>  -- per-role aggregations
+# =============================================================================
+
+groups:
+  # ---------------------------------------------------------------------------
+  # Site-Level Outage Detection
+  # Aggregates agent heartbeat status (up metric from remote_write) to the
+  # datacenter level to detect multi-host failures.
+  # ---------------------------------------------------------------------------
+  - name: outage_detection_rules
+    interval: 30s
+    rules:
+      # Count of hosts currently reporting at each site.
+      # A drop in this count indicates hosts have stopped sending metrics.
+      - record: site:hosts_up:count
+        expr: |
+          count by (datacenter) (
+            up{job=~"windows_base|linux_base"} == 1
+          )
+
+      # Total host count per site (up or down) as a baseline for ratio
+      # calculations. Uses a 10-minute lookback to include hosts that were
+      # recently reporting but have since gone silent.
+      - record: site:hosts_total:count
+        expr: |
+          count by (datacenter) (
+            max_over_time(up{job=~"windows_base|linux_base"}[10m])
+          )
+
+      # Ratio of hosts currently up vs total known hosts at the site.
+      # A value of 1.0 means all hosts are healthy. Below 0.7 means 30%+
+      # are down, which is the threshold for a mass-outage alert.
+      - record: site:hosts_up_ratio:current
+        expr: |
+          site:hosts_up:count / site:hosts_total:count
+
+      # Count of hosts that were up 10 minutes ago but are now down.
+      # This captures the "just went down" hosts for outage correlation.
+      - record: site:hosts_newly_down:count
+        expr: |
+          site:hosts_total:count - site:hosts_up:count
+
+  # ---------------------------------------------------------------------------
+  # Role-Level Outage Detection
+  # Same aggregation pattern but grouped by server role. Detects when a
+  # specific role (e.g., all IIS servers, all SQL servers) is experiencing
+  # a coordinated failure.
+  # ---------------------------------------------------------------------------
+  - name: role_outage_detection_rules
+    interval: 30s
+    rules:
+      # Count of hosts currently up per role.
+      - record: role:hosts_up:count
+        expr: |
+          count by (datacenter, role) (
+            up{job=~"windows_base|linux_base"} == 1
+          )
+
+      # Total host count per role (10-minute lookback baseline).
+      - record: role:hosts_total:count
+        expr: |
+          count by (datacenter, role) (
+            max_over_time(up{job=~"windows_base|linux_base"}[10m])
+          )
+
+      # Ratio of hosts currently up per role.
+      - record: role:hosts_up_ratio:current
+        expr: |
+          role:hosts_up:count / role:hosts_total:count

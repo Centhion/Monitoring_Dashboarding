@@ -1,0 +1,59 @@
+// =============================================================================
+// Windows Server Role -- Process Monitoring (Phase 9B)
+// =============================================================================
+// Monitors specific Windows processes (non-service executables) for presence
+// and resource consumption. Deploy alongside base.alloy when you need to
+// track processes that do not run as Windows services and therefore are not
+// covered by the base service collector.
+//
+// Use cases:
+//   - Vendor applications that run as user-context processes
+//   - Scheduled batch jobs (e.g., ETL scripts, backup agents)
+//   - Desktop applications on terminal servers
+//   - Custom LOB applications without service wrappers
+//
+// The windows_exporter "process" collector uses a process name regex to
+// select which processes to report metrics for. Without filtering, it
+// reports ALL processes which creates very high cardinality.
+//
+// Prerequisites:
+//   - Process names match the expected regex (case-insensitive)
+//   - Edit the process include filter below for your environment
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Process Metrics Collector
+// ---------------------------------------------------------------------------
+// The process collector reports per-process:
+//   - windows_process_cpu_time_total (seconds, by mode)
+//   - windows_process_working_set_bytes (current memory usage)
+//   - windows_process_private_bytes (committed private memory)
+//   - windows_process_thread_count
+//   - windows_process_handle_count
+//   - windows_process_start_time (Unix timestamp)
+//   - windows_process_io_bytes_total (disk + network I/O)
+//
+// The include filter is a regex matching process executable names (without
+// .exe extension). Only matching processes generate metrics.
+// ---------------------------------------------------------------------------
+prometheus.exporter.windows "process_monitor" {
+  enabled_collectors = ["process"]
+
+  process {
+    // Regex of process names to monitor. Edit this for your environment.
+    // Default examples cover common vendor agents and LOB applications.
+    // Process names are matched without the .exe extension.
+    //
+    // To find process names on a server:
+    //   Get-Process | Select-Object Name | Sort-Object Name
+    include = "^(backup_agent|etl_runner|vendor_app|custom_app)$"
+  }
+}
+
+prometheus.scrape "process_metrics" {
+  targets         = prometheus.exporter.windows.process_monitor.targets
+  forward_to      = [prometheus.relabel.add_standard_labels.receiver]
+  scrape_interval = "30s"
+  scrape_timeout  = "15s"
+  job_name        = "windows_process"
+}

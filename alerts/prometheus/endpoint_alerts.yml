@@ -1,0 +1,141 @@
+# =============================================================================
+# Endpoint Monitoring Alert Rules (Phase 9B)
+# =============================================================================
+# Alert rules for file/folder size monitoring and process presence checks.
+# These cover the textfile-collector-based monitoring added by the
+# role_file_size and role_process Alloy configs.
+#
+# Naming convention: <Resource><Condition>
+# =============================================================================
+
+groups:
+  - name: file_size_alerts
+    rules:
+      # -----------------------------------------------------------------
+      # File Size Exceeded
+      # Fires when a monitored file exceeds the size threshold.
+      # Default: 1GB. Override per file using recording rules or
+      # Alertmanager routing with label matchers.
+      # -----------------------------------------------------------------
+      - alert: FileSizeExceeded
+        expr: |
+          (windows_file_size_bytes > 1073741824)
+          or
+          (linux_file_size_bytes > 1073741824)
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "File {{ $labels.name }} exceeds 1GB on {{ $labels.hostname }}"
+          description: >-
+            File {{ $labels.path }} on {{ $labels.hostname }} is
+            {{ $value | humanize1024 }}. Investigate whether the file
+            needs rotation, archival, or cleanup.
+          runbook_url: "docs/ALERT_RUNBOOKS.md#filesizeexceeded"
+
+      # -----------------------------------------------------------------
+      # Directory Size Exceeded
+      # Fires when a monitored directory exceeds the size threshold.
+      # Default: 10GB. Adjust based on expected directory sizes.
+      # -----------------------------------------------------------------
+      - alert: DirectorySizeExceeded
+        expr: |
+          (windows_directory_size_bytes > 10737418240)
+          or
+          (linux_directory_size_bytes > 10737418240)
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Directory {{ $labels.name }} exceeds 10GB on {{ $labels.hostname }}"
+          description: >-
+            Directory {{ $labels.path }} on {{ $labels.hostname }} is
+            {{ $value | humanize1024 }}. Review contents for stale files,
+            orphaned logs, or unexpected growth.
+          runbook_url: "docs/ALERT_RUNBOOKS.md#directorysizeexceeded"
+
+      # -----------------------------------------------------------------
+      # Stale File Alert
+      # Fires when a file has not been modified within the expected
+      # interval. Useful for backup files that should be refreshed daily
+      # or log files that should always be actively written.
+      # Default: 86400 seconds (24 hours).
+      # -----------------------------------------------------------------
+      - alert: FileStale
+        expr: |
+          (windows_file_age_seconds > 86400)
+          or
+          (linux_file_age_seconds > 86400)
+        for: 30m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "File {{ $labels.name }} is stale on {{ $labels.hostname }}"
+          description: >-
+            File {{ $labels.path }} on {{ $labels.hostname }} has not been
+            modified in {{ $value | humanizeDuration }}. If this is a backup
+            or export file, the generating process may have failed.
+          runbook_url: "docs/ALERT_RUNBOOKS.md#filestale"
+
+  - name: process_alerts
+    rules:
+      # -----------------------------------------------------------------
+      # Process Not Running (Windows)
+      # Fires when an expected Windows process is not found. Uses the
+      # process collector from role_process.alloy.
+      # -----------------------------------------------------------------
+      - alert: WindowsProcessNotRunning
+        expr: windows_process_start_time == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Process {{ $labels.process }} not running on {{ $labels.hostname }}"
+          description: >-
+            Expected process {{ $labels.process }} is not running on
+            {{ $labels.hostname }}. Check Event Viewer for crash details
+            or attempt a manual restart.
+          runbook_url: "docs/ALERT_RUNBOOKS.md#processnotrunning"
+
+      # -----------------------------------------------------------------
+      # Process Not Running (Linux)
+      # Fires when an expected Linux process is not found. Uses the
+      # textfile-based process monitor from role_process.alloy.
+      # -----------------------------------------------------------------
+      - alert: LinuxProcessNotRunning
+        expr: linux_process_running == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Process {{ $labels.name }} not running on {{ $labels.hostname }}"
+          description: >-
+            Expected process {{ $labels.name }} is not running on
+            {{ $labels.hostname }}. Check journalctl for error output
+            or attempt a manual restart.
+          runbook_url: "docs/ALERT_RUNBOOKS.md#processnotrunning"
+
+      # -----------------------------------------------------------------
+      # Process High Memory (Windows)
+      # Fires when a monitored process exceeds a memory threshold.
+      # Default: 2GB working set. Adjust for memory-intensive applications.
+      # -----------------------------------------------------------------
+      - alert: WindowsProcessHighMemory
+        expr: windows_process_working_set_bytes > 2147483648
+        for: 15m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Process {{ $labels.process }} using {{ $value | humanize1024 }} on {{ $labels.hostname }}"
+          description: >-
+            Process {{ $labels.process }} on {{ $labels.hostname }} has
+            exceeded 2GB working set for 15+ minutes. Current usage:
+            {{ $value | humanize1024 }}. Investigate for memory leaks
+            or consider increasing the threshold if this is expected.
+          runbook_url: "docs/ALERT_RUNBOOKS.md#processhighmemory"

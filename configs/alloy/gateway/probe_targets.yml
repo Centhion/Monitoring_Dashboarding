@@ -1,0 +1,186 @@
+# =============================================================================
+# Probe Target Inventory (Phase 9A)
+# =============================================================================
+# Master list of infrastructure endpoints to probe for reachability and
+# synthetic monitoring. Each entry becomes a blackbox probe target in the
+# site gateway Alloy config.
+#
+# This file is per-site -- each site gateway deployment gets its own copy
+# with targets reachable from that site's network.
+#
+# Adding a new target:
+#   1. Add an entry below with all required fields
+#   2. Restart the gateway Alloy container (or wait for config reload)
+#   3. The target appears in the Probing Overview dashboard automatically
+#
+# Fields:
+#   name        -- unique identifier (used as job label and dashboard display)
+#   address     -- target address (format depends on module):
+#                    ICMP:  hostname or IP (no port)
+#                    TCP:   hostname:port
+#                    UDP:   hostname:port
+#                    HTTP:  full URL (http:// or https://)
+#   module      -- blackbox module from blackbox_modules.yml:
+#                    icmp_check          -- ICMP ping
+#                    tcp_check           -- TCP port open
+#                    udp_dns_check       -- DNS resolver check
+#                    http_synthetic      -- HTTP GET with validation
+#                    http_post_synthetic -- HTTP POST with payload
+#   labels      -- custom labels for dashboard filtering
+#     datacenter  -- site/datacenter this target belongs to
+#     environment -- prod, staging, dev
+#     probe_type  -- icmp, tcp, udp, http (for dashboard categorization)
+#     service     -- human-readable service name
+#     owner       -- team responsible for this service
+#
+# IMPORTANT: This file is a TEMPLATE. Replace placeholder entries with
+# actual targets for your environment.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# WEB APPLICATION PROBES
+# HTTP/HTTPS endpoints that should be reachable and returning valid responses.
+# Uses http_synthetic module for full response validation.
+# -----------------------------------------------------------------------------
+web_apps:
+  # - name: "intranet-portal"
+  #   address: "https://intranet.example.com"
+  #   module: "http_synthetic"
+  #   labels:
+  #     datacenter: "site-alpha"
+  #     environment: "prod"
+  #     probe_type: "http"
+  #     service: "Intranet Portal"
+  #     owner: "web-team"
+
+  # - name: "helpdesk-app"
+  #   address: "https://helpdesk.example.com/health"
+  #   module: "http_synthetic"
+  #   labels:
+  #     datacenter: "site-alpha"
+  #     environment: "prod"
+  #     probe_type: "http"
+  #     service: "Helpdesk Application"
+  #     owner: "app-team"
+
+  # - name: "api-gateway"
+  #   address: "https://api.example.com/status"
+  #   module: "http_post_synthetic"
+  #   labels:
+  #     datacenter: "site-alpha"
+  #     environment: "prod"
+  #     probe_type: "http"
+  #     service: "API Gateway Health"
+  #     owner: "platform-team"
+
+# -----------------------------------------------------------------------------
+# DATABASE LISTENER PROBES
+# TCP port checks verifying database services accept connections.
+# Does NOT execute queries -- just confirms the port is open.
+# -----------------------------------------------------------------------------
+databases:
+  # - name: "sql-primary"
+  #   address: "sql01.corp.example.com:1433"
+  #   module: "tcp_check"
+  #   labels:
+  #     datacenter: "site-alpha"
+  #     environment: "prod"
+  #     probe_type: "tcp"
+  #     service: "SQL Server Primary"
+  #     owner: "dba-team"
+
+  # - name: "postgres-reporting"
+  #   address: "pg-report.corp.example.com:5432"
+  #   module: "tcp_check"
+  #   labels:
+  #     datacenter: "site-alpha"
+  #     environment: "prod"
+  #     probe_type: "tcp"
+  #     service: "PostgreSQL Reporting"
+  #     owner: "dba-team"
+
+# -----------------------------------------------------------------------------
+# DNS RESOLVER PROBES
+# Validates DNS servers respond to queries. Critical for environments where
+# AD domain controllers serve DNS. A DNS failure means auth failures, GPO
+# failures, and service discovery breakdowns.
+# -----------------------------------------------------------------------------
+dns_resolvers:
+  # - name: "dc01-dns"
+  #   address: "10.0.1.10:53"
+  #   module: "udp_dns_check"
+  #   labels:
+  #     datacenter: "site-alpha"
+  #     environment: "prod"
+  #     probe_type: "udp"
+  #     service: "Domain Controller 01 DNS"
+  #     owner: "ad-team"
+
+  # - name: "dc02-dns"
+  #   address: "10.0.1.11:53"
+  #   module: "udp_dns_check"
+  #   labels:
+  #     datacenter: "site-alpha"
+  #     environment: "prod"
+  #     probe_type: "udp"
+  #     service: "Domain Controller 02 DNS"
+  #     owner: "ad-team"
+
+# -----------------------------------------------------------------------------
+# MAIL RELAY PROBES
+# TCP checks on SMTP relay ports. Validates the mail relay accepts
+# connections on the expected port (25, 465, or 587).
+# -----------------------------------------------------------------------------
+mail_relays:
+  # - name: "smtp-relay"
+  #   address: "smtp.example.com:587"
+  #   module: "tcp_check"
+  #   labels:
+  #     datacenter: "site-alpha"
+  #     environment: "prod"
+  #     probe_type: "tcp"
+  #     service: "SMTP Relay"
+  #     owner: "mail-team"
+
+# -----------------------------------------------------------------------------
+# ICMP REACHABILITY PROBES
+# Ping checks for infrastructure that does not expose service ports (network
+# appliances, printers, IoT devices) or as a baseline reachability layer
+# alongside service-specific probes.
+# -----------------------------------------------------------------------------
+icmp_hosts:
+  # - name: "core-switch"
+  #   address: "10.0.1.1"
+  #   module: "icmp_check"
+  #   labels:
+  #     datacenter: "site-alpha"
+  #     environment: "prod"
+  #     probe_type: "icmp"
+  #     service: "Core Switch"
+  #     owner: "network-team"
+
+  # - name: "wan-gateway"
+  #   address: "10.0.0.1"
+  #   module: "icmp_check"
+  #   labels:
+  #     datacenter: "site-alpha"
+  #     environment: "prod"
+  #     probe_type: "icmp"
+  #     service: "WAN Gateway"
+  #     owner: "network-team"
+
+# -----------------------------------------------------------------------------
+# LOAD BALANCER / VIP PROBES
+# HTTP probes against virtual IPs or load balancer health endpoints.
+# Validates the VIP is routing traffic to healthy backends.
+# -----------------------------------------------------------------------------
+load_balancers:
+  # - name: "web-vip"
+  #   address: "https://web-vip.example.com"
+  #   module: "http_synthetic"
+  #   labels:
+  #     datacenter: "site-alpha"
+  #     environment: "prod"
+  #     probe_type: "http"
+  #     service: "Web Cluster VIP"
+  #     owner: "network-team"

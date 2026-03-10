@@ -1,0 +1,85 @@
+// =============================================================================
+// Windows Server Role -- File/Folder Size Monitoring (Phase 9B)
+// =============================================================================
+// Monitors specific files and directories for size thresholds. Deploy
+// alongside base.alloy when you need alerts on individual file or folder
+// growth (log files, database backups, temp directories, user profile
+// directories, etc.).
+//
+// This uses a local script exporter pattern: a PowerShell script runs on
+// a schedule and writes metrics to a text file that Alloy reads via
+// prometheus.exporter.windows textfile collector.
+//
+// Alternative approaches:
+//   - Windows Performance Counters (limited to specific file types)
+//   - Custom WMI queries (higher overhead, complex setup)
+//   - Textfile collector (chosen: simple, flexible, no WMI dependency)
+//
+// Prerequisites:
+//   - PowerShell execution policy allows script execution
+//   - Textfile collector directory exists (default: C:\ProgramData\alloy\textfile)
+//   - The monitoring script is deployed via Ansible/SCCM (see docs/FLEET_ONBOARDING.md)
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Textfile Collector for File Size Metrics
+// ---------------------------------------------------------------------------
+// Reads .prom files from the textfile directory. The file_size_monitor.ps1
+// script (deployed separately) writes metrics in Prometheus exposition format
+// to this directory on a scheduled task interval.
+//
+// Metrics produced by the script:
+//   windows_file_size_bytes{path="...", name="..."}
+//   windows_directory_size_bytes{path="...", name="..."}
+//   windows_file_age_seconds{path="...", name="..."}
+//
+// The "name" label is a human-readable alias for the monitored path,
+// used in dashboard displays and alert annotations.
+// ---------------------------------------------------------------------------
+prometheus.exporter.windows "file_size" {
+  enabled_collectors = ["textfile"]
+
+  textfile {
+    text_file_directory = sys.env("ALLOY_TEXTFILE_DIR") != "" ? sys.env("ALLOY_TEXTFILE_DIR") : "C:\\ProgramData\\alloy\\textfile"
+  }
+}
+
+prometheus.scrape "file_size_metrics" {
+  targets         = prometheus.exporter.windows.file_size.targets
+  forward_to      = [prometheus.relabel.add_standard_labels.receiver]
+  scrape_interval = "60s"
+  scrape_timeout  = "15s"
+  job_name        = "windows_file_size"
+}
+
+// ---------------------------------------------------------------------------
+// Example PowerShell script (deploy as scheduled task, not managed by Alloy):
+// ---------------------------------------------------------------------------
+// # file_size_monitor.ps1
+// # Writes Prometheus metrics for monitored files and directories.
+// # Scheduled to run every 60 seconds via Windows Task Scheduler.
+// #
+// # Configuration: edit the $targets array below.
+// #
+// # $targets = @(
+// #   @{ Path = "C:\inetpub\logs\LogFiles"; Name = "iis_logs"; Type = "directory" },
+// #   @{ Path = "C:\Windows\Temp"; Name = "windows_temp"; Type = "directory" },
+// #   @{ Path = "D:\Backups\SQLBackup.bak"; Name = "sql_backup"; Type = "file" },
+// # )
+// #
+// # $outputPath = "C:\ProgramData\alloy\textfile\file_sizes.prom"
+// # $lines = @()
+// # foreach ($t in $targets) {
+// #   if ($t.Type -eq "file" -and (Test-Path $t.Path)) {
+// #     $item = Get-Item $t.Path
+// #     $lines += "windows_file_size_bytes{path=`"$($t.Path)`",name=`"$($t.Name)`"} $($item.Length)"
+// #     $age = [int]((Get-Date) - $item.LastWriteTime).TotalSeconds
+// #     $lines += "windows_file_age_seconds{path=`"$($t.Path)`",name=`"$($t.Name)`"} $age"
+// #   } elseif ($t.Type -eq "directory" -and (Test-Path $t.Path)) {
+// #     $size = (Get-ChildItem $t.Path -Recurse -File -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+// #     if ($null -eq $size) { $size = 0 }
+// #     $lines += "windows_directory_size_bytes{path=`"$($t.Path)`",name=`"$($t.Name)`"} $size"
+// #   }
+// # }
+// # $lines | Set-Content -Path $outputPath -Encoding ASCII
+// ---------------------------------------------------------------------------

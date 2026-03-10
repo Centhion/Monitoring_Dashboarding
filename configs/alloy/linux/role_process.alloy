@@ -1,0 +1,100 @@
+// =============================================================================
+// Linux Server Role -- Process Monitoring (Phase 9B)
+// =============================================================================
+// Monitors specific Linux processes for presence and resource consumption.
+// Deploy alongside base.alloy when you need to track processes that are
+// not managed by systemd (and therefore not covered by the base systemd
+// collector) or when you need per-process resource metrics beyond
+// unit-level status.
+//
+// Use cases:
+//   - Legacy daemons started via init scripts or cron
+//   - Vendor applications without systemd unit files
+//   - Custom LOB applications (Java JARs, Python scripts, etc.)
+//   - Monitoring sidecar processes (exporters, agents)
+//
+// The unix exporter processes collector uses /proc to read per-process
+// metrics. A process name regex filters which processes generate metrics
+// to control cardinality.
+//
+// Prerequisites:
+//   - /proc filesystem mounted (standard on all Linux systems)
+//   - Process names match the expected regex
+//   - Edit the process include filter below for your environment
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Process Metrics Collector
+// ---------------------------------------------------------------------------
+// The processes collector reports:
+//   - namedprocess_namegroup_cpu_seconds_total (CPU by mode)
+//   - namedprocess_namegroup_memory_bytes (resident, virtual, swap)
+//   - namedprocess_namegroup_num_procs (process count matching name)
+//   - namedprocess_namegroup_num_threads
+//   - namedprocess_namegroup_open_filedesc (open file descriptors)
+//   - namedprocess_namegroup_oldest_start_time_seconds
+//   - namedprocess_namegroup_read_bytes_total / write_bytes_total
+//
+// NOTE: Alloy's unix exporter uses the "processes" collector which reports
+// aggregate process stats. For per-process name monitoring, use the
+// textfile collector with a script that filters by process name and writes
+// custom metrics, or deploy process-exporter as a sidecar.
+//
+// The approach below uses textfile collector with a process monitor script,
+// consistent with the file_size_monitor.sh pattern from role_file_size.alloy.
+// ---------------------------------------------------------------------------
+prometheus.exporter.unix "process_monitor" {
+  enable_collectors = ["textfile"]
+
+  textfile {
+    directory = sys.env("ALLOY_TEXTFILE_DIR") != "" ? sys.env("ALLOY_TEXTFILE_DIR") : "/var/lib/alloy/textfile"
+  }
+}
+
+prometheus.scrape "process_metrics" {
+  targets         = prometheus.exporter.unix.process_monitor.targets
+  forward_to      = [prometheus.relabel.add_standard_labels.receiver]
+  scrape_interval = "30s"
+  scrape_timeout  = "15s"
+  job_name        = "linux_process"
+}
+
+// ---------------------------------------------------------------------------
+// Example cron script (deploy via Ansible, not managed by Alloy):
+// ---------------------------------------------------------------------------
+// #!/bin/bash
+// # process_monitor.sh
+// # Writes Prometheus metrics for monitored processes.
+// # Cron: * * * * * /opt/alloy/scripts/process_monitor.sh
+// #
+// # Configuration: edit the PROCESSES array below.
+// # Each entry is a regex matching process command names (from /proc/*/comm).
+// #
+// # TEXTFILE_DIR="/var/lib/alloy/textfile"
+// # OUTPUT="${TEXTFILE_DIR}/process_status.prom"
+// #
+// # # Processes to monitor: "regex|friendly_name"
+// # PROCESSES=(
+// #   "java|java_app"
+// #   "python3|etl_script"
+// #   "nginx|nginx"
+// #   "postgres|postgresql"
+// #   "backup_agent|backup_agent"
+// # )
+// #
+// # : > "${OUTPUT}.tmp"
+// # for entry in "${PROCESSES[@]}"; do
+// #   IFS='|' read -r pattern name <<< "$entry"
+// #   count=$(pgrep -c "$pattern" 2>/dev/null || echo 0)
+// #   echo "linux_process_running{name=\"${name}\"} ${count}" >> "${OUTPUT}.tmp"
+// #   if [ "$count" -gt 0 ]; then
+// #     # Get total RSS in bytes for all matching processes
+// #     rss=$(ps -C "$pattern" -o rss= 2>/dev/null | awk '{s+=$1} END {print s*1024}' || echo 0)
+// #     echo "linux_process_memory_bytes{name=\"${name}\"} ${rss}" >> "${OUTPUT}.tmp"
+// #     # Get total CPU seconds (user + system)
+// #     cpu=$(ps -C "$pattern" -o time= 2>/dev/null | head -1 | awk -F: '{print $1*3600+$2*60+$3}' || echo 0)
+// #     echo "linux_process_cpu_seconds{name=\"${name}\"} ${cpu}" >> "${OUTPUT}.tmp"
+// #   fi
+// # done
+// # mv "${OUTPUT}.tmp" "$OUTPUT"
+// ---------------------------------------------------------------------------

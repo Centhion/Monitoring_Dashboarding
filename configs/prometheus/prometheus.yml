@@ -49,6 +49,11 @@ rule_files:
   - "/etc/prometheus/rules/linux_alerts.yml"
   - "/etc/prometheus/rules/infra_alerts.yml"
   - "/etc/prometheus/rules/role_alerts.yml"
+  - "/etc/prometheus/rules/probe_alerts.yml"
+  - "/etc/prometheus/rules/probe_recording_rules.yml"
+  - "/etc/prometheus/rules/endpoint_alerts.yml"
+  - "/etc/prometheus/rules/outage_alerts.yml"
+  - "/etc/prometheus/rules/outage_recording_rules.yml"
 
 # ---------------------------------------------------------------------------
 # Alertmanager Configuration

@@ -1,0 +1,91 @@
+# =============================================================================
+# Probe Recording Rules (Phase 9A)
+# =============================================================================
+# Pre-aggregate probe metrics for dashboard performance. These recording
+# rules compute success ratios, average latencies, and site-level summaries
+# from raw blackbox exporter metrics.
+#
+# Naming convention:
+#   probe:<metric>:<aggregation>        -- per-target aggregations
+#   site:probe_<metric>:<aggregation>   -- per-site summaries (for NOC dashboard)
+#
+# These rules feed the Probing Overview dashboard and the Enterprise NOC
+# probe health column.
+# =============================================================================
+
+groups:
+  # ---------------------------------------------------------------------------
+  # Per-Target Probe Aggregations
+  # These produce time-windowed success ratios and latency summaries for
+  # each individual probe target. Dashboards query these instead of raw
+  # probe_success to avoid expensive range queries on volatile series.
+  # ---------------------------------------------------------------------------
+  - name: probe_recording_rules
+    interval: 30s
+    rules:
+      # Success ratio over the last 5 minutes (0.0 to 1.0).
+      # A value of 1.0 means all probes succeeded. Below 1.0 indicates
+      # intermittent failures. 0.0 means the target is fully down.
+      - record: probe:success_ratio:5m
+        expr: |
+          avg_over_time(probe_success[5m])
+
+      # Success ratio over the last 1 hour for SLA-style reporting.
+      - record: probe:success_ratio:1h
+        expr: |
+          avg_over_time(probe_success[1h])
+
+      # Average probe latency over the last 5 minutes.
+      - record: probe:duration_seconds:avg5m
+        expr: |
+          avg_over_time(probe_duration_seconds[5m])
+
+      # 95th percentile probe latency over the last 5 minutes.
+      # Uses quantile_over_time for distribution analysis.
+      - record: probe:duration_seconds:p95_5m
+        expr: |
+          quantile_over_time(0.95, probe_duration_seconds[5m])
+
+  # ---------------------------------------------------------------------------
+  # Per-Site Probe Summaries
+  # Aggregate probe health to the datacenter level for the Enterprise NOC
+  # grid. Each site gets a single "probe health" score derived from all
+  # probe targets at that site.
+  # ---------------------------------------------------------------------------
+  - name: site_probe_recording_rules
+    interval: 30s
+    rules:
+      # Average success ratio across all probe targets at a site.
+      # The NOC dashboard shows this as the probe health indicator.
+      - record: site:probe_success_ratio:avg5m
+        expr: |
+          avg by (datacenter) (
+            avg_over_time(probe_success[5m])
+          )
+
+      # Count of failing probe targets per site (success ratio < 1.0).
+      - record: site:probe_targets_failing:count
+        expr: |
+          count by (datacenter) (
+            avg_over_time(probe_success[5m]) < 1
+          ) or (
+            0 * group by (datacenter) (probe_success)
+          )
+
+      # Total probe target count per site (for "X of Y healthy" display).
+      - record: site:probe_targets_total:count
+        expr: |
+          count by (datacenter) (probe_success)
+
+      # Average probe latency across all targets at a site.
+      - record: site:probe_duration_seconds:avg5m
+        expr: |
+          avg by (datacenter) (
+            avg_over_time(probe_duration_seconds[5m])
+          )
+
+      # Count of probe targets per probe type per site
+      # (for the probing dashboard breakdown panels).
+      - record: site:probe_targets_by_type:count
+        expr: |
+          count by (datacenter, probe_type) (probe_success)
