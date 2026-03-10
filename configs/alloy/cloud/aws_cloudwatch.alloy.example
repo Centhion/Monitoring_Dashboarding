@@ -1,0 +1,136 @@
+// =============================================================================
+// AWS CloudWatch Integration -- Alloy Config (Phase 7E Stub)
+// =============================================================================
+// Stub configuration for scraping AWS CloudWatch metrics via Alloy's
+// built-in CloudWatch exporter. Disabled by default. Copy this file
+// without the .example extension to activate.
+//
+// Prerequisites:
+//   - AWS IAM role with cloudwatch:GetMetricData and cloudwatch:ListMetrics
+//   - Credentials: instance profile (preferred), env vars, or credential file
+//   - Network access to CloudWatch API endpoints
+//
+// Environment variables:
+//   AWS_REGION             -- AWS region (e.g., us-east-1)
+//   AWS_ACCESS_KEY_ID      -- Access key (if not using instance profile)
+//   AWS_SECRET_ACCESS_KEY  -- Secret key (if not using instance profile)
+//   AWS_ROLE_ARN           -- IAM role ARN for cross-account access (optional)
+//   PROMETHEUS_REMOTE_WRITE_URL -- Prometheus remote_write endpoint
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// EC2 Instance Metrics
+// ---------------------------------------------------------------------------
+// Uncomment to scrape EC2 instance metrics from CloudWatch.
+// Metrics: CPUUtilization, NetworkIn/Out, DiskReadOps/WriteOps,
+//          StatusCheckFailed_Instance, StatusCheckFailed_System
+// ---------------------------------------------------------------------------
+// prometheus.exporter.cloudwatch "ec2" {
+//   sts_region = sys.env("AWS_REGION")
+//
+//   discovery {
+//     type = "AWS/EC2"
+//     regions = [sys.env("AWS_REGION")]
+//
+//     metric {
+//       name       = "CPUUtilization"
+//       statistics = ["Average"]
+//       period     = "5m"
+//     }
+//     metric {
+//       name       = "NetworkIn"
+//       statistics = ["Sum"]
+//       period     = "5m"
+//     }
+//     metric {
+//       name       = "NetworkOut"
+//       statistics = ["Sum"]
+//       period     = "5m"
+//     }
+//     metric {
+//       name       = "StatusCheckFailed"
+//       statistics = ["Maximum"]
+//       period     = "5m"
+//     }
+//   }
+// }
+//
+// prometheus.scrape "cloudwatch_ec2" {
+//   targets    = prometheus.exporter.cloudwatch.ec2.targets
+//   forward_to = [prometheus.remote_write.default.receiver]
+//   scrape_interval = "5m"
+// }
+
+// ---------------------------------------------------------------------------
+// RDS Database Metrics
+// ---------------------------------------------------------------------------
+// Uncomment to scrape RDS instance metrics.
+// Metrics: DatabaseConnections, ReadIOPS, WriteIOPS, FreeStorageSpace,
+//          CPUUtilization, ReplicaLag
+// ---------------------------------------------------------------------------
+// prometheus.exporter.cloudwatch "rds" {
+//   sts_region = sys.env("AWS_REGION")
+//
+//   discovery {
+//     type = "AWS/RDS"
+//     regions = [sys.env("AWS_REGION")]
+//
+//     metric {
+//       name       = "CPUUtilization"
+//       statistics = ["Average"]
+//       period     = "5m"
+//     }
+//     metric {
+//       name       = "DatabaseConnections"
+//       statistics = ["Sum"]
+//       period     = "5m"
+//     }
+//     metric {
+//       name       = "FreeStorageSpace"
+//       statistics = ["Average"]
+//       period     = "5m"
+//     }
+//     metric {
+//       name       = "ReadIOPS"
+//       statistics = ["Average"]
+//       period     = "5m"
+//     }
+//     metric {
+//       name       = "WriteIOPS"
+//       statistics = ["Average"]
+//       period     = "5m"
+//     }
+//   }
+// }
+
+// ---------------------------------------------------------------------------
+// ALB/NLB Load Balancer Metrics
+// ---------------------------------------------------------------------------
+// Uncomment to scrape Application/Network Load Balancer metrics.
+// Metrics: RequestCount, TargetResponseTime, HTTP_5XX_Count,
+//          HealthyHostCount, UnHealthyHostCount
+// ---------------------------------------------------------------------------
+// prometheus.exporter.cloudwatch "alb" {
+//   sts_region = sys.env("AWS_REGION")
+//
+//   discovery {
+//     type = "AWS/ApplicationELB"
+//     regions = [sys.env("AWS_REGION")]
+//
+//     metric {
+//       name       = "RequestCount"
+//       statistics = ["Sum"]
+//       period     = "5m"
+//     }
+//     metric {
+//       name       = "TargetResponseTime"
+//       statistics = ["Average", "p99"]
+//       period     = "5m"
+//     }
+//     metric {
+//       name       = "HTTPCode_Target_5XX_Count"
+//       statistics = ["Sum"]
+//       period     = "5m"
+//     }
+//   }
+// }

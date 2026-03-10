@@ -1,0 +1,105 @@
+// =============================================================================
+// SNMP Trap Ingestion via Syslog (Phase 9F)
+// =============================================================================
+// Receives structured syslog messages from snmptrapd and forwards them
+// to Loki for storage and alerting. This component runs on the Alloy
+// site gateway alongside SNMP polling, Redfish, and blackbox probing.
+//
+// Data flow: SNMP Device -> snmptrapd (UDP 162) -> syslog -> Alloy -> Loki
+//
+// The syslog receiver listens on UDP 1514 (non-privileged port).
+// snmptrapd forwards formatted trap messages to this port.
+//
+// Environment variables:
+//   LOKI_WRITE_URL       -- Loki push endpoint
+//   ALLOY_DATACENTER     -- Site/datacenter label
+//   ALLOY_ENV            -- Environment label (prod, staging, dev)
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Syslog Receiver for SNMP Traps
+// ---------------------------------------------------------------------------
+// Listens for syslog messages from the snmptrapd sidecar.
+// Each trap is received as a single syslog message containing the
+// source device, OID, trap type, and varbind data.
+// ---------------------------------------------------------------------------
+loki.source.syslog "snmp_traps" {
+  listener {
+    address  = "0.0.0.0:1514"
+    protocol = "udp"
+    labels   = {
+      job  = "snmp_traps",
+      source = "snmptrapd",
+    }
+  }
+  forward_to = [loki.process.trap_labels.receiver]
+}
+
+// ---------------------------------------------------------------------------
+// Trap Log Processing Pipeline
+// ---------------------------------------------------------------------------
+// Enriches trap syslog messages with structured labels for Loki indexing.
+// Extracts device IP, OID, and severity from the syslog message body
+// for efficient LogQL querying and alerting.
+// ---------------------------------------------------------------------------
+loki.process "trap_labels" {
+  forward_to = [loki.write.traps.receiver]
+
+  // Add infrastructure labels for cross-correlation with other data sources.
+  stage.static_labels {
+    values = {
+      datacenter  = sys.env("ALLOY_DATACENTER"),
+      environment = sys.env("ALLOY_ENV"),
+      log_type    = "snmp_trap",
+    }
+  }
+
+  // Extract structured fields from the syslog message.
+  // snmptrapd formats traps with identifiable fields that can be
+  // parsed via regex for label extraction.
+  stage.regex {
+    expression = "(?P<source_ip>\\d+\\.\\d+\\.\\d+\\.\\d+).*?(?P<trap_oid>[\\d\\.]+)"
+  }
+
+  stage.labels {
+    values = {
+      source_ip = "",
+      trap_oid  = "",
+    }
+  }
+
+  // Classify trap severity based on common OID patterns.
+  // Generic trap types: 0=coldStart, 1=warmStart, 2=linkDown, 3=linkUp,
+  // 4=authFailure, 5=egpNeighborLoss, 6=enterpriseSpecific
+  stage.match {
+    selector = "{log_type=\"snmp_trap\"}"
+
+    stage.regex {
+      expression = "(?P<trap_type>linkDown|linkUp|coldStart|warmStart|authenticationFailure)"
+    }
+
+    stage.labels {
+      values = {
+        trap_type = "",
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Loki Write Target for Trap Logs
+// ---------------------------------------------------------------------------
+// Sends processed trap logs to Loki. Uses a dedicated loki.write block
+// to allow independent tenant/rate-limit configuration if trap volume
+// needs separate control from the main log pipeline.
+// ---------------------------------------------------------------------------
+loki.write "traps" {
+  endpoint {
+    url = sys.env("LOKI_WRITE_URL")
+  }
+
+  external_labels = {
+    datacenter  = sys.env("ALLOY_DATACENTER"),
+    environment = sys.env("ALLOY_ENV"),
+  }
+}

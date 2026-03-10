@@ -62,8 +62,18 @@ python scripts/poc_setup.py
 - **Grafana Provisioning**: Datasources, dashboards, and contact points deployed via provisioning YAML
 - **Label-Driven Discovery**: Add sites by setting `ALLOY_DATACENTER` on agents -- dashboards auto-populate with no config changes
 - **SNMP Network Monitoring**: Poll switches, firewalls, APs, and UPS devices via Alloy's embedded snmp_exporter with per-interface traffic, utilization, and error tracking
+- **SNMP Trap Ingestion**: Receive SNMP traps via snmptrapd sidecar, forward through Alloy to Loki for log-based alerting on link-down, auth-failure, and device-reboot events
 - **Hardware Health via Redfish**: Monitor iLO/iDRAC BMC interfaces for system health, temperature, power consumption, and component status (drives, memory)
+- **SSL/TLS Certificate Monitoring**: Blackbox probing for internal PKI and public certificates with 30d/7d/expired alerting
 - **Two-Tier Deployment**: Tier 1 Alloy agents push from servers; Tier 2 site gateway containers pull SNMP, certificates, and hardware metrics per site
+- **Agentless Probing**: ICMP, TCP, UDP/DNS, and HTTP/HTTPS synthetic probes via blackbox exporter with success rate and latency tracking
+- **File and Process Monitoring**: Textfile collector pattern for monitoring arbitrary file sizes, directory sizes, and process status on both Windows and Linux
+- **SLA Availability Reporting**: Pre-computed availability metrics (1h/1d/7d/30d windows) per host, role, and site with configurable SLA threshold indicators
+- **Capacity Forecasting**: predict_linear panels on Windows, Linux, and Infrastructure dashboards showing projected disk, CPU, and memory trends
+- **Mass-Outage Detection**: Automatic alert suppression during site-wide or role-wide outages via recording rules and Alertmanager inhibition
+- **Maintenance Windows**: Grafana mute timings (recurring) and API-driven programmatic silences with a Python helper script
+- **Audit Trail**: Grafana server log forwarding to Loki for login tracking, dashboard changes, and API activity visibility
+- **Cloud Monitoring Stubs**: Pre-built Alloy configs for AWS CloudWatch and Azure Monitor (disabled by default, ready to activate)
 - **Validation Tooling**: Python scripts to lint and validate configs before deployment
 
 ## Dashboards
@@ -79,6 +89,10 @@ python scripts/poc_setup.py
 | Certificate Overview | `cert-overview` | Certificates | SSL/TLS certificate expiry tracking with probe health |
 | Network Infrastructure | `network-overview` | Network | SNMP device inventory, interface status, traffic, utilization |
 | Hardware Health | `hardware-overview` | Hardware | Redfish BMC health, temperatures, power, component status |
+| SLA Availability | `sla-availability` | Infrastructure | Host/role/site uptime percentages with SLA threshold indicators |
+| Probing Overview | `probing-overview` | Infrastructure | Synthetic probe status grid, success rates, and latency analysis |
+| Audit Trail | `audit-trail` | Infrastructure | Grafana user activity: logins, dashboard changes, API requests |
+| Log Explorer | `log-explorer` | Infrastructure | Cross-platform log search across Windows Event Log, Linux journal, and IIS |
 
 All dashboards include a cross-navigation link bar. Template variables (`environment`, `datacenter`, `hostname`) propagate between dashboards for seamless drill-down.
 
@@ -93,6 +107,12 @@ All dashboards include a cross-navigation link bar. Template variables (`environ
 - See `docs/DASHBOARD_GUIDE.md` for dashboard customization and creation
 - See `docs/VALIDATION_TOOLING.md` for config validation scripts and CI integration
 - See `docs/LOCAL_TESTING.md` for Docker Compose PoC setup and Alloy local testing
+- See `docs/ALERT_DEDUP.md` for mass-outage detection and alert suppression architecture
+- See `docs/MAINTENANCE_WINDOWS.md` for scheduled and ad-hoc alert silencing workflows
+- See `docs/AUDIT_LOGGING.md` for Grafana audit trail setup and LogQL query examples
+- See `docs/SNMP_TRAPS.md` for SNMP trap ingestion pipeline setup
+- See `docs/CLOUD_MONITORING.md` for AWS CloudWatch and Azure Monitor integration
+- See `docs/REQUIREMENTS_TRACEABILITY.md` for full requirements coverage matrix
 
 ## Development
 

@@ -42,6 +42,14 @@ services:
       - ../../alerts/prometheus/linux_alerts.yml:/etc/prometheus/rules/linux_alerts.yml:ro
       - ../../alerts/prometheus/infra_alerts.yml:/etc/prometheus/rules/infra_alerts.yml:ro
       - ../../alerts/prometheus/role_alerts.yml:/etc/prometheus/rules/role_alerts.yml:ro
+      # Phase 9 rule files
+      - ../../alerts/prometheus/probe_alerts.yml:/etc/prometheus/rules/probe_alerts.yml:ro
+      - ../../alerts/prometheus/endpoint_alerts.yml:/etc/prometheus/rules/endpoint_alerts.yml:ro
+      - ../../alerts/prometheus/outage_alerts.yml:/etc/prometheus/rules/outage_alerts.yml:ro
+      - ../../configs/prometheus/probe_recording_rules.yml:/etc/prometheus/rules/probe_recording_rules.yml:ro
+      - ../../configs/prometheus/outage_recording_rules.yml:/etc/prometheus/rules/outage_recording_rules.yml:ro
+      - ../../configs/prometheus/sla_recording_rules.yml:/etc/prometheus/rules/sla_recording_rules.yml:ro
+      - ../../configs/prometheus/iis_recording_rules.yml:/etc/prometheus/rules/iis_recording_rules.yml:ro
       # Persistent TSDB storage -- mounted at /prometheus (image default, writable by nobody)
       - prometheus_data:/prometheus
     command:
@@ -157,6 +165,10 @@ services:
       - ../../dashboards/windows:/var/lib/grafana/dashboards/windows:ro
       - ../../dashboards/linux:/var/lib/grafana/dashboards/linux:ro
       - ../../dashboards/overview:/var/lib/grafana/dashboards/overview:ro
+      # Phase 7 dashboard directories
+      - ../../dashboards/network:/var/lib/grafana/dashboards/network:ro
+      - ../../dashboards/hardware:/var/lib/grafana/dashboards/hardware:ro
+      - ../../dashboards/certs:/var/lib/grafana/dashboards/certs:ro
       # Persistent Grafana database (users, preferences, annotations)
       - grafana_data:/var/lib/grafana
     environment:
@@ -170,6 +182,10 @@ services:
       # Disable update checks and analytics
       GF_ANALYTICS_REPORTING_ENABLED: "false"
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      # Structured JSON logging for audit trail (Phase 9G)
+      GF_LOG_MODE: "console file"
+      GF_LOG_LEVEL: "info"
+      GF_LOG_CONSOLE_FORMAT: "json"
       # Environment variable expansion in provisioning files
       PROMETHEUS_URL: "http://prometheus:9090"
       LOKI_URL: "http://loki:3100"

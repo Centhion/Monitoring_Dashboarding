@@ -635,6 +635,72 @@
       ],
       "title": "Interface Discards (Top 10)",
       "type": "timeseries"
+    },
+    {
+      "collapsed": true,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 52 },
+      "id": 500,
+      "title": "SNMP Trap Log (Phase 9F)",
+      "type": "row",
+      "panels": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "description": "Recent SNMP trap events received from network devices via snmptrapd. Shows source device, trap type, and raw trap data.",
+          "gridPos": { "h": 8, "w": 16, "x": 0, "y": 53 },
+          "id": 15,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "pluginVersion": "10.4.0",
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "loki" },
+              "editorMode": "code",
+              "expr": "{job=\"snmp_traps\", datacenter=~\"$datacenter\"} | json",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "SNMP Trap Log",
+          "type": "logs"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "description": "SNMP trap volume over time by trap type. Spikes may indicate flapping interfaces or device instability.",
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": { "axisBorderShow": false, "axisColorMode": "text", "axisLabel": "Traps / interval", "axisPlacement": "auto", "drawStyle": "bars", "fillOpacity": 80, "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "lineWidth": 1, "pointSize": 5, "showPoints": "never", "stacking": { "group": "A", "mode": "normal" } },
+              "mappings": [],
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 53 },
+          "id": 16,
+          "options": { "legend": { "calcs": ["sum"], "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
+          "pluginVersion": "10.4.0",
+          "targets": [
+            {
+              "datasource": { "type": "loki", "uid": "loki" },
+              "editorMode": "code",
+              "expr": "sum by (trap_type) (count_over_time({job=\"snmp_traps\", datacenter=~\"$datacenter\"} [$__interval]))",
+              "legendFormat": "{{trap_type}}",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "Trap Volume by Type",
+          "type": "timeseries"
+        }
+      ]
     }
   ],
   "refresh": "1m",

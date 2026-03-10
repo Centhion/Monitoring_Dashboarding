@@ -1,0 +1,102 @@
+// =============================================================================
+// Azure Monitor Integration -- Alloy Config (Phase 7E Stub)
+// =============================================================================
+// Stub configuration for scraping Azure Monitor metrics via Alloy's
+// built-in Azure exporter. Disabled by default. Copy this file
+// without the .example extension to activate.
+//
+// Prerequisites:
+//   - Azure service principal with "Monitoring Reader" role
+//   - Tenant ID, Client ID, Client Secret
+//   - Network access to Azure Monitor API endpoints
+//
+// Environment variables:
+//   AZURE_TENANT_ID        -- Azure AD tenant ID
+//   AZURE_CLIENT_ID        -- Service principal client ID
+//   AZURE_CLIENT_SECRET    -- Service principal client secret
+//   AZURE_SUBSCRIPTION_ID  -- Azure subscription ID
+//   PROMETHEUS_REMOTE_WRITE_URL -- Prometheus remote_write endpoint
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Azure Virtual Machines
+// ---------------------------------------------------------------------------
+// Uncomment to scrape Azure VM metrics from Azure Monitor.
+// Metrics: Percentage CPU, Network In/Out, Disk Read/Write Bytes,
+//          Available Memory Bytes
+// ---------------------------------------------------------------------------
+// prometheus.exporter.azure "vms" {
+//   subscriptions = [sys.env("AZURE_SUBSCRIPTION_ID")]
+//
+//   resource_type   = "Microsoft.Compute/virtualMachines"
+//   metric_namespace = "Microsoft.Compute/virtualMachines"
+//
+//   metrics = [
+//     "Percentage CPU",
+//     "Network In Total",
+//     "Network Out Total",
+//     "Disk Read Bytes",
+//     "Disk Write Bytes",
+//     "Available Memory Bytes",
+//   ]
+//
+//   aggregations = ["Average", "Total"]
+//   timespan     = "PT5M"
+// }
+//
+// prometheus.scrape "azure_vms" {
+//   targets    = prometheus.exporter.azure.vms.targets
+//   forward_to = [prometheus.remote_write.default.receiver]
+//   scrape_interval = "5m"
+// }
+
+// ---------------------------------------------------------------------------
+// Azure SQL Database
+// ---------------------------------------------------------------------------
+// Uncomment to scrape Azure SQL Database metrics.
+// Metrics: cpu_percent, dtu_consumption_percent, storage_percent,
+//          connection_successful, connection_failed, deadlock
+// ---------------------------------------------------------------------------
+// prometheus.exporter.azure "sql" {
+//   subscriptions = [sys.env("AZURE_SUBSCRIPTION_ID")]
+//
+//   resource_type   = "Microsoft.Sql/servers/databases"
+//   metric_namespace = "Microsoft.Sql/servers/databases"
+//
+//   metrics = [
+//     "cpu_percent",
+//     "dtu_consumption_percent",
+//     "storage_percent",
+//     "connection_successful",
+//     "connection_failed",
+//     "deadlock",
+//   ]
+//
+//   aggregations = ["Average", "Total"]
+//   timespan     = "PT5M"
+// }
+
+// ---------------------------------------------------------------------------
+// Azure App Service
+// ---------------------------------------------------------------------------
+// Uncomment to scrape Azure App Service metrics.
+// Metrics: Requests, AverageResponseTime, Http5xx, HealthCheckStatus
+// ---------------------------------------------------------------------------
+// prometheus.exporter.azure "appservice" {
+//   subscriptions = [sys.env("AZURE_SUBSCRIPTION_ID")]
+//
+//   resource_type   = "Microsoft.Web/sites"
+//   metric_namespace = "Microsoft.Web/sites"
+//
+//   metrics = [
+//     "Requests",
+//     "AverageResponseTime",
+//     "Http5xx",
+//     "HealthCheckStatus",
+//     "BytesSent",
+//     "BytesReceived",
+//   ]
+//
+//   aggregations = ["Average", "Total"]
+//   timespan     = "PT5M"
+// }

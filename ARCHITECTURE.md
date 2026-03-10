@@ -77,8 +77,10 @@ Monitoring_Dashboarding/
 |   |   +-- linux/              # Linux base + role configs (.alloy)
 |   |   +-- gateway/            # Tier 2 site gateway (SNMP, Blackbox, Redfish)
 |   |   +-- certs/              # Certificate blackbox probe modules and endpoints
-|   |   +-- roles/              # Standalone role configs (cert monitor)
+|   |   +-- roles/              # Standalone role configs (cert monitor, audit logging)
+|   |   +-- cloud/              # Cloud provider stubs (AWS CloudWatch, Azure Monitor)
 |   +-- prometheus/             # Prometheus server config and recording rules
+|   +-- snmptrapd/              # snmptrapd trap receiver config (sidecar)
 |   +-- loki/                   # Loki server config
 |   +-- alertmanager/           # Alertmanager routing and receivers
 |   +-- grafana/                # Grafana provisioning
@@ -88,11 +90,10 @@ Monitoring_Dashboarding/
 +-- dashboards/                  # Grafana dashboard JSON files
 |   +-- windows/                # Windows Server dashboards (windows_overview, iis_overview)
 |   +-- linux/                  # Linux Server dashboards (linux_overview)
-|   +-- overview/               # Hub dashboards (enterprise_noc, site_overview, infrastructure_overview, log_explorer)
+|   +-- overview/               # Hub dashboards (enterprise_noc, site_overview, infra, log_explorer, sla, probing, audit)
 |   +-- network/                # Network infrastructure dashboards (Phase 7A)
 |   +-- hardware/               # Hardware health dashboards (Phase 7B)
 |   +-- certs/                  # Certificate monitoring dashboards (Phase 7C)
-|   +-- assets/                 # Reserved for future asset dashboards
 +-- alerts/                      # Alert rule definitions
 |   +-- prometheus/             # Prometheus alerting rules (YAML)
 |   +-- grafana/                # Grafana-managed alert rules (JSON)
@@ -102,6 +103,7 @@ Monitoring_Dashboarding/
 |   +-- validate_dashboards.py # Grafana dashboard JSON validator
 |   +-- validate_all.py        # Unified validation runner
 |   +-- validate_on_save.py    # PostToolUse hook for fast syntax checks
+|   +-- maintenance_window.py  # Grafana mute timing API helper (create/list/delete)
 +-- skills/                      # Universal helper scripts
 +-- docs/                        # Documentation
 |   +-- PROJECT_PLAN.md         # Task tracking (single source of truth)
@@ -110,6 +112,13 @@ Monitoring_Dashboarding/
 |   +-- ALERT_RUNBOOKS.md      # Alert response procedures
 |   +-- DASHBOARD_GUIDE.md     # Dashboard customization guide
 |   +-- VALIDATION_TOOLING.md  # Validator usage and CI integration
+|   +-- ALERT_DEDUP.md         # Mass-outage detection and alert suppression
+|   +-- MAINTENANCE_WINDOWS.md # Scheduled and ad-hoc alert silencing
+|   +-- AUDIT_LOGGING.md       # Grafana audit trail setup
+|   +-- SNMP_TRAPS.md          # SNMP trap ingestion pipeline
+|   +-- CLOUD_MONITORING.md    # AWS/Azure integration stubs
+|   +-- REQUIREMENTS_TRACEABILITY.md # Requirements coverage matrix
+|   +-- BRANCHING_STRATEGY.md  # Public template vs internal branch model
 +-- tests/                       # Test suite for validators
 |   +-- test_validators.py     # 12 test cases for all validators
 |   +-- fixtures/              # Valid and invalid config fixtures
@@ -242,6 +251,11 @@ The dashboards in this repo use `datacenter` as a template variable. When a site
 | Folder-based RBAC over Grafana Organizations | Single Org with folder-level permissions is simpler to manage than multi-Org. Teams + folder permissions provide site isolation without duplicating datasources or dashboards. Multi-Org is only needed for true multi-tenant SaaS, not internal site separation. | 2026-03-07 |
 | LDAP group sync over manual Grafana user management | AD security groups map to Grafana Teams automatically. Onboarding is a single AD group add -- no Grafana admin action needed. Supports hybrid AD/Entra ID via on-prem LDAP bind. | 2026-03-07 |
 | Nutanix NKP as Kubernetes platform | Production Kubernetes runs on Nutanix Kubernetes Platform (NKP) in datacenter infrastructure. Persistent volumes use Nutanix CSI driver with Nutanix Volumes storage class. Helm chart storageClass values should reference the Nutanix provisioner. | 2026-03-09 |
+| Statistical mass-outage detection over topology mapping | Recording rules compute hosts-up ratios per site/role. When a significant percentage drops, site/role-level alerts fire and Alertmanager inhibition rules suppress per-host noise. Zero topology maintenance required. | 2026-03-09 |
+| Textfile collector for file/process monitoring | Rather than building custom exporters, uses the textfile collector pattern with external scripts (PowerShell/bash via cron). Scripts write Prometheus-format metrics to a directory that Alloy scrapes. Decouples collection logic from the agent. | 2026-03-09 |
+| SNMP trap ingestion via syslog bridge | snmptrapd receives traps (UDP 162), formats to syslog, and forwards to Alloy's loki.source.syslog. This avoids custom trap processing and leverages Loki's LogQL for trap-based alerting via Grafana alerting rules. | 2026-03-09 |
+| OSS audit logging via log parsing | Grafana OSS logs user actions to server logs. Alloy tails these JSON logs and forwards to Loki for Tier 1 + partial Tier 2 audit coverage. Full audit trail (change diffs, compliance) requires Grafana Enterprise. | 2026-03-09 |
+| Grafana mute timings over Alertmanager silences | Grafana's mute timing API provides programmatic maintenance window management that integrates with notification policies. Alertmanager silences remain available for ad-hoc use. Both methods coexist. | 2026-03-09 |
 
 ## External Dependencies
 
@@ -256,6 +270,7 @@ The dashboards in this repo use `datacenter` as a template variable. When a site
 | PyYAML | Latest | YAML parsing for config validation |
 | jsonschema | Latest | JSON schema validation for dashboards |
 | Redfish Exporter | Latest | Sidecar for polling iLO/iDRAC BMC interfaces via Redfish API (Tier 2 gateway) |
+| Net-SNMP (snmptrapd) | Latest | Sidecar for receiving SNMP traps and forwarding to Alloy via syslog (optional, Tier 2 gateway) |
 
 ## Phase 2 Additions
 

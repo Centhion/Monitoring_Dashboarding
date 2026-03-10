@@ -1,90 +1,105 @@
 # =============================================================================
-# IIS Web Server Recording Rules
+# IIS Recording Rules (Phase 7F)
 # =============================================================================
-# Pre-compute IIS-specific aggregations for the IIS dashboard.
-# These rules depend on metrics from the windows_exporter iis collector
-# deployed via configs/alloy/windows/role_iis.alloy.
+# Pre-computed aggregations for IIS web server metrics. These rules improve
+# dashboard performance by pre-calculating request rates, error ratios,
+# and connection metrics that would otherwise require expensive instant queries.
 #
-# Naming convention: <namespace>:<metric>:<aggregation>
-# Changing a rule name here requires updating the IIS dashboard panels.
+# Source metrics come from Alloy's windows_exporter IIS collector
+# (configured in configs/alloy/windows/role_iis.alloy).
+#
+# Metric naming convention:
+#   iis:<scope>_<metric>:<aggregation>
 # =============================================================================
 
 groups:
-  - name: iis_recording_rules
+  # ---------------------------------------------------------------------------
+  # Per-Site IIS Metrics
+  # Pre-aggregated request rates and error ratios for each IIS site.
+  # ---------------------------------------------------------------------------
+  - name: iis_site_recording_rules
     interval: 30s
     rules:
-      # Total request rate across all IIS sites per server.
-      # Aggregates all HTTP methods and status codes into a single rate.
-      - record: instance:iis_request_rate:rate5m
+      # Total request rate across all HTTP methods per IIS site.
+      - record: iis:site_requests:rate5m
         expr: |
-          sum by (instance, hostname, environment, datacenter, role) (
+          sum by (instance, datacenter, site_name) (
             rate(windows_iis_requests_total[5m])
           )
 
-      # 5xx server error ratio: proportion of all requests returning 500-599.
-      # Used by the IIS dashboard overview stat and error trend panels.
-      # Returns NaN when there are zero requests (handled by Grafana as "no data").
-      - record: instance:iis_5xx_error:ratio
+      # 5xx error rate per IIS site (server errors).
+      - record: iis:site_5xx_errors:rate5m
         expr: |
-          sum by (instance, hostname, environment, datacenter, role) (
+          sum by (instance, datacenter, site_name) (
             rate(windows_iis_requests_total{status_code=~"5.."}[5m])
           )
-          /
-          sum by (instance, hostname, environment, datacenter, role) (
-            rate(windows_iis_requests_total[5m])
-          )
 
-      # 4xx client error ratio: proportion of all requests returning 400-499.
-      # High 4xx rates may indicate misconfigured clients, broken links,
-      # or scanning activity rather than server-side issues.
-      - record: instance:iis_4xx_error:ratio
+      # Error ratio: fraction of requests resulting in 5xx.
+      - record: iis:site_error_ratio:5m
         expr: |
-          sum by (instance, hostname, environment, datacenter, role) (
+          iis:site_5xx_errors:rate5m
+          / on (instance, datacenter, site_name)
+          (iis:site_requests:rate5m > 0)
+
+      # 4xx error rate per IIS site (client errors).
+      - record: iis:site_4xx_errors:rate5m
+        expr: |
+          sum by (instance, datacenter, site_name) (
             rate(windows_iis_requests_total{status_code=~"4.."}[5m])
           )
-          /
-          sum by (instance, hostname, environment, datacenter, role) (
-            rate(windows_iis_requests_total[5m])
-          )
 
-      # Per-site request rate preserving the site label for site-level filtering.
-      # The site label comes from the windows_exporter iis collector and matches
-      # the IIS site name configured in IIS Manager.
-      - record: instance:iis_site_request_rate:rate5m
+      # Active connections per IIS site.
+      - record: iis:site_current_connections:current
         expr: |
-          sum by (instance, hostname, environment, datacenter, role, site) (
-            rate(windows_iis_requests_total[5m])
-          )
-
-      # Per-site 5xx error rate for identifying which site is generating errors.
-      - record: instance:iis_site_5xx_rate:rate5m
-        expr: |
-          sum by (instance, hostname, environment, datacenter, role, site) (
-            rate(windows_iis_requests_total{status_code=~"5.."}[5m])
-          )
-
-      # Total throughput (bytes sent + received) per server.
-      # Combines upload and download traffic for bandwidth monitoring.
-      - record: instance:iis_throughput_bytes:rate5m
-        expr: |
-          sum by (instance, hostname, environment, datacenter, role) (
-            rate(windows_iis_sent_bytes_total[5m])
-            +
-            rate(windows_iis_received_bytes_total[5m])
-          )
-
-      # Per-site throughput for identifying bandwidth-heavy sites.
-      - record: instance:iis_site_throughput_bytes:rate5m
-        expr: |
-          sum by (instance, hostname, environment, datacenter, role, site) (
-            rate(windows_iis_sent_bytes_total[5m])
-            +
-            rate(windows_iis_received_bytes_total[5m])
-          )
-
-      # Total active connections across all IIS sites per server.
-      - record: instance:iis_active_connections:total
-        expr: |
-          sum by (instance, hostname, environment, datacenter, role) (
+          sum by (instance, datacenter, site_name) (
             windows_iis_current_connections
+          )
+
+      # Bytes sent rate (throughput out) per IIS site.
+      - record: iis:site_bytes_sent:rate5m
+        expr: |
+          sum by (instance, datacenter, site_name) (
+            rate(windows_iis_sent_bytes_total[5m])
+          )
+
+      # Bytes received rate (throughput in) per IIS site.
+      - record: iis:site_bytes_received:rate5m
+        expr: |
+          sum by (instance, datacenter, site_name) (
+            rate(windows_iis_received_bytes_total[5m])
+          )
+
+  # ---------------------------------------------------------------------------
+  # Per-Datacenter IIS Aggregations
+  # Site-level roll-ups for the Enterprise NOC and Site Overview dashboards.
+  # ---------------------------------------------------------------------------
+  - name: iis_datacenter_recording_rules
+    interval: 30s
+    rules:
+      # Total IIS request rate across all servers at a datacenter.
+      - record: iis:datacenter_requests:rate5m
+        expr: |
+          sum by (datacenter) (
+            iis:site_requests:rate5m
+          )
+
+      # Total 5xx error rate across all IIS servers at a datacenter.
+      - record: iis:datacenter_5xx_errors:rate5m
+        expr: |
+          sum by (datacenter) (
+            iis:site_5xx_errors:rate5m
+          )
+
+      # Datacenter-wide error ratio.
+      - record: iis:datacenter_error_ratio:5m
+        expr: |
+          iis:datacenter_5xx_errors:rate5m
+          / on (datacenter)
+          (iis:datacenter_requests:rate5m > 0)
+
+      # Total active connections across all IIS servers at a datacenter.
+      - record: iis:datacenter_connections:sum
+        expr: |
+          sum by (datacenter) (
+            iis:site_current_connections:current
           )

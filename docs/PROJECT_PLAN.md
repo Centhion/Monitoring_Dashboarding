@@ -25,12 +25,12 @@
 | Phase 7B: Hardware/HCI Health Monitoring | Completed | Gateway config, recording rules, alerts, dashboard. Helm/docs deferred. |
 | Phase 7C: SSL Certificate Monitoring | Completed | Blackbox probing for internal PKI + public DigiCert certs |
 | Phase 7D: Lansweeper Integration | Dropped | Out of scope -- asset inventory stays in Lansweeper, no monitoring stack integration needed |
-| Phase 7E: Cloud Infrastructure Monitoring | Pending | Stub configs for AWS CloudWatch / Azure Monitor (when ready) |
-| Phase 7F: IIS Dedicated Dashboard | Completed | Dashboard for existing IIS role metrics and access logs |
+| Phase 7E: Cloud Infrastructure Monitoring | Completed | Stub configs for AWS CloudWatch / Azure Monitor (disabled by default, ready to activate) |
+| Phase 7F: IIS Dedicated Dashboard | Completed | Dashboard + recording rules for existing IIS role metrics and access logs |
 | Phase 7G: Agentless Collection | Blocked | WinRM/SSH for edge cases -- pending internal use case review |
 | Phase 7H: Dashboard Hub Architecture | Completed | Enterprise NOC + per-site drill-down dashboards for location-centric monitoring |
 | Phase 8: Access Control and RBAC | Pending | Grafana folder provisioning, Team mapping, LDAP/AD group sync for hybrid AD/Entra ID |
-| Phase 9: Requirements Gap Closure | Pending | Agentless probing, file/process monitoring, alert dedup, maintenance windows, SLA, SNMP traps, audit logging, forecasting |
+| Phase 9: Requirements Gap Closure | Completed | Agentless probing, file/process, alert dedup, maintenance windows, SLA, SNMP traps, audit logging, forecasting, dashboards, docs |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
 
@@ -835,24 +835,24 @@
 
 **Goal**: Placeholder configs for AWS CloudWatch and Azure Monitor integration via native Alloy exporters. Activated when cloud resources are deployed.
 
-**Status**: Pending -- no cloud resources to monitor yet
+**Status**: Completed -- stub configs ready, activate when cloud resources are deployed
 
 ### Tasks
 
-- [ ] 1. Create stub Alloy configs for cloud exporters
+- [x] 1. Create stub Alloy configs for cloud exporters
   - `configs/alloy/cloud/aws_cloudwatch.alloy.example` -- commented, with instructions
   - `configs/alloy/cloud/azure_monitor.alloy.example` -- commented, with instructions
   - Documents required IAM roles / Azure service principals
   - Complexity: Simple
   - Dependencies: None
 
-- [ ] 2. Create stub Helm values for cloud integration
+- [x] 2. Create stub Helm values for cloud integration
   - values.yaml additions with `enabled: false`
   - Document required credentials and permissions per provider
   - Complexity: Simple
   - Dependencies: None
 
-- [ ] 3. Documentation -- `docs/CLOUD_MONITORING.md`
+- [x] 3. Documentation -- `docs/CLOUD_MONITORING.md`
   - Prerequisites per cloud provider (IAM, service principal, API access)
   - Which metrics are available (EC2, RDS, Azure VMs, etc.)
   - Activation workflow
@@ -1179,11 +1179,11 @@
 
 **Goal**: Close all internally-solvable gaps identified in the team requirements analysis (see `docs/REQUIREMENTS_RESPONSE.md`). Eliminates the 15-20% feature delta between the internal stack and paid platforms, making the build-vs-buy decision definitive on cost.
 
-**Status**: Pending
+**Status**: Completed
 
 **Prerequisite**: None. All work is additive configuration. No dependency on team decisions (Q1-Q10 in REQUIREMENTS_RESPONSE.md) or on Phases 5.7, 6, 7E, 7G, or 8.
 
-**Estimated effort**: 10-14 days of configuration work.
+**Estimated effort**: 10-14 days of configuration work (completed across 3 sessions).
 
 **Approach**: All tasks create new files or extend existing configs. No existing production configs are replaced or restructured. Follows the fork-and-deploy model -- capability templates are built here; deployers customize targets and thresholds for their environment.
 
@@ -1191,27 +1191,27 @@
 
 Extends the existing blackbox exporter and site gateway with ICMP, TCP, UDP, and HTTP probe types.
 
-- [ ] 1. Add ICMP, TCP, and UDP probe modules to blackbox exporter config -- extend `configs/alloy/gateway/site_gateway.alloy`, new `configs/alloy/gateway/blackbox_modules.yml`
+- [x] 1. Add ICMP, TCP, and UDP probe modules to blackbox exporter config -- extend `configs/alloy/gateway/site_gateway.alloy`, new `configs/alloy/gateway/blackbox_modules.yml`
   - Complexity: Simple
   - Dependencies: None
 
-- [ ] 2. Add HTTP/HTTPS synthetic probe module with response code and body validation -- same files as Task 1
+- [x] 2. Add HTTP/HTTPS synthetic probe module with response code and body validation -- same files as Task 1
   - Complexity: Simple
   - Dependencies: Task 1
 
-- [ ] 3. Create probe target template file with categorized examples (web apps, mail relays, DNS resolvers, database listeners) -- `configs/alloy/gateway/probe_targets.yml`
+- [x] 3. Create probe target template file with categorized examples (web apps, mail relays, DNS resolvers, database listeners) -- `configs/alloy/gateway/probe_targets.yml`
   - Complexity: Simple
   - Dependencies: None
 
-- [ ] 4. Create probe failure alert rules (HTTPProbeFailed, ICMPProbeFailed, TCPProbeFailed, UDPProbeFailed) -- `alerts/prometheus/probe_alerts.yml`
+- [x] 4. Create probe failure alert rules (HTTPProbeFailed, ICMPProbeFailed, TCPProbeFailed, UDPProbeFailed) -- `alerts/prometheus/probe_alerts.yml`
   - Complexity: Simple
   - Dependencies: Tasks 1-2
 
-- [ ] 5. Create probing recording rules (probe success ratio, latency aggregation by target and site) -- `configs/prometheus/probe_recording_rules.yml`
+- [x] 5. Create probing recording rules (probe success ratio, latency aggregation by target and site) -- `configs/prometheus/probe_recording_rules.yml`
   - Complexity: Simple
   - Dependencies: Tasks 1-2
 
-- [ ] 6. Update Prometheus config to load new probe rule files -- extend `configs/prometheus/prometheus.yml` rule_files list
+- [x] 6. Update Prometheus config to load new probe rule files -- extend `configs/prometheus/prometheus.yml` rule_files list
   - Complexity: Simple
   - Dependencies: Tasks 4-5
 
@@ -1221,27 +1221,27 @@ Extends the existing blackbox exporter and site gateway with ICMP, TCP, UDP, and
 
 New opt-in Alloy role configs for file/folder size monitoring and arbitrary process monitoring. New files only.
 
-- [ ] 7. Create Windows file/folder size monitoring component -- `configs/alloy/windows/role_file_size.alloy`
+- [x] 7. Create Windows file/folder size monitoring component -- `configs/alloy/windows/role_file_size.alloy`
   - Monitors configurable file and folder paths, exposes size as metric
   - Paths specified via environment variable or config customization
   - Complexity: Medium
   - Dependencies: None
 
-- [ ] 8. Create Linux file/folder size monitoring component -- `configs/alloy/linux/role_file_size.alloy`
+- [x] 8. Create Linux file/folder size monitoring component -- `configs/alloy/linux/role_file_size.alloy`
   - Complexity: Medium
   - Dependencies: None
 
-- [ ] 9. Create Windows process monitoring component (non-service executables) -- `configs/alloy/windows/role_process.alloy`
+- [x] 9. Create Windows process monitoring component (non-service executables) -- `configs/alloy/windows/role_process.alloy`
   - Tracks whether specified process names are running, exposes as metric
   - Process names specified via environment variable or config customization
   - Complexity: Medium
   - Dependencies: None
 
-- [ ] 10. Create Linux process monitoring component -- `configs/alloy/linux/role_process.alloy`
+- [x] 10. Create Linux process monitoring component -- `configs/alloy/linux/role_process.alloy`
   - Complexity: Medium
   - Dependencies: None
 
-- [ ] 11. Create file size and process alert rules (FileSizeExceeded, ProcessNotRunning) -- `alerts/prometheus/endpoint_alerts.yml`
+- [x] 11. Create file size and process alert rules (FileSizeExceeded, ProcessNotRunning) -- `alerts/prometheus/endpoint_alerts.yml`
   - Complexity: Simple
   - Dependencies: Tasks 7-10
 
@@ -1251,27 +1251,27 @@ New opt-in Alloy role configs for file/folder size monitoring and arbitrary proc
 
 Extends existing dashboards with capacity forecasting panels. Creates new SLA and probing dashboards.
 
-- [ ] 12. Add `predict_linear` disk capacity forecasting panels to Windows Overview dashboard -- extend `dashboards/windows/windows_overview.json`
+- [x] 12. Add `predict_linear` disk capacity forecasting panels to Windows Overview dashboard -- extend `dashboards/windows/windows_overview.json`
   - Shows "days until disk full at current rate" per volume
   - Complexity: Simple
   - Dependencies: None
 
-- [ ] 13. Add `predict_linear` disk capacity forecasting panels to Linux Overview dashboard -- extend `dashboards/linux/linux_overview.json`
+- [x] 13. Add `predict_linear` disk capacity forecasting panels to Linux Overview dashboard -- extend `dashboards/linux/linux_overview.json`
   - Complexity: Simple
   - Dependencies: None
 
-- [ ] 14. Add `predict_linear` memory and CPU trend panels to Infrastructure Overview -- extend `dashboards/overview/infrastructure_overview.json`
+- [x] 14. Add `predict_linear` memory and CPU trend panels to Infrastructure Overview -- extend `dashboards/overview/infrastructure_overview.json`
   - Shows fleet-wide capacity trajectory
   - Complexity: Simple
   - Dependencies: None
 
-- [ ] 15. Create SLA recording rules (daily/weekly/monthly availability per host, per role, per site) -- `configs/prometheus/sla_recording_rules.yml`
+- [x] 15. Create SLA recording rules (daily/weekly/monthly availability per host, per role, per site) -- `configs/prometheus/sla_recording_rules.yml`
   - Uses `avg_over_time(up[period])` for availability percentages
   - Aggregates by datacenter, role, and fleet-wide
   - Complexity: Medium
   - Dependencies: None
 
-- [ ] 16. Create SLA Availability dashboard -- `dashboards/overview/sla_availability.json`
+- [x] 16. Create SLA Availability dashboard -- `dashboards/overview/sla_availability.json`
   - Availability percentage by host, role, and site
   - SLA target threshold indicators (99.9%, 99.5%, 99.0%)
   - Top/bottom hosts by availability
@@ -1279,14 +1279,14 @@ Extends existing dashboards with capacity forecasting panels. Creates new SLA an
   - Complexity: Medium
   - Dependencies: Task 15
 
-- [ ] 17. Create Agentless Probing dashboard -- `dashboards/overview/probing_overview.json`
+- [x] 17. Create Agentless Probing dashboard -- `dashboards/overview/probing_overview.json`
   - Probe status grid (up/down per target)
   - Latency timeseries per probe target
   - Success rate percentages
   - Complexity: Medium
   - Dependencies: Group A tasks
 
-- [ ] 18. Update Prometheus config to load SLA recording rules -- extend `configs/prometheus/prometheus.yml` rule_files list
+- [x] 18. Update Prometheus config to load SLA recording rules -- extend `configs/prometheus/prometheus.yml` rule_files list
   - Complexity: Simple
   - Dependencies: Task 15
 
@@ -1296,33 +1296,33 @@ Extends existing dashboards with capacity forecasting panels. Creates new SLA an
 
 Adds mass-outage detection and site-level alert suppression to reduce alert storms.
 
-- [ ] 19. Create mass-outage detection recording rules -- `configs/prometheus/outage_recording_rules.yml`
+- [x] 19. Create mass-outage detection recording rules -- `configs/prometheus/outage_recording_rules.yml`
   - Calculates percentage of hosts unreachable per datacenter and per role
   - Threshold-based: fires when >X% of a site's hosts are simultaneously unreachable
   - Complexity: Medium
   - Dependencies: None
 
-- [ ] 20. Create SitePartialOutage and RolePartialOutage alert rules -- `alerts/prometheus/outage_alerts.yml`
+- [x] 20. Create SitePartialOutage and RolePartialOutage alert rules -- `alerts/prometheus/outage_alerts.yml`
   - SitePartialOutage: fires when significant portion of a datacenter goes unreachable
   - RolePartialOutage: fires when significant portion of a role (e.g., all SQL servers) goes unreachable
   - Complexity: Medium
   - Dependencies: Task 19
 
-- [ ] 21. Add mass-outage inhibition rules to Alertmanager -- extend `configs/alertmanager/alertmanager.yml` inhibit_rules section
+- [x] 21. Add mass-outage inhibition rules to Alertmanager -- extend `configs/alertmanager/alertmanager.yml` inhibit_rules section
   - SitePartialOutage suppresses individual host-down alerts for that datacenter
   - RolePartialOutage suppresses individual service-down alerts for that role
   - Additive: new rules appended to existing inhibit_rules list
   - Complexity: Medium
   - Dependencies: Task 20
 
-- [ ] 22. Document alert deduplication architecture and upstream_device label pattern -- `docs/ALERT_DEDUP.md`
+- [x] 22. Document alert deduplication architecture and upstream_device label pattern -- `docs/ALERT_DEDUP.md`
   - Explains the mass-outage approach (zero maintenance)
   - Documents optional per-host topology mapping via upstream_device labels (for future use)
   - Includes decision record from team review (grouping vs full topology)
   - Complexity: Simple
   - Dependencies: None
 
-- [ ] 23. Update Prometheus config to load outage recording rules -- extend `configs/prometheus/prometheus.yml` rule_files list
+- [x] 23. Update Prometheus config to load outage recording rules -- extend `configs/prometheus/prometheus.yml` rule_files list
   - Complexity: Simple
   - Dependencies: Task 19
 
@@ -1332,13 +1332,13 @@ Adds mass-outage detection and site-level alert suppression to reduce alert stor
 
 Adds recurring maintenance window support and programmatic silence management.
 
-- [ ] 24. Create Grafana mute timing examples in notification policy -- extend `configs/grafana/notifiers/notifiers.yml`
+- [x] 24. Create Grafana mute timing examples in notification policy -- extend `configs/grafana/notifiers/notifiers.yml`
   - Example recurring windows: weekly patching (Sunday 02:00-06:00), monthly maintenance, backup windows
   - Deployers customize time ranges and affected notification policies
   - Complexity: Medium
   - Dependencies: None
 
-- [ ] 25. Create maintenance window API helper script -- `scripts/maintenance_window.py`
+- [x] 25. Create maintenance window API helper script -- `scripts/maintenance_window.py`
   - Create silence: by datacenter, role, hostname, or custom label matchers with start/end time
   - List active silences: shows all current maintenance windows with expiry
   - Delete silence: removes a scheduled or active silence by ID
@@ -1346,7 +1346,7 @@ Adds recurring maintenance window support and programmatic silence management.
   - Complexity: Medium
   - Dependencies: None
 
-- [ ] 26. Document maintenance window workflows -- `docs/MAINTENANCE_WINDOWS.md`
+- [x] 26. Document maintenance window workflows -- `docs/MAINTENANCE_WINDOWS.md`
   - Ad hoc silences via Alertmanager UI
   - Scheduled silences via maintenance_window.py script
   - Recurring windows via Grafana mute timings
@@ -1360,32 +1360,32 @@ Adds recurring maintenance window support and programmatic silence management.
 
 New data flow: SNMP traps received by snmptrapd, formatted to syslog, forwarded to Loki via Alloy.
 
-- [ ] 27. Create snmptrapd configuration for trap reception and syslog formatting -- `configs/snmptrapd/snmptrapd.conf`
+- [x] 27. Create snmptrapd configuration for trap reception and syslog formatting -- `configs/snmptrapd/snmptrapd.conf`
   - Configures trap listener on UDP 162
   - Formats trap data as structured syslog entries (OID, source IP, severity, varbinds)
   - Complexity: Medium
   - Dependencies: None
 
-- [ ] 28. Create Alloy syslog receiver component for trap log ingestion -- `configs/alloy/gateway/role_snmp_traps.alloy`
+- [x] 28. Create Alloy syslog receiver component for trap log ingestion -- `configs/alloy/gateway/role_snmp_traps.alloy`
   - Receives syslog from snmptrapd
   - Loki label extraction pipeline for trap fields (OID, source device, severity, trap type)
   - Forwards structured trap logs to Loki
   - Complexity: Medium
   - Dependencies: Task 27
 
-- [ ] 29. Create SNMP trap alert rules via Loki alerting -- `alerts/grafana/snmp_trap_alerts.yml`
+- [x] 29. Create SNMP trap alert rules via Loki alerting -- `alerts/grafana/snmp_trap_alerts.yml`
   - Critical trap OIDs trigger alerts (link down, power failure, authentication failure)
   - Uses LogQL queries against trap log labels
   - Complexity: Medium
   - Dependencies: Task 28
 
-- [ ] 30. Add SNMP trap log panel to Network Overview dashboard -- extend `dashboards/network/network_overview.json`
+- [x] 30. Add SNMP trap log panel to Network Overview dashboard -- extend `dashboards/network/network_overview.json`
   - Trap history log stream filtered by device and severity
   - Trap volume graph
   - Complexity: Simple
   - Dependencies: Task 28
 
-- [ ] 31. Document SNMP trap pipeline setup and OID-to-alert mapping -- `docs/SNMP_TRAPS.md`
+- [x] 31. Document SNMP trap pipeline setup and OID-to-alert mapping -- `docs/SNMP_TRAPS.md`
   - Architecture: snmptrapd -> syslog -> Alloy -> Loki
   - Trap OID reference for common network devices
   - How to add new trap-based alerts
@@ -1399,19 +1399,19 @@ New data flow: SNMP traps received by snmptrapd, formatted to syslog, forwarded 
 
 Forwards Grafana server logs to Loki for Tier 1 + Tier 2 (OSS) audit capability.
 
-- [ ] 32. Configure Grafana structured JSON logging at info level -- Grafana env vars or `configs/grafana/grafana.ini`
+- [x] 32. Configure Grafana structured JSON logging at info level -- Grafana env vars or `configs/grafana/grafana.ini`
   - Enables structured JSON log output
   - Ensures API request logging includes user identity and action
   - Complexity: Simple
   - Dependencies: None
 
-- [ ] 33. Create Alloy component to tail Grafana server logs and forward to Loki -- `configs/alloy/roles/role_grafana_audit.alloy`
+- [x] 33. Create Alloy component to tail Grafana server logs and forward to Loki -- `configs/alloy/roles/role_grafana_audit.alloy`
   - Tails Grafana log file or stdout
   - Loki label extraction pipeline for audit fields (user, action, dashboard_uid, alert_rule_id, HTTP method, path)
   - Complexity: Medium
   - Dependencies: Task 32
 
-- [ ] 34. Create Audit Trail dashboard -- `dashboards/overview/audit_trail.json`
+- [x] 34. Create Audit Trail dashboard -- `dashboards/overview/audit_trail.json`
   - Login activity (successful and failed, by user and IP)
   - Dashboard modifications (create, update, delete by user)
   - Alert rule changes (by user)
@@ -1420,7 +1420,7 @@ Forwards Grafana server logs to Loki for Tier 1 + Tier 2 (OSS) audit capability.
   - Complexity: Medium
   - Dependencies: Task 33
 
-- [ ] 35. Document audit logging architecture, capabilities, and limitations -- `docs/AUDIT_LOGGING.md`
+- [x] 35. Document audit logging architecture, capabilities, and limitations -- `docs/AUDIT_LOGGING.md`
   - What this approach covers (Tier 1 + partial Tier 2)
   - What requires Grafana Enterprise (full Tier 2 change diffs, Tier 3 compliance)
   - Log retention and querying via Loki
@@ -1433,31 +1433,31 @@ Forwards Grafana server logs to Loki for Tier 1 + Tier 2 (OSS) audit capability.
 
 Extends validators, deployment configs, and documentation to cover all new Phase 9 components.
 
-- [ ] 36. Extend validate_prometheus.py to cover new rule files (probe, outage, SLA) -- `scripts/validate_prometheus.py`
+- [x] 36. Extend validate_prometheus.py to cover new rule files (probe, outage, SLA) -- `scripts/validate_prometheus.py`
   - Complexity: Simple
   - Dependencies: Groups A, C, D
 
-- [ ] 37. Extend validate_dashboards.py to cover new dashboards (SLA, Probing, Audit Trail) -- `scripts/validate_dashboards.py`
+- [x] 37. Extend validate_dashboards.py to cover new dashboards (SLA, Probing, Audit Trail) -- `scripts/validate_dashboards.py`
   - Complexity: Simple
   - Dependencies: Groups C, G
 
-- [ ] 38. Add new configs to Docker Compose bind mounts for PoC testing -- extend `deploy/docker/docker-compose.yml`
+- [x] 38. Add new configs to Docker Compose bind mounts for PoC testing -- extend `deploy/docker/docker-compose.yml`
   - Complexity: Simple
   - Dependencies: All groups
 
-- [ ] 39. Add new configs to Helm chart ConfigMap templates -- extend `deploy/helm/monitoring-stack/templates/`
+- [x] 39. Add new configs to Helm chart ConfigMap templates -- extend `deploy/helm/monitoring-stack/templates/`
   - Complexity: Simple
   - Dependencies: All groups
 
-- [ ] 40. Update ARCHITECTURE.md with new components (probing tier, trap pipeline, audit pipeline)
+- [x] 40. Update ARCHITECTURE.md with new components (probing tier, trap pipeline, audit pipeline)
   - Complexity: Simple
   - Dependencies: All groups
 
-- [ ] 41. Update README.md feature list with new capabilities
+- [x] 41. Update README.md feature list with new capabilities
   - Complexity: Simple
   - Dependencies: All groups
 
-- [ ] 42. Create requirements traceability matrix -- `docs/REQUIREMENTS_TRACEABILITY.md`
+- [x] 42. Create requirements traceability matrix -- `docs/REQUIREMENTS_TRACEABILITY.md`
   - Maps every requirement line item to the phase/config that delivers it
   - Distinguishes needs vs wants, covered vs decision-dependent
   - Complexity: Medium

@@ -1574,6 +1574,249 @@
         }
       ],
       "type": "table"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 42
+      },
+      "id": 105,
+      "title": "Capacity Forecasting",
+      "type": "row",
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "description": "Projected days until disk volume is full based on current growth rate over the last 7 days. Negative values indicate disk usage is decreasing. Uses predict_linear to extrapolate current trends.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "from": -1e+15,
+                    "to": 0,
+                    "result": {
+                      "text": "Shrinking",
+                      "color": "green"
+                    }
+                  },
+                  "type": "range"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 14
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 30
+                  },
+                  {
+                    "color": "green",
+                    "value": 90
+                  }
+                ]
+              },
+              "unit": "d",
+              "decimals": 0
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 43
+          },
+          "id": 14,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": ["sum"],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": [
+              {
+                "desc": false,
+                "displayName": "Days Until Full"
+              }
+            ]
+          },
+          "pluginVersion": "10.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "predict_linear(windows_logical_disk_free_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\", volume!~\"HarddiskVolume.*\"}[7d], 86400 * 30) / (windows_logical_disk_size_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\", volume!~\"HarddiskVolume.*\"} > 0) < 0 and windows_logical_disk_free_bytes / windows_logical_disk_size_bytes < 0.3",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "DiskForecast"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "-1 * predict_linear(windows_logical_disk_free_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\", volume!~\"HarddiskVolume.*\"}[7d], 1) / (windows_logical_disk_free_bytes > 0) * 86400",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "DaysUntilFull",
+              "hide": false
+            }
+          ],
+          "title": "Disk Capacity Forecast (Days Until Full)",
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "__name__": true,
+                  "job": true,
+                  "instance": true
+                },
+                "includeByName": {},
+                "indexByName": {
+                  "hostname": 0,
+                  "volume": 1,
+                  "datacenter": 2,
+                  "Value": 3
+                },
+                "renameByName": {
+                  "Value": "Days Until Full"
+                }
+              }
+            }
+          ],
+          "type": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "description": "Projected disk free bytes over the next 30 days based on 7-day trend. Dashed lines show the linear extrapolation from current usage patterns.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineStyle": {
+                  "dash": [10, 10],
+                  "fill": "dash"
+                },
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "bytes"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 53
+          },
+          "id": 15,
+          "options": {
+            "legend": {
+              "calcs": ["lastNotNull"],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "pluginVersion": "10.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "editorMode": "code",
+              "expr": "predict_linear(windows_logical_disk_free_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\", volume!~\"HarddiskVolume.*\"}[7d], 86400 * 30)",
+              "legendFormat": "{{hostname}} ({{volume}})",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Disk Free Bytes -- 30-Day Projection",
+          "type": "timeseries"
+        }
+      ]
     }
   ],
   "refresh": "30s",

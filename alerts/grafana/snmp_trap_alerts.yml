@@ -1,0 +1,214 @@
+# =============================================================================
+# SNMP Trap Alert Rules (Phase 9F -- Grafana Alerting via Loki)
+# =============================================================================
+# Alert rules that fire based on SNMP trap log patterns in Loki.
+# These use LogQL metric queries to detect critical trap events.
+#
+# Unlike Prometheus alert rules, these are Grafana-managed alerts that
+# query Loki directly. They are provisioned via Grafana's alert
+# provisioning API or file provisioning.
+#
+# Trap severity classification:
+#   Critical: linkDown, authenticationFailure, power events
+#   Warning:  coldStart, warmStart (device rebooted)
+#   Info:     linkUp, configuration changes
+# =============================================================================
+
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: snmp_trap_alerts
+    folder: "Network Infrastructure"
+    interval: 1m
+    rules:
+      # -----------------------------------------------------------------
+      # Link Down Trap
+      # Fires when a network device reports an interface going down.
+      # Common on switches/routers when a connected device is
+      # powered off or a cable is disconnected.
+      # -----------------------------------------------------------------
+      - uid: snmp-trap-link-down
+        title: "SNMP Trap: Link Down"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'sum by (source_ip) (count_over_time({job="snmp_traps", trap_type="linkDown"} [5m]))'
+              queryType: range
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: "Link down trap received from {{ $labels.source_ip }}"
+          description: "SNMP trap indicates an interface went down on device {{ $labels.source_ip }}. Check device interface status."
+        labels:
+          severity: warning
+
+      # -----------------------------------------------------------------
+      # Authentication Failure Trap
+      # Fires when a device reports failed SNMP authentication.
+      # May indicate misconfigured community strings or unauthorized
+      # access attempts.
+      # -----------------------------------------------------------------
+      - uid: snmp-trap-auth-failure
+        title: "SNMP Trap: Authentication Failure"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'sum by (source_ip) (count_over_time({job="snmp_traps", trap_type="authenticationFailure"} [5m]))'
+              queryType: range
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: "SNMP authentication failure from {{ $labels.source_ip }}"
+          description: "Device {{ $labels.source_ip }} reported SNMP authentication failure. Verify community strings and check for unauthorized access attempts."
+        labels:
+          severity: warning
+
+      # -----------------------------------------------------------------
+      # Device Reboot (Cold Start)
+      # Fires when a device sends a coldStart trap indicating it was
+      # powered on or fully restarted.
+      # -----------------------------------------------------------------
+      - uid: snmp-trap-cold-start
+        title: "SNMP Trap: Device Cold Start"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'sum by (source_ip) (count_over_time({job="snmp_traps", trap_type="coldStart"} [5m]))'
+              queryType: range
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: "Device cold start detected on {{ $labels.source_ip }}"
+          description: "SNMP trap indicates device {{ $labels.source_ip }} was powered on or fully restarted. Verify if this was a planned reboot."
+        labels:
+          severity: critical
+
+      # -----------------------------------------------------------------
+      # High Trap Volume
+      # Fires when an unusual number of traps are received from a
+      # single device, which may indicate a flapping interface or
+      # device instability.
+      # -----------------------------------------------------------------
+      - uid: snmp-trap-high-volume
+        title: "SNMP Trap: High Volume from Device"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'sum by (source_ip) (count_over_time({job="snmp_traps"} [10m]))'
+              queryType: range
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [50]
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "High SNMP trap volume from {{ $labels.source_ip }}"
+          description: "Device {{ $labels.source_ip }} has sent more than 50 traps in the last 10 minutes. This may indicate a flapping interface or device instability."
+        labels:
+          severity: warning
