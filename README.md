@@ -56,7 +56,7 @@ python scripts/poc_setup.py
 
 - **Configuration as Code**: All monitoring configs, dashboards, and alert rules stored in Git
 - **Mixed OS Support**: Alloy agent configs for both Windows Server and Linux
-- **Hub-and-Spoke Dashboards**: Enterprise NOC for multi-site overview, Site Overview for per-resort drill-down, plus dedicated Windows, Linux, and IIS dashboards with cross-navigation
+- **Hub-and-Spoke Dashboards**: Enterprise NOC for multi-site overview, Site Overview for per-site drill-down, plus dedicated Windows, Linux, and IIS dashboards with cross-navigation
 - **Industry-Standard Alert Rules**: Alert rules based on SRE best practices and community thresholds
 - **Teams Integration**: Alert notifications delivered to Microsoft Teams channels
 - **Grafana Provisioning**: Datasources, dashboards, and contact points deployed via provisioning YAML

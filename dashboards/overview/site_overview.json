@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Single-site deep visibility dashboard. Shows all monitored infrastructure at a specific resort/datacenter with drill-down links to detailed per-domain dashboards. Designed for both central NOC triage and resort IT troubleshooting.",
+  "description": "Single-site deep visibility dashboard. Shows all monitored infrastructure at a specific site/datacenter with drill-down links to detailed per-domain dashboards. Designed for both central NOC triage and site IT troubleshooting.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -1620,7 +1620,7 @@
     }
   ],
   "schemaVersion": 39,
-  "tags": ["site", "overview", "drill-down", "resort"],
+  "tags": ["site", "overview", "drill-down"],
   "templating": {
     "list": [
       {

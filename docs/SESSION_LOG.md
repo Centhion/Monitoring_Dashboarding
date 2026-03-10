@@ -22,7 +22,7 @@ This file maintains continuity across work sessions. Each session summary is app
 
 **Phase 5.8: Generalization and Kubernetes Deployment Readiness -- ALL 8 TASKS**
 
-- **Task 1 -- Strip org-specific content**: Removed all SCOM, Squared Up, Centhion, etamez, Denver, and password references from 10 files. Replaced with generic placeholders (`<YOUR_ORG>`, `site-a`, `example.com`). Fixed deprecated `env("COMPUTERNAME")` -> `constants.hostname` in local Alloy config. Grep sweep confirmed zero residual matches.
+- **Task 1 -- Strip org-specific content**: Removed all org-specific tool and location references from 10 files. Replaced with generic placeholders (`<YOUR_ORG>`, `site-a`, `example.com`). Fixed deprecated `env("COMPUTERNAME")` -> `constants.hostname` in local Alloy config. Grep sweep confirmed zero residual matches.
 - **Task 6 -- Generalize Phase 5.7 inventory**: Done alongside Task 1. Site codes generalized to SITE-A/SITE-B/SITE-C, domains to example.com.
 - **Task 2 -- Restructure deployment directories**: `git mv` of compose files to `deploy/docker/`. Updated all 18 bind mount paths (`./` -> `../../`). Updated `poc_setup.py` with `COMPOSE_FILE` constant, `_compose_base_cmd()` helper, and `--env-file` support. Updated `LOCAL_TESTING.md` with all new `-f` flag paths. Created `dc.sh` and `dc.ps1` convenience wrappers at repo root. Updated `.dockerignore` with helm/inventory exclusions.
 - **Task 3 -- Helm chart (Phase A minimal)**: Created 17-file chart at `deploy/helm/monitoring-stack/`. Chart.yaml v0.1.0, values.yaml with conservative defaults and fleet sizing guidance, Phase B/C stubs. Templates: Prometheus StatefulSet + Service + 2 ConfigMaps; Loki StatefulSet + Service + ConfigMap; Alertmanager Deployment + Service + ConfigMap + Secret; Grafana Deployment + Service + ConfigMap (provisioning) + ConfigMap (dashboards per category) + PVC + Secret. NOTES.txt with port-forward instructions. Packaging scripts (`package-chart.sh`/`.ps1`) that copy repo configs into chart `files/` directory at package time.
@@ -64,8 +64,8 @@ This file maintains continuity across work sessions. Each session summary is app
 - Grafana admin password on this machine's Docker volumes is NOT `admin` -- it was changed during previous PoC testing. The compose file sets `admin/admin` but the existing volume preserves the old password. Use `--reset` to get a fresh start or the old credentials to log in.
 - The `poc_setup.py` Grafana datasource check uses `admin:admin` basic auth, which will fail on the existing volume. The health check (HTTP 200 on `/api/health`) still works without auth.
 - All changes this session are uncommitted. There are 15 modified files, 2 renamed (compose files), and 4 new untracked files/dirs (QUICKSTART.md, dc.sh, dc.ps1, deploy/helm/).
-- Python path on this machine: `C:/Users/etamez/AppData/Local/Programs/Python/Python314/python.exe`
-- Commit method: `C:/Users/etamez/AppData/Local/Programs/Python/Python314/python.exe skills/git_smart_commit.py commit-and-push "message"`
+- Python path on this machine: `python3`
+- Commit method: `python3 skills/git_smart_commit.py commit-and-push "message"`
 
 ---
 
@@ -119,7 +119,7 @@ This file maintains continuity across work sessions. Each session summary is app
 - PROJECT_PLAN.md is at version 1.8 (2026-03-08) with Phase 8 added as Pending
 - ARCHITECTURE.md now contains the authoritative RBAC architecture documentation (Access Tiers, Folder Structure, Team-to-Folder Permissions, LDAP/AD integration, Template Variable Scoping)
 - DEPLOYMENT_VALUES.md has cross-references to ARCHITECTURE.md for readers who want explanations beyond the key-value tables
-- Python path: `C:/Users/etamez/AppData/Local/Programs/Python/Python314/python.exe`
+- Python path: `python3`
 - Commit method: `python.exe skills/git_smart_commit.py commit-and-push "message"`
 
 ---
@@ -130,7 +130,7 @@ This file maintains continuity across work sessions. Each session summary is app
 
 **Mac development environment setup**
 - Downloaded repo zip to macOS (folder: `Monitoring_Dashboarding-master`). The `-master` suffix from GitHub's zip naming is cosmetic and does not affect anything.
-- Initialized git, connected remote (`https://github.com/Centhion/Monitoring_Dashboarding.git`), fetched history, aligned local branch with `origin/master`. Full commit history intact, clean working tree, upstream tracking set.
+- Initialized git, connected remote, fetched history, aligned local branch with `origin/master`. Full commit history intact, clean working tree, upstream tracking set.
 
 **Project scope review and cleanup**
 - Conducted honest analysis of project scope, bloat, and deliverability. Conclusion: project is right-sized for its deployment requirements. The only true bloat identified was Lansweeper integration (Phase 7D).
@@ -191,7 +191,7 @@ This file maintains continuity across work sessions. Each session summary is app
 - Performed full gap analysis mapping team requirements (provided as annotated screenshot) against current PoC capabilities
 - Created `docs/REQUIREMENTS_RESPONSE.md` (915 lines): line-by-line requirement responses, build-vs-buy analysis, gap closure strategy with effort estimates, 10 open questions for team decision
 - Identified 80-85% of requirements covered, 15-20% closable with 2-3 weeks of configuration work
-- Incorporated user's position annotations: cloud-only not viable (WAN dependency for resort operations), distributed model required with local polling, audit logging granularity needs team definition
+- Incorporated user's position annotations: cloud-only not viable (WAN dependency for site operations), distributed model required with local polling, audit logging granularity needs team definition
 
 **Build vs buy analysis with existing vendor context**
 - LogicMonitor already licensed for SQL monitoring -- investigation needed on licensing model and expansion potential (Q1 in response doc)
@@ -217,8 +217,8 @@ This file maintains continuity across work sessions. Each session summary is app
 - If grouping is acceptable, the build-vs-buy case closes decisively in favor of internal build
 
 **Grafana Cloud evaluation discussion**
-- Team member (Mark) working on Grafana Cloud trial instance for PSU
-- Spencer also exploring Grafana Cloud -- pricing better than full paid stack (LogicMonitor/Datadog)
+- Team members evaluating Grafana Cloud trial instance
+- Grafana Cloud pricing compares favorably to full paid stack alternatives
 - NKP/Kubernetes slowing down -- large undertaking without business cases to justify FTE
 - Analysis: 90%+ of configs (Alloy agents, dashboards, alert rules, recording rules) transfer directly to Grafana Cloud by changing endpoint URLs
 - Key tension: cloud-only WAN resilience concern still applies to Grafana Cloud
@@ -254,7 +254,7 @@ This file maintains continuity across work sessions. Each session summary is app
 - Development switching back to macOS (MacBook)
 - MacBook working directory: `/Users/et/Development/Monitoring_Dashboarding-master`
 - MacBook commit method: `python3 skills/git_smart_commit.py commit-and-push "message"`
-- Windows commit method: `C:/Users/etamez/AppData/Local/Programs/Python/Python314/python.exe skills/git_smart_commit.py commit-and-push "message"`
+- Windows commit method: `python3 skills/git_smart_commit.py commit-and-push "message"`
 - PROJECT_PLAN.md is at version 2.0 with Phase 9 added (42 tasks)
 - REQUIREMENTS_RESPONSE.md is ready for team review (10 open questions, gap closure strategy, build-vs-buy analysis)
 - Team is exploring Grafana Cloud as potential backend -- does not change config development work

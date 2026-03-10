@@ -49,7 +49,7 @@ prometheus.exporter.blackbox "cert_monitor" {
   //   3. The endpoint appears in the Certificate Overview dashboard
   //
   // Label taxonomy matches the project standard:
-  //   datacenter  -- which site/resort this endpoint belongs to
+  //   datacenter  -- which site/datacenter this endpoint belongs to
   //   environment -- prod, staging, dev
   //   cert_type   -- "public" (DigiCert) or "pki" (internal CA)
   //   service     -- human-readable service name for the dashboard

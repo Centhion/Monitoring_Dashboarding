@@ -20,7 +20,7 @@
 #                    ubiquiti_unifi -- UniFi-specific metrics (UniFi gear only)
 #   auth        -- named auth profile from snmp_auths.yml
 #   labels      -- custom labels for dashboard filtering
-#     datacenter  -- site/resort this device belongs to
+#     datacenter  -- site/datacenter this device belongs to
 #     environment -- prod, staging, dev
 #     device_type -- switch, firewall, access_point, ups, nas
 #     vendor      -- cisco, paloalto, ubiquiti, apc, synology
@@ -46,7 +46,7 @@ targets:
   #   module: "system,if_mib"
   #   auth: "community_v2"
   #   labels:
-  #     datacenter: "resort-alpha"
+  #     datacenter: "site-alpha"
   #     environment: "prod"
   #     device_type: "switch"
   #     vendor: "cisco"
@@ -57,7 +57,7 @@ targets:
   #   module: "system,if_mib"
   #   auth: "community_v2"
   #   labels:
-  #     datacenter: "resort-alpha"
+  #     datacenter: "site-alpha"
   #     environment: "prod"
   #     device_type: "switch"
   #     vendor: "cisco"
@@ -72,7 +72,7 @@ targets:
   #   module: "system,if_mib,paloalto"
   #   auth: "secure_v3"
   #   labels:
-  #     datacenter: "resort-alpha"
+  #     datacenter: "site-alpha"
   #     environment: "prod"
   #     device_type: "firewall"
   #     vendor: "paloalto"
@@ -87,7 +87,7 @@ targets:
   #   module: "system,if_mib,ubiquiti_unifi"
   #   auth: "community_v2"
   #   labels:
-  #     datacenter: "resort-alpha"
+  #     datacenter: "site-alpha"
   #     environment: "prod"
   #     device_type: "access_point"
   #     vendor: "ubiquiti"
@@ -100,7 +100,7 @@ targets:
   #   module: "system,apcups"
   #   auth: "community_v2"
   #   labels:
-  #     datacenter: "resort-alpha"
+  #     datacenter: "site-alpha"
   #     environment: "prod"
   #     device_type: "ups"
   #     vendor: "apc"

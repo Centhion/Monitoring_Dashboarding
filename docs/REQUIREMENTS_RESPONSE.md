@@ -587,7 +587,7 @@ services/hosts have SLA targets and what the targets are.
 **Status**: PARTIAL -- Architecture documented, single-replica deployed.
 
 **Position**: Agreed that distributed model is required. If we are providing
-monitoring for resort operations, polling instances must be local. The central
+monitoring for site operations, polling instances must be local. The central
 backend runs on Nutanix NKP with the Helm chart already built.
 
 **Response**:
@@ -613,16 +613,16 @@ accurate monitoring data during outage.
 
 **Position**: Cloud-only deployment does not work for our environment. The reasons:
 
-1. **WAN dependency**: If the link between a resort site and a cloud-hosted backend
+1. **WAN dependency**: If the link between a remote site and a cloud-hosted backend
    goes down, we lose both dashboard access and metric continuity. The monitoring
    system becomes a casualty of the outage it should be detecting.
 
 2. **Polling latency and bandwidth**: Agentless checks (ICMP, SNMP, TCP probes) from
-   a cloud backend to on-prem resort infrastructure traverse the WAN for every poll
+   a cloud backend to on-prem site infrastructure traverse the WAN for every poll
    cycle. Unreliable, high-latency, and bandwidth-intensive.
 
 3. **Remote troubleshooting dependency**: If our team is remotely troubleshooting a
-   resort during a WAN outage, monitoring is our source of truth. A gap in metrics
+   site during a WAN outage, monitoring is our source of truth. A gap in metrics
    during the exact window that matters undermines the value of the entire platform.
 
 4. **Backfill limitations**: Alloy agents buffer metrics locally during backend
@@ -640,7 +640,7 @@ accurate monitoring data during outage.
 NKP and local collection tiers at each site. Alloy agents and gateways run locally
 at every site. Central Prometheus/Loki/Grafana/Alertmanager on NKP.
 
-**Open question**: For resort sites with known WAN reliability concerns, do we need
+**Open question**: For remote sites with known WAN reliability concerns, do we need
 a local Prometheus + Grafana instance for dashboard access during outages? This is
 the difference between "data is buffered and backfilled" (current) and "dashboards
 are accessible locally during outage" (larger per-site footprint). The team should

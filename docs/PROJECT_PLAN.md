@@ -966,11 +966,11 @@
 
 ## Phase 7H: Dashboard Hub Architecture
 
-**Goal**: Create a location-centric navigation layer across all monitoring domains. Two dashboards: an Enterprise NOC view showing all sites at a glance, and a Site Overview dashboard showing all monitored infrastructure at a single resort/location with drill-down links to detailed dashboards.
+**Goal**: Create a location-centric navigation layer across all monitoring domains. Two dashboards: an Enterprise NOC view showing all sites at a glance, and a Site Overview dashboard showing all monitored infrastructure at a single site/location with drill-down links to detailed dashboards.
 
 **Status**: Completed
 
-**Audience**: Both central NOC team (multi-site comparison, problem identification) and resort IT staff (single-site deep visibility, troubleshooting).
+**Audience**: Both central NOC team (multi-site comparison, problem identification) and site IT staff (single-site deep visibility, troubleshooting).
 
 **Scope**: Servers and actively monitored infrastructure only. Asset/endpoint inventory is out of scope (handled externally).
 
@@ -1631,7 +1631,7 @@ All monitoring at each site uses two distinct Alloy deployment patterns:
 - Transitions to a K8s pod with zero config changes when NKP arrives
 
 **Per-site deployment checklist:**
-1. Install Alloy agent on servers (Tier 1) with `ALLOY_DATACENTER=resort-name`
+1. Install Alloy agent on servers (Tier 1) with `ALLOY_DATACENTER=site-name`
 2. Deploy site gateway container (Tier 2) with target lists for that site's devices
 3. Populate `targets.yml` files with site-specific device IPs, BMC addresses, cert endpoints
 

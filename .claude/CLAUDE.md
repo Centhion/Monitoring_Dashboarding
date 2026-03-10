@@ -9,6 +9,37 @@
 
 See @docs/PROJECT_PLAN.md for current project status and tasks.
 See @docs/SSH_AUTHENTICATION.md for git authentication setup.
+See @docs/BRANCHING_STRATEGY.md for the public/internal branch model.
+
+---
+
+## Branch Model (Critical -- Read Before Any Work)
+
+This repo serves **two purposes** and agents must understand the boundary:
+
+- **`master` branch** = Public open-source template. Generic, sanitized, portfolio-ready. All placeholder values use `<YOUR_ORG>`, `site-a`, `example.com`, etc. **This is the default working branch. All new feature development happens here.**
+- **`internal` branch** = Organization-specific deployment fork (created when needed). Contains real site codes, real LDAP paths, real webhook URLs, real inventory. Merges FROM master to pick up new features.
+
+### Rules for Agents
+
+1. **Never commit org-specific content to `master`**. No real company names, employee names, internal hostnames, IP addresses, domain names, or vendor contract details. Use generic placeholders.
+2. **All new configs, dashboards, alert rules, and scripts go on `master`** with placeholder values. They are generic by default.
+3. **The `internal` branch overrides placeholders** with real values via environment-specific files (`.env`, Helm values overlays, inventory files). It does NOT duplicate configs.
+4. **When sanitizing, replace with meaningful placeholders**: `site-alpha` not `xxx`, `ldap.example.com` not `REDACTED`, `dc-east` not `datacenter1`.
+5. **SESSION_LOG.md and REQUIREMENTS_RESPONSE.md** exist on master and must stay sanitized. No team member names, no org acronyms, no internal project codenames.
+6. **Test with grep before committing**: `grep -ri "resort\|<any-org-term>" --include="*.md" --include="*.yml" --include="*.yaml" --include="*.json" --include="*.alloy"` should return zero org-specific hits.
+
+### What Goes Where
+
+| Content | Branch | Example |
+|---------|--------|---------|
+| New Alloy config | `master` | `configs/alloy/windows/role_exchange.alloy` with `sys.env()` placeholders |
+| New dashboard JSON | `master` | Generic panels with template variables, no hardcoded site names |
+| New alert rules | `master` | Thresholds use sensible defaults, labels use generic taxonomy |
+| Real site inventory | `internal` | `inventory/hosts.yml` with actual hostnames and IPs |
+| Real LDAP config | `internal` | `configs/grafana/ldap.toml` with actual bind DN and search base |
+| Real webhook URLs | `internal` | `.env` or Helm values overlay with actual Teams webhook |
+| Helm values overlay | `internal` | `deploy/helm/examples/values-myorg.yaml` with real storage classes |
 
 ---
 

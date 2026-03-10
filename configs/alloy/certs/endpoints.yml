@@ -15,7 +15,7 @@
 #   module      -- blackbox module: https_cert_check, https_cert_check_internal,
 #                  or tcp_tls_cert_check
 #   labels      -- custom labels attached to all metrics for this endpoint
-#     datacenter  -- site/resort where this service lives
+#     datacenter  -- site/datacenter where this service lives
 #     environment -- prod, staging, dev
 #     cert_type   -- "public" (DigiCert/commercial CA) or "pki" (internal PKI)
 #     service     -- human-readable service name for dashboard display
@@ -40,7 +40,7 @@ endpoints:
   #   address: "https://portal.example.com"
   #   module: "https_cert_check"
   #   labels:
-  #     datacenter: "resort-alpha"
+  #     datacenter: "site-alpha"
   #     environment: "prod"
   #     cert_type: "public"
   #     service: "Guest Portal"
@@ -50,7 +50,7 @@ endpoints:
   #   address: "https://api.example.com"
   #   module: "https_cert_check"
   #   labels:
-  #     datacenter: "resort-alpha"
+  #     datacenter: "site-alpha"
   #     environment: "prod"
   #     cert_type: "public"
   #     service: "API Gateway"
@@ -62,7 +62,7 @@ endpoints:
   #   address: "https://intranet.corp.example.com"
   #   module: "https_cert_check_internal"
   #   labels:
-  #     datacenter: "resort-alpha"
+  #     datacenter: "site-alpha"
   #     environment: "prod"
   #     cert_type: "pki"
   #     service: "Intranet Portal"
@@ -74,7 +74,7 @@ endpoints:
   #   address: "dc01.corp.example.com:636"
   #   module: "tcp_tls_cert_check"
   #   labels:
-  #     datacenter: "resort-alpha"
+  #     datacenter: "site-alpha"
   #     environment: "prod"
   #     cert_type: "pki"
   #     service: "LDAPS (DC01)"
@@ -84,7 +84,7 @@ endpoints:
   #   address: "smtp-relay.corp.example.com:465"
   #   module: "tcp_tls_cert_check"
   #   labels:
-  #     datacenter: "resort-alpha"
+  #     datacenter: "site-alpha"
   #     environment: "prod"
   #     cert_type: "pki"
   #     service: "SMTP Relay"
@@ -94,7 +94,7 @@ endpoints:
   #   address: "sql01.corp.example.com:1433"
   #   module: "tcp_tls_cert_check"
   #   labels:
-  #     datacenter: "resort-alpha"
+  #     datacenter: "site-alpha"
   #     environment: "prod"
   #     cert_type: "pki"
   #     service: "SQL Server TLS"

@@ -204,7 +204,7 @@ See [Adding a New Site](#adding-a-new-site) for step-by-step instructions.
 | `${SNMP_V3_AUTH_PASSWORD}` | SNMPv3 auth password (set as env var) |
 | `${SNMP_V3_PRIV_PASSWORD}` | SNMPv3 privacy password (set as env var) |
 | `10.0.1.1`, `10.0.1.2`, etc. | Actual device management IP addresses |
-| `resort-alpha` | Actual datacenter/site name |
+| `site-alpha` | Actual datacenter/site name |
 
 **Getting started**: Uncomment the example entries in `snmp_targets.yml` and replace with your devices. Start with one or two devices to validate connectivity before adding the full inventory.
 
@@ -219,7 +219,7 @@ See [Adding a New Site](#adding-a-new-site) for step-by-step instructions.
 | Placeholder | Replace With |
 |-------------|--------------|
 | `10.0.1.50`, `10.0.1.51`, etc. | Actual BMC/iLO/iDRAC management IP addresses |
-| `resort-alpha` | Actual datacenter/site name |
+| `site-alpha` | Actual datacenter/site name |
 | `hpe-dl380`, `dell-r750` | Actual server model identifiers |
 
 **Prerequisites**: Ensure Redfish API is enabled on your server BMCs and that the Alloy gateway has network access to the BMC management VLAN.
