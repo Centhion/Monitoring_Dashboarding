@@ -26,6 +26,9 @@ deploy/helm/monitoring-stack/charts/
 # Fleet inventory generated output
 inventory/generated/
 
+# Lansweeper textfile collector metrics (runtime artifacts)
+metrics/lansweeper/
+
 # Python
 __pycache__/
 *.py[cod]

@@ -1,0 +1,120 @@
+# =============================================================================
+# Lansweeper Asset Alert Rules (Phase 7D.2)
+# =============================================================================
+# Alerting on asset lifecycle signals derived from Lansweeper inventory data:
+#   - Hardware warranty expiry (90/60/30 day escalation + expired)
+#   - Stale assets (not seen by Lansweeper in 7+ days)
+#
+# These rules evaluate metrics produced by the lansweeper_sync.py
+# export-metrics command and scraped by the Alloy textfile collector
+# (role_lansweeper_metrics.alloy).
+#
+# Dependencies:
+#   - job="lansweeper" metrics from textfile collector
+#   - lansweeper_warranty_expiry_timestamp_seconds metric
+#   - lansweeper_last_seen_timestamp_seconds metric
+#   - lansweeper_asset_info metric (for label joins)
+# =============================================================================
+
+groups:
+  - name: lansweeper_warranty_alerts
+    rules:
+      # -----------------------------------------------------------------------
+      # Warranty expiring within 90 days (informational)
+      # -----------------------------------------------------------------------
+      # Early warning for procurement planning. Gives teams time to evaluate
+      # renewal vs replacement through standard budgeting workflows.
+      # -----------------------------------------------------------------------
+      - alert: AssetWarrantyExpiring90Days
+        expr: |
+          (lansweeper_warranty_expiry_timestamp_seconds{job="lansweeper"} - time()) < 90 * 86400
+          and
+          (lansweeper_warranty_expiry_timestamp_seconds{job="lansweeper"} - time()) >= 60 * 86400
+        for: 6h
+        labels:
+          severity: info
+          category: asset_lifecycle
+        annotations:
+          summary: "Warranty expiring within 90 days: {{ $labels.hostname }}"
+          description: >-
+            Hardware warranty for {{ $labels.hostname }} expires in
+            {{ printf "%.0f" (divf (sub (index $value) (time)) 86400) }} days.
+            Plan for renewal or replacement.
+
+      # -----------------------------------------------------------------------
+      # Warranty expiring within 60 days (warning)
+      # -----------------------------------------------------------------------
+      - alert: AssetWarrantyExpiring60Days
+        expr: |
+          (lansweeper_warranty_expiry_timestamp_seconds{job="lansweeper"} - time()) < 60 * 86400
+          and
+          (lansweeper_warranty_expiry_timestamp_seconds{job="lansweeper"} - time()) >= 30 * 86400
+        for: 6h
+        labels:
+          severity: warning
+          category: asset_lifecycle
+        annotations:
+          summary: "Warranty expiring within 60 days: {{ $labels.hostname }}"
+          description: >-
+            Hardware warranty for {{ $labels.hostname }} expires in
+            {{ printf "%.0f" (divf (sub (index $value) (time)) 86400) }} days.
+            Renewal or replacement should be in progress.
+
+      # -----------------------------------------------------------------------
+      # Warranty expiring within 30 days (warning)
+      # -----------------------------------------------------------------------
+      - alert: AssetWarrantyExpiring30Days
+        expr: |
+          (lansweeper_warranty_expiry_timestamp_seconds{job="lansweeper"} - time()) < 30 * 86400
+          and
+          (lansweeper_warranty_expiry_timestamp_seconds{job="lansweeper"} - time()) >= 0
+        for: 1h
+        labels:
+          severity: warning
+          category: asset_lifecycle
+        annotations:
+          summary: "Warranty expiring within 30 days: {{ $labels.hostname }}"
+          description: >-
+            Hardware warranty for {{ $labels.hostname }} expires in
+            {{ printf "%.0f" (divf (sub (index $value) (time)) 86400) }} days.
+            Immediate action required to avoid gap in coverage.
+
+      # -----------------------------------------------------------------------
+      # Warranty expired
+      # -----------------------------------------------------------------------
+      - alert: AssetWarrantyExpired
+        expr: |
+          lansweeper_warranty_expiry_timestamp_seconds{job="lansweeper"} < time()
+        for: 1h
+        labels:
+          severity: critical
+          category: asset_lifecycle
+        annotations:
+          summary: "Warranty EXPIRED: {{ $labels.hostname }}"
+          description: >-
+            Hardware warranty for {{ $labels.hostname }} has expired.
+            This asset is running without vendor support. Evaluate risk
+            and prioritize replacement.
+
+  - name: lansweeper_visibility_alerts
+    rules:
+      # -----------------------------------------------------------------------
+      # Asset not seen by Lansweeper in 7+ days
+      # -----------------------------------------------------------------------
+      # An asset that Lansweeper cannot reach may be powered off,
+      # decommissioned, or have network connectivity issues. This alert
+      # surfaces assets that have gone dark from an inventory perspective.
+      # -----------------------------------------------------------------------
+      - alert: AssetNotSeenByLansweeper7Days
+        expr: |
+          (time() - lansweeper_last_seen_timestamp_seconds{job="lansweeper"}) > 7 * 86400
+        for: 6h
+        labels:
+          severity: warning
+          category: asset_visibility
+        annotations:
+          summary: "Asset not seen by Lansweeper in 7+ days: {{ $labels.hostname }}"
+          description: >-
+            {{ $labels.hostname }} was last seen by Lansweeper
+            {{ printf "%.0f" (divf (sub (time) (index $value)) 86400) }} days ago.
+            Verify the asset is powered on and network-reachable.

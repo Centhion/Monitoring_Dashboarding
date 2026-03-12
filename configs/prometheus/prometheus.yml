@@ -62,6 +62,8 @@ rule_files:
   - "/etc/prometheus/rules/snmp_alerts.yml"
   - "/etc/prometheus/rules/hardware_alerts.yml"
   - "/etc/prometheus/rules/cert_alerts.yml"
+  - "/etc/prometheus/rules/lansweeper_recording_rules.yml"
+  - "/etc/prometheus/rules/lansweeper_alerts.yml"
 
 # ---------------------------------------------------------------------------
 # Alertmanager Configuration

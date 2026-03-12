@@ -8,6 +8,7 @@ field mapping, and rate-limit-aware pagination.
 
 Subcommands:
     sync             -- Pull assets from Lansweeper and merge into hosts.yml
+    export-metrics   -- Export asset metadata as Prometheus textfile collector metrics
     list-sites       -- List authorized Lansweeper sites (useful for finding site IDs)
 
 Environment Variables:
@@ -37,6 +38,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 try:
@@ -56,6 +58,7 @@ except ImportError:
 REPO_ROOT = Path(__file__).resolve().parent.parent
 HOSTS_PATH = REPO_ROOT / "inventory" / "hosts.yml"
 FIELD_MAP_PATH = REPO_ROOT / "inventory" / "lansweeper_field_map.yml"
+METRICS_DIR = REPO_ROOT / "metrics" / "lansweeper"
 
 DEFAULT_API_URL = "https://api.lansweeper.com/api/v2/graphql"
 PAGE_SIZE = 500  # Lansweeper max per request
@@ -635,8 +638,221 @@ def write_hosts(hosts: dict, path: Path = HOSTS_PATH) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Prometheus textfile metrics output (Phase 7D.2)
+# ---------------------------------------------------------------------------
+
+
+def format_prom_label(value: str) -> str:
+    """Escape a string for use as a Prometheus label value.
+
+    Backslash, double-quote, and newline must be escaped per the exposition format.
+    """
+    return (
+        value.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+    )
+
+
+def parse_warranty_date(date_str: str | None) -> float | None:
+    """Parse a Lansweeper warranty date string into a Unix timestamp.
+
+    Lansweeper returns dates in ISO 8601 format or as date-only strings.
+    Returns None if the date cannot be parsed.
+    """
+    if not date_str:
+        return None
+
+    # Try common formats Lansweeper uses
+    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%d"):
+        try:
+            dt = datetime.strptime(date_str, fmt).replace(tzinfo=timezone.utc)
+            return dt.timestamp()
+        except ValueError:
+            continue
+
+    return None
+
+
+def generate_metrics(assets: list[dict], field_map: dict) -> str:
+    """Generate Prometheus textfile collector output from Lansweeper asset data.
+
+    Produces two metric families:
+    - lansweeper_asset_info: Info-style gauge (always 1) with asset metadata labels
+    - lansweeper_warranty_expiry_timestamp_seconds: Gauge with warranty expiry as
+      a Unix timestamp (enables PromQL calculations like days-until-expiry)
+
+    The textfile collector pattern exposes these as scrapeable metrics that can
+    be joined with health metrics via the 'hostname' label in PromQL.
+    """
+    lines = []
+
+    # -- lansweeper_asset_info
+    lines.append("# HELP lansweeper_asset_info Asset metadata from Lansweeper inventory.")
+    lines.append("# TYPE lansweeper_asset_info gauge")
+
+    for asset in assets:
+        hostname = extract_field(asset, "assetBasicInfo.name")
+        if not hostname:
+            continue
+        hostname = hostname.lower()
+
+        # Check exclusions
+        asset_type = extract_field(asset, "assetBasicInfo.type") or ""
+        exclude_types = [t.lower() for t in field_map.get("exclude_asset_types", [])]
+        if asset_type.lower() in exclude_types:
+            continue
+
+        # Gather label values
+        labels = {
+            "hostname": hostname,
+            "asset_type": asset_type,
+            "manufacturer": extract_field(asset, "assetCustom.manufacturer") or "",
+            "model": extract_field(asset, "assetCustom.model") or "",
+            "serial_number": extract_field(asset, "assetCustom.serialNumber") or "",
+            "os_caption": extract_field(asset, "operatingSystem.caption") or "",
+            "os_version": extract_field(asset, "operatingSystem.version") or "",
+            "ip_address": extract_field(asset, "assetBasicInfo.ipAddress") or "",
+            "fqdn": extract_field(asset, "assetBasicInfo.fqdn") or "",
+            "location": extract_field(asset, "assetCustom.location") or "",
+        }
+
+        label_str = ",".join(
+            f'{k}="{format_prom_label(v)}"' for k, v in labels.items()
+        )
+        lines.append(f"lansweeper_asset_info{{{label_str}}} 1")
+
+    lines.append("")
+
+    # -- lansweeper_warranty_expiry_timestamp_seconds
+    lines.append(
+        "# HELP lansweeper_warranty_expiry_timestamp_seconds "
+        "Warranty expiry date as Unix timestamp."
+    )
+    lines.append("# TYPE lansweeper_warranty_expiry_timestamp_seconds gauge")
+
+    for asset in assets:
+        hostname = extract_field(asset, "assetBasicInfo.name")
+        if not hostname:
+            continue
+        hostname = hostname.lower()
+
+        asset_type = extract_field(asset, "assetBasicInfo.type") or ""
+        exclude_types = [t.lower() for t in field_map.get("exclude_asset_types", [])]
+        if asset_type.lower() in exclude_types:
+            continue
+
+        warranty_str = extract_field(asset, "assetCustom.warrantyDate")
+        warranty_ts = parse_warranty_date(warranty_str)
+        if warranty_ts is not None:
+            lines.append(
+                f'lansweeper_warranty_expiry_timestamp_seconds'
+                f'{{hostname="{format_prom_label(hostname)}"}} {warranty_ts}'
+            )
+
+    lines.append("")
+
+    # -- lansweeper_last_seen_timestamp_seconds
+    lines.append(
+        "# HELP lansweeper_last_seen_timestamp_seconds "
+        "Last time asset was seen by Lansweeper as Unix timestamp."
+    )
+    lines.append("# TYPE lansweeper_last_seen_timestamp_seconds gauge")
+
+    for asset in assets:
+        hostname = extract_field(asset, "assetBasicInfo.name")
+        if not hostname:
+            continue
+        hostname = hostname.lower()
+
+        asset_type = extract_field(asset, "assetBasicInfo.type") or ""
+        exclude_types = [t.lower() for t in field_map.get("exclude_asset_types", [])]
+        if asset_type.lower() in exclude_types:
+            continue
+
+        last_seen_str = extract_field(asset, "assetBasicInfo.lastSeen")
+        last_seen_ts = parse_warranty_date(last_seen_str)  # Same date parsing logic
+        if last_seen_ts is not None:
+            lines.append(
+                f'lansweeper_last_seen_timestamp_seconds'
+                f'{{hostname="{format_prom_label(hostname)}"}} {last_seen_ts}'
+            )
+
+    lines.append("")
+
+    return "\n".join(lines)
+
+
+def write_metrics(content: str, output_dir: Path = METRICS_DIR) -> Path:
+    """Write Prometheus textfile metrics to the output directory.
+
+    Creates the directory if it does not exist. Writes to a .prom file that
+    the Alloy textfile collector will scrape.
+
+    Uses atomic write (write to temp, then rename) to prevent partial reads.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / "lansweeper_assets.prom"
+    temp_path = output_dir / "lansweeper_assets.prom.tmp"
+
+    with open(temp_path, "w", encoding="utf-8") as fh:
+        fh.write(content)
+
+    temp_path.rename(output_path)
+    return output_path
+
+
+# ---------------------------------------------------------------------------
 # Subcommands
 # ---------------------------------------------------------------------------
+
+
+def cmd_export_metrics(args: argparse.Namespace) -> int:
+    """Export Lansweeper asset data as Prometheus textfile metrics.
+
+    Queries enrichment fields (hardware, warranty, OS) in addition to the
+    standard sync fields, then writes a .prom file for the textfile collector.
+    """
+    config = load_env_config()
+    field_map = load_field_map()
+
+    print("Exporting Lansweeper asset metrics...")
+    print(f"Site: {config['site_id']}")
+
+    # Combine sync fields with enrichment fields for a broader query
+    sync_fields = field_map.get("sync_fields", [])
+    enrichment_fields = field_map.get("enrichment_fields", [])
+    all_fields = list(dict.fromkeys(sync_fields + enrichment_fields))
+
+    include_types = field_map.get("include_asset_types") or None
+
+    try:
+        raw_assets = fetch_all_assets(
+            config["api_url"],
+            config["pat"],
+            config["site_id"],
+            all_fields,
+            include_types=include_types,
+        )
+    except RuntimeError as exc:
+        print(f"ERROR: Failed to fetch assets: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"Received {len(raw_assets)} assets")
+
+    # Generate and write metrics
+    metrics_content = generate_metrics(raw_assets, field_map)
+    output_dir = Path(args.output_dir) if args.output_dir else METRICS_DIR
+    output_path = write_metrics(metrics_content, output_dir)
+
+    # Count metrics produced
+    metric_lines = [
+        line for line in metrics_content.split("\n")
+        if line and not line.startswith("#")
+    ]
+    print(f"Wrote {len(metric_lines)} metric samples to {output_path}")
+
+    return 0
 
 
 def cmd_list_sites(args: argparse.Namespace) -> int:
@@ -804,11 +1020,23 @@ def main() -> None:
         help="Show what would change without writing to hosts.yml",
     )
 
+    # export-metrics
+    metrics_parser = subparsers.add_parser(
+        "export-metrics",
+        help="Export asset data as Prometheus textfile metrics",
+    )
+    metrics_parser.add_argument(
+        "--output-dir",
+        default=None,
+        help=f"Output directory for .prom files (default: {METRICS_DIR})",
+    )
+
     args = parser.parse_args()
 
     dispatch = {
         "list-sites": cmd_list_sites,
         "sync": cmd_sync,
+        "export-metrics": cmd_export_metrics,
     }
 
     handler = dispatch.get(args.command)

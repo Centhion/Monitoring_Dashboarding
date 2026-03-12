@@ -140,6 +140,7 @@ Monitoring_Dashboarding/
 |   +-- FLEET_ONBOARDING.md    # Adding sites, servers, and devices
 |   +-- AGENTLESS_MONITORING.md # Monitoring without agents
 |   +-- RBAC_GUIDE.md          # Grafana RBAC and LDAP/AD integration
+|   +-- LANSWEEPER_INTEGRATION.md # Lansweeper API sync setup and usage (Phase 7D)
 +-- tests/                       # Test suite for validators
 |   +-- test_validators.py     # 12 test cases for all validators
 |   +-- fixtures/              # Valid and invalid config fixtures

@@ -841,7 +841,7 @@
 - [x] 4. Add `--dry-run` flag -- show what would change without writing -- Simple
 - [x] 5. Add field mapping config (`inventory/lansweeper_field_map.yml`) -- maps Lansweeper asset types/fields to monitoring roles and sites -- Medium
 - [ ] 6. Integration test with live API -- validate pagination, empty results, error handling -- Medium
-- [ ] 7. Documentation -- `docs/LANSWEEPER_INTEGRATION.md` with setup, auth, usage -- Simple
+- [x] 7. Documentation -- `docs/LANSWEEPER_INTEGRATION.md` with setup, auth, usage -- Simple
 
 **Done when**: `python3 scripts/lansweeper_sync.py sync --dry-run` shows correct host mapping from live Lansweeper data, and `sync` merges into `hosts.yml` passing `fleet_inventory.py validate`.
 
@@ -849,11 +849,11 @@
 
 **Goal**: Expose Lansweeper metadata (warranty, hardware model, OS version, last seen) as Prometheus metrics for dashboard joins.
 
-- [ ] 1. Add `export-metrics` subcommand to `lansweeper_sync.py` -- query enrichment fields (serial, manufacturer, model, warranty date, OS version, last seen) -- Medium
-- [ ] 2. Write Prometheus textfile format output (`lansweeper_asset_info` gauge with labels, `lansweeper_warranty_expiry_days` gauge) -- Medium
-- [ ] 3. Create Alloy textfile collector config snippet for Lansweeper metrics directory -- Simple
-- [ ] 4. Add Prometheus recording rules for warranty expiry alerting thresholds -- Simple
-- [ ] 5. Add alert rules -- warranty expiring in 30/60/90 days, assets not seen in 7+ days -- Medium
+- [x] 1. Add `export-metrics` subcommand to `lansweeper_sync.py` -- query enrichment fields (serial, manufacturer, model, warranty date, OS version, last seen) -- Medium
+- [x] 2. Write Prometheus textfile format output (`lansweeper_asset_info` gauge with labels, `lansweeper_warranty_expiry_timestamp_seconds`, `lansweeper_last_seen_timestamp_seconds`) -- Medium
+- [x] 3. Create Alloy textfile collector config snippet for Lansweeper metrics directory -- Simple
+- [x] 4. Add Prometheus recording rules for warranty expiry alerting thresholds -- Simple
+- [x] 5. Add alert rules -- warranty expiring in 90/60/30 days + expired, assets not seen in 7+ days -- Medium
 - [ ] 6. Validate metrics flow end-to-end in Docker Compose PoC -- Medium
 
 **Done when**: `lansweeper_asset_info` and `lansweeper_warranty_expiry_days` metrics appear in Prometheus with correct labels, and warranty alerts fire correctly against test data.

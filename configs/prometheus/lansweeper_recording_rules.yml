@@ -1,0 +1,70 @@
+# =============================================================================
+# Lansweeper Asset Recording Rules (Phase 7D.2)
+# =============================================================================
+# Pre-compute asset lifecycle aggregations for the Asset Inventory dashboard
+# and warranty tracking panels. These rules consume metrics produced by the
+# lansweeper_sync.py export-metrics command, scraped via the Alloy textfile
+# collector (role_lansweeper_metrics.alloy).
+#
+# Naming convention: <namespace>:<metric>:<aggregation>
+# =============================================================================
+
+groups:
+  - name: lansweeper_recording_rules
+    interval: 300s
+    rules:
+      # Days until warranty expiry per asset.
+      # Negative values indicate expired warranties.
+      - record: instance:warranty_days_remaining:gauge
+        expr: |
+          (lansweeper_warranty_expiry_timestamp_seconds{job="lansweeper"} - time()) / 86400
+
+      # Days since Lansweeper last saw the asset.
+      # High values indicate potentially decommissioned or unreachable hosts.
+      - record: instance:lansweeper_days_since_seen:gauge
+        expr: |
+          (time() - lansweeper_last_seen_timestamp_seconds{job="lansweeper"}) / 86400
+
+      # Total assets tracked by Lansweeper.
+      - record: fleet:lansweeper_assets_total:count
+        expr: |
+          count(lansweeper_asset_info{job="lansweeper"})
+
+      # Assets by type (Windows, Linux, etc.).
+      - record: fleet:lansweeper_assets_by_type:count
+        expr: |
+          count by (asset_type) (
+            lansweeper_asset_info{job="lansweeper"}
+          )
+
+      # Assets by manufacturer.
+      - record: fleet:lansweeper_assets_by_manufacturer:count
+        expr: |
+          count by (manufacturer) (
+            lansweeper_asset_info{job="lansweeper"}
+            and
+            lansweeper_asset_info{manufacturer!=""}
+          )
+
+      # Assets with warranty expiring within 30 days.
+      - record: fleet:warranty_expiring_30d:count
+        expr: |
+          count(
+            (lansweeper_warranty_expiry_timestamp_seconds{job="lansweeper"} - time()) < 30 * 86400
+            and
+            (lansweeper_warranty_expiry_timestamp_seconds{job="lansweeper"} - time()) >= 0
+          )
+
+      # Assets with expired warranty.
+      - record: fleet:warranty_expired:count
+        expr: |
+          count(
+            lansweeper_warranty_expiry_timestamp_seconds{job="lansweeper"} < time()
+          )
+
+      # Assets not seen by Lansweeper in 7+ days.
+      - record: fleet:lansweeper_stale_assets:count
+        expr: |
+          count(
+            (time() - lansweeper_last_seen_timestamp_seconds{job="lansweeper"}) > 7 * 86400
+          )
