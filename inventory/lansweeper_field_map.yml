@@ -1,0 +1,135 @@
+# Lansweeper-to-Monitoring Field Mapping
+# Controls how Lansweeper asset data is translated into the monitoring
+# stack's hosts.yml schema during sync operations.
+#
+# Used by: scripts/lansweeper_sync.py
+#
+# Customize the mappings below to match your Lansweeper asset taxonomy
+# to the monitoring roles and sites defined in inventory/sites.yml.
+
+# ---------------------------------------------------------------------------
+# Asset type filtering
+# ---------------------------------------------------------------------------
+# Only sync assets whose assetBasicInfo.type matches one of these values.
+# Lansweeper types include: Windows, Linux, Mac, Network Device, VMware Host,
+# Hyper-V Guest, etc. Omit or leave empty to sync all types.
+include_asset_types:
+  - Windows
+  - Linux
+
+# Assets matching these types are never synced, even if they match
+# include_asset_types. Useful for excluding VDI, printers, etc.
+exclude_asset_types: []
+
+# ---------------------------------------------------------------------------
+# Role mapping
+# ---------------------------------------------------------------------------
+# Maps Lansweeper attributes to monitoring roles defined in sites.yml.
+# Each rule is evaluated in order; the first match wins. If no rules match,
+# the asset is assigned the default_role.
+#
+# Supported match fields:
+#   - asset_type:  assetBasicInfo.type (exact, case-insensitive)
+#   - name_regex:  regex against assetBasicInfo.name (case-insensitive)
+#   - software:    installed software name substring match
+#   - description: assetCustom.description substring match (case-insensitive)
+#
+# Multiple conditions in a single rule are AND-ed.
+default_role: generic
+
+role_rules:
+  - role: dc
+    match:
+      name_regex: "^.*-dc-.*$"
+    description: "Domain Controllers -- matched by hostname pattern"
+
+  - role: sql
+    match:
+      name_regex: "^.*-sql-.*$"
+    description: "SQL Servers -- matched by hostname pattern"
+
+  - role: iis
+    match:
+      name_regex: "^.*-web-.*$|^.*-iis-.*$"
+    description: "IIS Web Servers -- matched by hostname pattern"
+
+  - role: fileserver
+    match:
+      name_regex: "^.*-file-.*$|^.*-fs-.*$"
+    description: "File Servers -- matched by hostname pattern"
+
+  - role: docker
+    match:
+      name_regex: "^.*-docker-.*$|^.*-container-.*$"
+    description: "Docker hosts -- matched by hostname pattern"
+
+# ---------------------------------------------------------------------------
+# Site mapping
+# ---------------------------------------------------------------------------
+# Maps Lansweeper location or network data to monitoring site codes
+# defined in sites.yml.
+#
+# Each rule is evaluated in order; the first match wins. If no rules match,
+# the asset is assigned the default_site.
+#
+# Supported match fields:
+#   - location:       assetCustom.location substring (case-insensitive)
+#   - ip_prefix:      IP address prefix match (e.g., "10.0." matches 10.0.x.x)
+#   - network_regex:  regex against assetBasicInfo.ipAddress
+#   - fqdn_suffix:    FQDN suffix match (e.g., ".east.corp.example.com")
+default_site: unknown
+
+site_rules:
+  # Uncomment and customize for your environment:
+  #
+  # - site: site-alpha
+  #   match:
+  #     location: "US-East"
+  #   description: "East coast datacenter"
+  #
+  # - site: site-alpha
+  #   match:
+  #     ip_prefix: "10.0."
+  #   description: "East coast by IP range"
+  #
+  # - site: site-beta
+  #   match:
+  #     location: "US-West"
+  #   description: "West coast datacenter"
+
+# ---------------------------------------------------------------------------
+# OS mapping
+# ---------------------------------------------------------------------------
+# Maps Lansweeper asset type to the monitoring OS value (windows/linux).
+# This is usually straightforward but allows overrides.
+os_map:
+  Windows: windows
+  Linux: linux
+
+# ---------------------------------------------------------------------------
+# Field selection
+# ---------------------------------------------------------------------------
+# Lansweeper GraphQL fields to request during sync. These are the dot-notation
+# paths passed to the assetResources query. Add fields here if you need
+# additional data for role/site mapping rules.
+sync_fields:
+  - assetBasicInfo.name
+  - assetBasicInfo.ipAddress
+  - assetBasicInfo.fqdn
+  - assetBasicInfo.domain
+  - assetBasicInfo.type
+  - assetBasicInfo.lastSeen
+  - assetBasicInfo.lastActiveScan
+  - assetCustom.location
+  - assetCustom.manufacturer
+  - assetCustom.model
+  - assetCustom.serialNumber
+  - assetCustom.dnsName
+
+# Additional fields fetched only during export-metrics (Phase 7D.2).
+# Kept separate to minimize sync query payload.
+enrichment_fields:
+  - assetCustom.warrantyDate
+  - assetCustom.deviceVersion
+  - operatingSystem.caption
+  - operatingSystem.version

@@ -24,7 +24,7 @@
 | Phase 7A: SNMP Network Device Monitoring | Completed | Gateway config, recording rules, alerts, dashboard, traps, Helm, docs |
 | Phase 7B: Hardware/HCI Health Monitoring | Completed | Gateway config, recording rules, alerts, dashboard, Redfish exporter, Helm, docs |
 | Phase 7C: SSL Certificate Monitoring | Completed | Blackbox probing, Docker Compose, Helm chart, docs |
-| Phase 7D: Lansweeper Integration | Dropped | Out of scope -- asset inventory stays in Lansweeper, no monitoring stack integration needed |
+| Phase 7D: Lansweeper Integration | In Progress | Rolling integration: API sync, asset enrichment metrics, dashboard, webhook-driven updates |
 | Phase 7E: Cloud Infrastructure Monitoring | Completed | Stub configs for AWS CloudWatch / Azure Monitor (disabled by default, ready to activate) |
 | Phase 7F: IIS Dedicated Dashboard | Completed | Dashboard + recording rules for existing IIS role metrics and access logs |
 | Phase 7G: Agentless Collection | Blocked | WinRM/SSH for edge cases -- pending internal use case review |
@@ -825,9 +825,85 @@
 
 ## Phase 7D: Lansweeper Integration
 
-**Status**: Dropped
+**Goal**: Bridge asset discovery (Lansweeper) and infrastructure health monitoring (this stack) with automated inventory sync, asset enrichment metrics, a unified dashboard, and webhook-driven real-time updates. Uses Lansweeper Cloud/Hybrid GraphQL API with Personal Access Token authentication.
 
-**Reason**: Asset inventory is handled entirely by Lansweeper. No monitoring stack integration needed -- the boundary between infrastructure health monitoring (this stack) and asset discovery (Lansweeper) is clear and intentional.
+**Status**: In Progress
+
+**Approach**: Rolling integration -- each sub-phase is independently functional and tested before the next begins.
+
+### Sub-Phase 7D.1: Core API Client + Inventory Sync
+
+**Goal**: Replace manual CSV imports with automated Lansweeper API pulls.
+
+- [x] 1. Add `.env` variables for Lansweeper config (`LANSWEEPER_API_URL`, `LANSWEEPER_SITE_ID`, `LANSWEEPER_PAT`) -- Simple
+- [x] 2. Create `scripts/lansweeper_sync.py` -- GraphQL client with PAT auth, pagination handling, rate-limit backoff -- Medium
+- [x] 3. Implement `sync` subcommand -- query assets, map to `hosts.yml` schema (hostname, site, roles, os, ip), merge without clobbering -- Medium
+- [x] 4. Add `--dry-run` flag -- show what would change without writing -- Simple
+- [x] 5. Add field mapping config (`inventory/lansweeper_field_map.yml`) -- maps Lansweeper asset types/fields to monitoring roles and sites -- Medium
+- [ ] 6. Integration test with live API -- validate pagination, empty results, error handling -- Medium
+- [ ] 7. Documentation -- `docs/LANSWEEPER_INTEGRATION.md` with setup, auth, usage -- Simple
+
+**Done when**: `python3 scripts/lansweeper_sync.py sync --dry-run` shows correct host mapping from live Lansweeper data, and `sync` merges into `hosts.yml` passing `fleet_inventory.py validate`.
+
+### Sub-Phase 7D.2: Asset Enrichment Metrics
+
+**Goal**: Expose Lansweeper metadata (warranty, hardware model, OS version, last seen) as Prometheus metrics for dashboard joins.
+
+- [ ] 1. Add `export-metrics` subcommand to `lansweeper_sync.py` -- query enrichment fields (serial, manufacturer, model, warranty date, OS version, last seen) -- Medium
+- [ ] 2. Write Prometheus textfile format output (`lansweeper_asset_info` gauge with labels, `lansweeper_warranty_expiry_days` gauge) -- Medium
+- [ ] 3. Create Alloy textfile collector config snippet for Lansweeper metrics directory -- Simple
+- [ ] 4. Add Prometheus recording rules for warranty expiry alerting thresholds -- Simple
+- [ ] 5. Add alert rules -- warranty expiring in 30/60/90 days, assets not seen in 7+ days -- Medium
+- [ ] 6. Validate metrics flow end-to-end in Docker Compose PoC -- Medium
+
+**Done when**: `lansweeper_asset_info` and `lansweeper_warranty_expiry_days` metrics appear in Prometheus with correct labels, and warranty alerts fire correctly against test data.
+
+### Sub-Phase 7D.3: Asset Inventory Dashboard
+
+**Goal**: Grafana dashboard combining Lansweeper asset data with health metrics.
+
+- [ ] 1. Create `dashboards/overview/asset_inventory.json` -- panels: asset count by site/type/OS, hardware model distribution -- Medium
+- [ ] 2. Add warranty tracker panel -- table of assets sorted by warranty expiry, color-coded (expired/30d/60d/90d) -- Medium
+- [ ] 3. Add "stale assets" panel -- assets in Lansweeper not seen by monitoring (left join on hostname) -- Medium
+- [ ] 4. Add "unmanaged assets" panel -- assets in monitoring but not in Lansweeper -- Medium
+- [ ] 5. Link to existing dashboards -- drill-down from asset row to Windows/Linux overview filtered by hostname -- Simple
+- [ ] 6. Add dashboard to Grafana provisioning and Helm chart -- Simple
+
+**Done when**: Dashboard renders correctly with Lansweeper-enriched data, drill-downs work, and respects existing RBAC folder permissions.
+
+### Sub-Phase 7D.4: Webhook-Driven Real-Time Sync
+
+**Goal**: Lansweeper pushes asset changes to keep monitoring inventory in sync automatically.
+
+- [ ] 1. Create `scripts/lansweeper_webhook.py` -- lightweight HTTP receiver accepting Lansweeper webhook POST payloads -- Medium
+- [ ] 2. Implement signature verification (`X-LS-webhook-signature`, HMAC_SHA256) -- Medium
+- [ ] 3. Handle `NEW_ASSET` event -- query full asset details via API, apply field mapping, append to `hosts.yml` -- Medium
+- [ ] 4. Handle `UPDATED_ASSET` event -- refresh asset fields in `hosts.yml` -- Medium
+- [ ] 5. Handle `DELETED_ASSET` event -- flag or remove from `hosts.yml` (configurable soft/hard delete) -- Medium
+- [ ] 6. Add Dockerfile and Helm chart sidecar config for webhook receiver -- Medium
+- [ ] 7. Add `EXPORT_COMPLETED` handler for bulk reconciliation syncs -- Simple
+- [ ] 8. Documentation -- webhook setup in Lansweeper, network requirements, troubleshooting -- Simple
+
+**Done when**: New asset added in Lansweeper appears in `hosts.yml` within minutes without manual intervention, and signature verification rejects forged payloads.
+
+### Human Actions Required
+
+- [ ] Create Lansweeper API client (PAT) in Site Settings > Developer Tools (before 7D.1)
+- [ ] Provide Lansweeper Site ID (before 7D.1)
+- [ ] Define asset type-to-role mapping for field map config (during 7D.1)
+- [ ] Configure webhook in Lansweeper cloud console (before 7D.4)
+- [ ] Expose webhook endpoint publicly via ingress/reverse proxy (before 7D.4)
+
+### Risks and Mitigations
+
+| Risk | Mitigation |
+|------|------------|
+| Rate limit lockout (1-min cooldown resets on any request) | Exponential backoff with jitter, never retry during cooldown window |
+| Asset type-to-role mapping is org-specific | Configurable field map YAML, not hardcoded |
+| Textfile collector is cron-based, not real-time | Acceptable for slow-changing asset metadata; webhooks (7D.4) handle urgent changes |
+| Label cardinality from enrichment fields | Info-style metrics only, join via `hostname` label |
+| Webhook receiver needs public endpoint | Document reverse proxy/ingress setup; scheduled full sync as reconciliation backstop |
+| 5-minute webhook dedup window may miss rapid changes | Scheduled full sync (7D.1) runs as reconciliation backstop |
 
 ---
 

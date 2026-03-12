@@ -107,6 +107,7 @@ Monitoring_Dashboarding/
 |   +-- validate_on_save.py    # PostToolUse hook for fast syntax checks
 |   +-- maintenance_window.py  # Grafana mute timing API helper (create/list/delete)
 |   +-- fleet_inventory.py    # Inventory management (validate, report, import CSV)
+|   +-- lansweeper_sync.py   # Lansweeper GraphQL API sync (Phase 7D)
 |   +-- validate_fleet_tags.py # Tag compliance audit against Prometheus
 |   +-- configure_rbac.py     # Apply RBAC folder permissions via Grafana API
 |   +-- validate_rbac.py      # Validate RBAC state against config
@@ -114,6 +115,7 @@ Monitoring_Dashboarding/
 |   +-- sites.yml              # Site/datacenter registry
 |   +-- hosts.yml              # Server inventory (hostname, site, role, OS)
 |   +-- hosts.csv.example      # CSV import template
+|   +-- lansweeper_field_map.yml # Lansweeper-to-monitoring field mapping (Phase 7D)
 +-- ansible/                     # Deployment automation
 |   +-- deploy_alloy.yml      # Ansible playbook for Alloy agent deployment
 |   +-- inventory.yml          # Ansible inventory template
