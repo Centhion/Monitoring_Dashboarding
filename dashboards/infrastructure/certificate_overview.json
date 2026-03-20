@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "SSL/TLS certificate expiry monitoring across all internal PKI and public certificates. Tracks days until expiry with proactive alerting thresholds.",
+  "description": "TLS certificate expiry monitoring across all environments. Tracks days until expiry with proactive alerting thresholds and probe health visibility.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -67,23 +67,11 @@
       "tooltip": "",
       "type": "link",
       "url": "/d/hardware-overview"
-    },
-    {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": false,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "Certificates",
-      "tooltip": "",
-      "type": "link",
-      "url": "/d/cert-overview"
     }
   ],
   "panels": [
     {
-      "id": 15,
+      "id": 100,
       "type": "text",
       "title": "",
       "gridPos": {
@@ -108,21 +96,19 @@
       },
       "id": 1,
       "title": "Certificate Health Summary",
-      "type": "row",
-      "fieldConfig": {
-        "defaults": {}
-      }
+      "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Total SSL/TLS certificates currently being monitored by blackbox probes.",
+      "description": "Total number of certificates being monitored by cert_monitor probes.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "fixedColor": "blue",
+            "mode": "fixed"
           },
           "mappings": [],
           "thresholds": {
@@ -159,7 +145,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "title": "Certs Monitored",
       "targets": [
         {
           "datasource": {
@@ -167,13 +153,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count(probe_ssl_earliest_cert_expiry{job=\"cert_monitor\", datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"})",
+          "expr": "count(probe_ssl_earliest_cert_expiry{job=\"cert_monitor\", environment=~\"$environment\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"})",
           "legendFormat": "Total",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Certs Monitored",
       "type": "stat"
     },
     {
@@ -181,11 +166,12 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Certificates with more than 90 days until expiry. No action needed.",
+      "description": "Certificates with more than 60 days remaining before expiry.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "fixedColor": "green",
+            "mode": "fixed"
           },
           "mappings": [],
           "thresholds": {
@@ -222,7 +208,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "title": "Healthy (>60d)",
       "targets": [
         {
           "datasource": {
@@ -230,13 +216,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count(instance:cert_days_remaining:gauge{datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"} >= 90) or vector(0)",
+          "expr": "count(instance:cert_days_remaining:gauge{environment=~\"$environment\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"} > 60)",
           "legendFormat": "Healthy",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Healthy (>90d)",
       "type": "stat"
     },
     {
@@ -244,23 +229,24 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Certificates expiring within 30-90 days. Plan renewal.",
+      "description": "Certificates expiring within 30 to 60 days. Schedule renewal soon.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "fixedColor": "yellow",
+            "mode": "fixed"
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "yellow",
                 "value": null
               },
               {
                 "color": "yellow",
-                "value": 1
+                "value": 0
               }
             ]
           }
@@ -289,7 +275,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "title": "Expiring (30-60d)",
       "targets": [
         {
           "datasource": {
@@ -297,13 +283,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count(instance:cert_days_remaining:gauge{datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"} < 90 and instance:cert_days_remaining:gauge{datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"} >= 30) or vector(0)",
+          "expr": "count(instance:cert_days_remaining:gauge{environment=~\"$environment\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"} >= 30 and instance:cert_days_remaining:gauge{environment=~\"$environment\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"} < 60)",
           "legendFormat": "Expiring",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Expiring (30-90d)",
       "type": "stat"
     },
     {
@@ -311,23 +296,24 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Certificates expiring within 30 days. Renewal should be in progress.",
+      "description": "Certificates expiring within 7 to 30 days. Renew immediately.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "fixedColor": "orange",
+            "mode": "fixed"
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "orange",
                 "value": null
               },
               {
                 "color": "orange",
-                "value": 1
+                "value": 0
               }
             ]
           }
@@ -356,7 +342,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "title": "Urgent (<30d)",
       "targets": [
         {
           "datasource": {
@@ -364,13 +350,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count(instance:cert_days_remaining:gauge{datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"} < 30 and instance:cert_days_remaining:gauge{datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"} > 0) or vector(0)",
+          "expr": "count(instance:cert_days_remaining:gauge{environment=~\"$environment\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"} >= 7 and instance:cert_days_remaining:gauge{environment=~\"$environment\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"} < 30)",
           "legendFormat": "Urgent",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Urgent (<30d)",
       "type": "stat"
     },
     {
@@ -378,23 +363,24 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Certificates expiring within 7 days. Immediate action required.",
+      "description": "Certificates expiring within 7 days. Critical renewal required.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "fixedColor": "red",
+            "mode": "fixed"
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
               },
               {
                 "color": "red",
-                "value": 1
+                "value": 0
               }
             ]
           }
@@ -423,7 +409,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "title": "Critical (<7d)",
       "targets": [
         {
           "datasource": {
@@ -431,13 +417,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count(instance:cert_days_remaining:gauge{datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"} > 0 and instance:cert_days_remaining:gauge{datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"} < 7) or vector(0)",
+          "expr": "count(instance:cert_days_remaining:gauge{environment=~\"$environment\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"} > 0 and instance:cert_days_remaining:gauge{environment=~\"$environment\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"} < 7)",
           "legendFormat": "Critical",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Critical (<7d)",
       "type": "stat"
     },
     {
@@ -449,19 +434,20 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "fixedColor": "dark-red",
+            "mode": "fixed"
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "dark-red",
                 "value": null
               },
               {
                 "color": "dark-red",
-                "value": 1
+                "value": 0
               }
             ]
           }
@@ -490,7 +476,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "title": "Expired",
       "targets": [
         {
           "datasource": {
@@ -498,13 +484,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "count(instance:cert_days_remaining:gauge{datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"} <= 0) or vector(0)",
+          "expr": "count(instance:cert_days_remaining:gauge{environment=~\"$environment\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"} <= 0)",
           "legendFormat": "Expired",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Expired",
       "type": "stat"
     },
     {
@@ -518,37 +503,48 @@
       "id": 8,
       "title": "Certificate Inventory",
       "type": "row",
-      "fieldConfig": {
-        "defaults": {}
-      }
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "All monitored certificates with days until expiry, color-coded by urgency. Click a service name to see probe details.",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "instance:cert_days_remaining:gauge{hostname!=\"\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"}",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "environment": true,
+              "job": true,
+              "probe_type": true
+            },
+            "renameByName": {
+              "instance": "Endpoint",
+              "datacenter": "Site",
+              "cert_type": "Type",
+              "Value": "Days Remaining"
+            },
+            "indexByName": {
+              "instance": 0,
+              "datacenter": 1,
+              "cert_type": 2,
+              "Value": 3
+            }
+          }
+        }
+      ],
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
           "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
+            "align": "auto"
           }
         },
         "overrides": [
@@ -559,8 +555,15 @@
             },
             "properties": [
               {
-                "id": "decimals",
-                "value": 1
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "color-background"
+                }
               },
               {
                 "id": "thresholds",
@@ -573,15 +576,15 @@
                     },
                     {
                       "color": "red",
-                      "value": 0
-                    },
-                    {
-                      "color": "orange",
                       "value": 7
                     },
                     {
-                      "color": "yellow",
+                      "color": "orange",
                       "value": 30
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 60
                     },
                     {
                       "color": "green",
@@ -589,231 +592,19 @@
                     }
                   ]
                 }
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "mode": "basic",
-                  "type": "color-background"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "service"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 180
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "instance"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 280
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "cert_type"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 80
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "owner"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 120
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "datacenter"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 140
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Probe OK"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 80
-              },
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "options": {
-                      "0": {
-                        "text": "FAIL",
-                        "color": "red"
-                      },
-                      "1": {
-                        "text": "OK",
-                        "color": "green"
-                      }
-                    },
-                    "type": "value"
-                  }
-                ]
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "mode": "basic",
-                  "type": "color-background"
-                }
               }
             ]
           }
         ]
       },
-      "gridPos": {
-        "h": 14,
-        "w": 24,
-        "x": 0,
-        "y": 8
-      },
-      "id": 9,
       "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
         "showHeader": true,
         "sortBy": [
           {
-            "desc": false,
-            "displayName": "Days Remaining"
+            "displayName": "Days Remaining",
+            "desc": false
           }
         ]
-      },
-      "pluginVersion": "10.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "instance:cert_days_remaining:gauge{datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "DaysRemaining"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "probe_success{job=\"cert_monitor\", datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "ProbeSuccess",
-          "hide": false
-        }
-      ],
-      "title": "Certificate Inventory",
-      "transformations": [
-        {
-          "id": "seriesToColumns",
-          "options": {
-            "byField": "instance"
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "Time 1": true,
-              "Time 2": true,
-              "job": true,
-              "job 1": true,
-              "job 2": true,
-              "__name__": true,
-              "__name__ 1": true,
-              "__name__ 2": true,
-              "datacenter 1": true,
-              "environment 1": true,
-              "cert_type 1": true,
-              "owner 1": true,
-              "service 1": true
-            },
-            "indexByName": {
-              "service": 0,
-              "instance": 1,
-              "datacenter": 2,
-              "cert_type": 3,
-              "owner": 4,
-              "Value #DaysRemaining": 5,
-              "Value #ProbeSuccess": 6,
-              "environment": 7
-            },
-            "renameByName": {
-              "Value #DaysRemaining": "Days Remaining",
-              "Value #ProbeSuccess": "Probe OK"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 22
-      },
-      "id": 10,
-      "title": "Expiry Timeline",
-      "type": "row",
-      "fieldConfig": {
-        "defaults": {}
       }
     },
     {
@@ -821,52 +612,158 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Days remaining until certificate expiry over time. Declining lines indicate approaching expiry.",
+      "description": "Full certificate inventory with days remaining, probe status, and site metadata. Sorted by urgency (fewest days remaining first).",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Days Remaining"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "dark-red",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 7
+                    },
+                    {
+                      "color": "orange",
+                      "value": 30
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 60
+                    },
+                    {
+                      "color": "green",
+                      "value": 90
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 9,
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Days Remaining",
+            "desc": false
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "instance:cert_days_remaining:gauge{hostname!=\"\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"}",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "environment": true,
+              "job": true,
+              "probe_type": true
+            },
+            "renameByName": {
+              "instance": "Endpoint",
+              "datacenter": "Site",
+              "cert_type": "Type",
+              "Value": "Days Remaining",
+              "hostname": "Server",
+              "service": "Service"
+            },
+            "indexByName": {
+              "instance": 0,
+              "hostname": 1,
+              "service": 2,
+              "datacenter": 3,
+              "cert_type": 4,
+              "Value": 5
+            }
+          }
+        }
+      ],
+      "type": "table",
+      "title": "Certificate Inventory"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 10,
+      "title": "Expiry Distribution",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Visual distribution of certificate expiry timelines. Most urgent certificates appear at the top.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "Days Remaining",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "line+area"
-            }
+            "mode": "thresholds"
           },
           "mappings": [],
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "red",
                 "value": null
+              },
+              {
+                "color": "red",
+                "value": 0
               },
               {
                 "color": "orange",
@@ -877,12 +774,12 @@
                 "value": 30
               },
               {
-                "color": "transparent",
-                "value": 90
+                "color": "green",
+                "value": 60
               }
             ]
           },
-          "unit": "short"
+          "max": 365
         },
         "overrides": []
       },
@@ -890,24 +787,26 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 19
       },
       "id": 11,
       "options": {
-        "legend": {
+        "displayMode": "gradient",
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "asc"
-        }
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
       },
-      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -915,14 +814,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:cert_days_remaining:gauge{datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"}",
-          "legendFormat": "{{service}} ({{cert_type}})",
+          "expr": "sort(instance:cert_days_remaining:gauge{environment=~\"$environment\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"})",
+          "legendFormat": "{{ instance }}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Certificate Expiry Timeline",
-      "type": "timeseries"
+      "type": "bargauge"
     },
     {
       "collapsed": false,
@@ -930,13 +828,116 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 29
       },
       "id": 12,
       "title": "Probe Health",
       "type": "row",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "probe_success{job=\"cert_monitor\", hostname!=\"\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"}",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "environment": true,
+              "job": true,
+              "probe_type": true,
+              "cert_type": true
+            },
+            "renameByName": {
+              "instance": "Endpoint",
+              "datacenter": "Site",
+              "Value": "Status"
+            },
+            "indexByName": {
+              "datacenter": 0,
+              "instance": 1,
+              "Value": 2
+            }
+          }
+        }
+      ],
       "fieldConfig": {
-        "defaults": {}
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "text": "DOWN",
+                        "color": "red"
+                      },
+                      "1": {
+                        "text": "UP",
+                        "color": "green"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Site"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Status",
+            "desc": false
+          }
+        ],
+        "header": {
+          "showIcons": false
+        }
       }
     },
     {
@@ -944,181 +945,126 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Probe success/failure status for each monitored endpoint over time.",
+      "description": "Probe reachability and response latency for each monitored endpoint. Down probes appear first.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
           "custom": {
-            "fillOpacity": 70,
-            "lineWidth": 0,
-            "spanNulls": false
-          },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "text": "FAIL",
-                  "color": "red"
-                },
-                "1": {
-                  "text": "OK",
-                  "color": "green"
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "text": "DOWN",
+                        "color": "red"
+                      },
+                      "1": {
+                        "text": "UP",
+                        "color": "green"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
                 }
               },
-              "type": "value"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
               {
-                "color": "red",
-                "value": null
-              },
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Site"
+            },
+            "properties": [
               {
-                "color": "green",
-                "value": 1
+                "id": "custom.width",
+                "value": 80
               }
             ]
           }
-        },
-        "overrides": []
+        ]
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 34
+        "y": 30
       },
       "id": 13,
       "options": {
-        "colWidth": 0.9,
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "rowHeight": 0.8,
-        "showValue": "never",
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Status",
+            "desc": false
+          }
+        ],
+        "header": {
+          "showIcons": false
         }
       },
-      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "editorMode": "code",
-          "expr": "probe_success{job=\"cert_monitor\", datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"}",
-          "legendFormat": "{{service}}",
-          "range": true,
-          "refId": "A"
+          "expr": "probe_success{job=\"cert_monitor\", hostname!=\"\", datacenter=~\"$datacenter\", cert_type=~\"$cert_type\"}",
+          "refId": "A",
+          "format": "table",
+          "instant": true
         }
       ],
-      "title": "Probe Status History",
-      "type": "status-history"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "Time taken by each blackbox probe. High latency may indicate network issues or slow TLS handshakes.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "environment": true,
+              "job": true,
+              "probe_type": true,
+              "cert_type": true
             },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
+            "renameByName": {
+              "instance": "Endpoint",
+              "datacenter": "Site",
+              "Value": "Status",
+              "hostname": "Server",
+              "service": "Service"
             },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
+            "indexByName": {
+              "datacenter": 0,
+              "instance": 1,
+              "hostname": 2,
+              "service": 3,
+              "Value": 4
             }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 34
-      },
-      "id": 14,
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "pluginVersion": "10.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "probe_duration_seconds{job=\"cert_monitor\", datacenter=~\"$datacenter\", environment=~\"$environment\", cert_type=~\"$cert_type\"}",
-          "legendFormat": "{{service}}",
-          "range": true,
-          "refId": "A"
+          }
         }
       ],
-      "title": "Probe Duration",
-      "type": "timeseries"
+      "type": "table",
+      "title": "Probe Health"
     }
   ],
   "schemaVersion": 39,
@@ -1183,7 +1129,7 @@
         "definition": "label_values(probe_ssl_earliest_cert_expiry{job=\"cert_monitor\"}, cert_type)",
         "hide": 0,
         "includeAll": true,
-        "label": "Cert Type",
+        "label": "Certificate Type",
         "multi": true,
         "name": "cert_type",
         "options": [],
@@ -1201,13 +1147,13 @@
     ]
   },
   "time": {
-    "from": "now-7d",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Certificate Overview",
   "uid": "cert-overview",
-  "version": 19,
+  "version": 5,
   "weekStart": ""
 }

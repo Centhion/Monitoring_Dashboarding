@@ -124,6 +124,44 @@ The deployment wrapper generates all config files (`.env`, alertmanager routing,
 
 All dashboards include a cross-navigation link bar. Template variables (`environment`, `datacenter`, `hostname`) propagate between dashboards for seamless drill-down. Navigation flow: Enterprise NOC -> Site Overview -> role-specific dashboard.
 
+## Scripts
+
+Python tooling in `scripts/` for validation, deployment, fleet management, and testing.
+
+### Validation
+
+| Script | Purpose |
+|--------|---------|
+| `validate_all.py` | Orchestrates all validators and produces a unified report (for local dev and CI) |
+| `validate_alloy.py` | Validates Alloy `.alloy` configs -- balanced braces, required components, env var usage, duplicate labels |
+| `validate_dashboards.py` | Validates Grafana dashboard JSON -- metadata, UIDs, template variables, panel structure, datasource refs |
+| `validate_prometheus.py` | Validates Prometheus/Alertmanager configs -- YAML syntax, label taxonomy, duration formats, no hardcoded secrets |
+| `validate_fleet_tags.py` | Queries live Prometheus and compares host labels against inventory to detect drift and unknown hosts |
+| `validate_rbac.py` | Compares live Grafana RBAC state against desired state in `folder-permissions.yml` (CI gate) |
+| `validate_on_save.py` | Lightweight post-save hook for fast YAML/JSON syntax checks during editing |
+
+### Deployment and Configuration
+
+| Script | Purpose |
+|--------|---------|
+| `stack_manage.py` | One-command Docker Compose startup -- validates prereqs, starts services, waits for health checks |
+| `deploy_configure.py` | Generates config files (`.env`, `sites.yml`, `hosts.yml`, `alertmanager.yml`) interactively or from file |
+| `configure_rbac.py` | Applies RBAC permission model to Grafana via API -- creates teams, folders, and folder-level permissions |
+| `maintenance_window.py` | Creates, lists, and removes Grafana mute timings for planned maintenance windows |
+
+### Fleet and Inventory
+
+| Script | Purpose |
+|--------|---------|
+| `fleet_inventory.py` | Manages host inventory (`sites.yml`/`hosts.yml`) -- validates, reports, imports from CSV, generates Ansible inventory |
+| `lansweeper_sync.py` | Syncs asset data from Lansweeper Cloud GraphQL API into `inventory/hosts.yml` |
+
+### Testing
+
+| Script | Purpose |
+|--------|---------|
+| `demo_data_generator.py` | Pushes synthetic metrics and logs into Prometheus and Loki to populate dashboards with realistic demo data |
+
 ## Documentation
 
 - See `QUICKSTART.md` for getting started (Docker Compose local testing and Helm K8s deployment)

@@ -207,7 +207,16 @@ class SimulatedCertEndpoint:
     days_until_expiry: int = 0
 
     def __post_init__(self):
-        self.days_until_expiry = random.randint(15, 365)
+        # Spread expiry across realistic ranges including urgent/critical
+        weights = random.random()
+        if weights < 0.1:
+            self.days_until_expiry = random.randint(1, 7)      # Critical
+        elif weights < 0.2:
+            self.days_until_expiry = random.randint(8, 30)     # Urgent
+        elif weights < 0.35:
+            self.days_until_expiry = random.randint(31, 60)    # Expiring
+        else:
+            self.days_until_expiry = random.randint(61, 365)   # Healthy
 
 
 # =============================================================================
@@ -290,20 +299,21 @@ def build_inventory(config: dict) -> dict:
         # Generate certificate endpoints
         if gw.get("certs", False):
             cert_templates = [
-                (f"webmail.{code}.example.com", "public"),
-                (f"portal.{code}.example.com", "public"),
-                (f"ldap.{code}.example.com", "pki"),
-                (f"vcenter.{code}.example.com", "pki"),
+                (f"webmail.{code}.example.com", "public", f"srv-iis-05.{code}", "Exchange OWA"),
+                (f"portal.{code}.example.com", "public", f"srv-iis-06.{code}", "Employee Portal"),
+                (f"ldap.{code}.example.com", "pki", f"srv-dc-01.{code}", "LDAPS"),
+                (f"vcenter.{code}.example.com", "pki", f"srv-generic-12.{code}", "vCenter"),
             ]
-            for addr, ctype in cert_templates:
-                cert_endpoints.append(
-                    SimulatedCertEndpoint(
-                        name=addr.split(".")[0],
-                        address=f"https://{addr}",
-                        site_code=code,
-                        cert_type=ctype,
-                    )
+            for addr, ctype, hostname, service in cert_templates:
+                ep = SimulatedCertEndpoint(
+                    name=addr.split(".")[0],
+                    address=f"https://{addr}",
+                    site_code=code,
+                    cert_type=ctype,
                 )
+                ep.hostname = hostname
+                ep.service = service
+                cert_endpoints.append(ep)
 
     return {
         "hosts": hosts,
@@ -811,6 +821,13 @@ def generate_probe_metrics(endpoint: SimulatedCertEndpoint, timestamp_ms: int) -
         "datacenter": endpoint.site_code,
         "environment": "demo",
     }
+    # Add hostname and service if present (avoids empty-string labels creating duplicate series)
+    hostname = getattr(endpoint, "hostname", "")
+    service = getattr(endpoint, "service", "")
+    if hostname:
+        base_labels["hostname"] = hostname
+    if service:
+        base_labels["service"] = service
 
     # Probe success (occasional failure for realism)
     success = 1.0 if random.random() > 0.02 else 0.0
