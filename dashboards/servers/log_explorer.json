@@ -958,9 +958,9 @@
   "refresh": "30s",
   "schemaVersion": 39,
   "tags": [
+    "servers",
     "logs",
-    "loki",
-    "overview"
+    "loki"
   ],
   "templating": {
     "list": [

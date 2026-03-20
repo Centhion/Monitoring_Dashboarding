@@ -99,6 +99,8 @@ demo:
     sql: 2         # SQL Servers
     iis: 3         # IIS Web Servers
     fileserver: 2  # File Servers
+    dhcp: 1        # DHCP Servers
+    ca: 1          # Certificate Authority Servers
     docker: 2      # Docker/Linux hosts
     generic: 3     # Generic Windows servers
 

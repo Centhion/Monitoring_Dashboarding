@@ -1,0 +1,57 @@
+// =============================================================================
+// Windows Server Role -- Certificate Authority (AD CS)
+// =============================================================================
+// Metrics and service monitoring for Active Directory Certificate Services.
+// Deploy alongside base.alloy and logs_eventlog.alloy.
+//
+//   Metrics:
+//   - AD CS performance counters (certificate requests, issued/failed/pending)
+//   - CA service health
+//
+//   Logs:
+//   - Certificate Services operational event log
+//
+// Prerequisites:
+//   - AD CS role installed on the target server
+//   - Certification Authority service running
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// AD CS Metrics
+// The "adcs" collector exposes Certificate Services performance counters
+// for request throughput, issuance status, and CRL publishing.
+// ---------------------------------------------------------------------------
+prometheus.exporter.windows "ca" {
+  enabled_collectors = [
+    "adcs",  // AD CS: requests, issued, failed, pending, CRL publishes
+  ]
+
+  // Monitor CA service health
+  service {
+    where_clause = "Name='CertSvc'"
+  }
+}
+
+prometheus.scrape "ca_metrics" {
+  targets         = prometheus.exporter.windows.ca.targets
+  forward_to      = [prometheus.relabel.add_standard_labels.receiver]
+  scrape_interval = "30s"
+  scrape_timeout  = "15s"
+  job_name        = "windows_ca"
+}
+
+// ---------------------------------------------------------------------------
+// Certificate Services Event Log
+// Captures CA-specific events: certificate issuance, revocation,
+// template changes, CRL publish failures, enrollment failures.
+// ---------------------------------------------------------------------------
+loki.source.windowsevent "certsvc" {
+  eventlog_name          = "Microsoft-Windows-CertificationAuthority/Operational"
+  forward_to             = [loki.process.eventlog_metadata.receiver]
+  use_incoming_timestamp = true
+
+  labels = {
+    source  = "eventlog",
+    channel = "certsvc",
+  }
+}

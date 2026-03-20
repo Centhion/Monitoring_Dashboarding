@@ -8,6 +8,8 @@ valid_roles:
 - sql
 - iis
 - fileserver
+- dhcp
+- ca
 - docker
 - generic
 valid_os:

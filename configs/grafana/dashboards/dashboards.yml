@@ -1,107 +1,55 @@
 # =============================================================================
 # Grafana Dashboard Provisioning
 # =============================================================================
-# Automatically loads dashboard JSON files from the specified directories
-# when Grafana starts. Mounted as a file in
-# /etc/grafana/provisioning/dashboards/.
+# Loads dashboard JSON files from provisioned directories at startup.
 #
-# Dashboards are organized by category:
-#   - windows/  -- Windows Server dashboards
-#   - linux/    -- Linux Server dashboards
-#   - overview/ -- Infrastructure overview and log explorer dashboards
-#
-# The dashboard JSON files are mounted from the dashboards/ directory
-# in this repository (via ConfigMap or persistent volume).
+# Folder structure:
+#   Enterprise     -- Fleet-wide views (NOC, SLA, Audit, Probing)
+#   Servers        -- VM dashboards by OS and role (Windows, Linux, IIS, SQL, DC, etc.)
+#   Infrastructure -- Physical layer (Site Overview, Network, Physical Servers, Certificates)
 # =============================================================================
 
 apiVersion: 1
 
 providers:
   # ---------------------------------------------------------------------------
-  # Windows Server Dashboards
+  # Enterprise -- Fleet-wide dashboards across all sites
   # ---------------------------------------------------------------------------
-  - name: "Windows"
+  - name: "Enterprise"
     orgId: 1
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30
     allowUiUpdates: false
     options:
-      path: /var/lib/grafana/dashboards/windows
+      path: /var/lib/grafana/dashboards/enterprise
       foldersFromFilesStructure: false
-    folder: "Windows Servers"
+    folder: "Enterprise"
 
   # ---------------------------------------------------------------------------
-  # Linux Server Dashboards
+  # Servers -- VM dashboards organized by OS and server role
   # ---------------------------------------------------------------------------
-  - name: "Linux"
+  - name: "Servers"
     orgId: 1
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30
     allowUiUpdates: false
     options:
-      path: /var/lib/grafana/dashboards/linux
+      path: /var/lib/grafana/dashboards/servers
       foldersFromFilesStructure: false
-    folder: "Linux Servers"
+    folder: "Servers"
 
   # ---------------------------------------------------------------------------
-  # Infrastructure Overview Dashboards
-  # Includes fleet health overview and log explorer.
+  # Infrastructure -- Physical layer, network, and site-level views
   # ---------------------------------------------------------------------------
-  - name: "Overview"
+  - name: "Infrastructure"
     orgId: 1
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30
     allowUiUpdates: false
     options:
-      path: /var/lib/grafana/dashboards/overview
+      path: /var/lib/grafana/dashboards/infrastructure
       foldersFromFilesStructure: false
     folder: "Infrastructure"
-
-  # ---------------------------------------------------------------------------
-  # Network Infrastructure Dashboards (Phase 7A)
-  # SNMP-based network device monitoring: switches, firewalls, UPS, etc.
-  # ---------------------------------------------------------------------------
-  - name: "Network"
-    orgId: 1
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 30
-    allowUiUpdates: false
-    options:
-      path: /var/lib/grafana/dashboards/network
-      foldersFromFilesStructure: false
-    folder: "Network Infrastructure"
-
-  # ---------------------------------------------------------------------------
-  # Hardware Health Dashboards (Phase 7B)
-  # Redfish/IPMI hardware monitoring: iLO, iDRAC, chassis health.
-  # ---------------------------------------------------------------------------
-  - name: "Hardware"
-    orgId: 1
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 30
-    allowUiUpdates: false
-    options:
-      path: /var/lib/grafana/dashboards/hardware
-      foldersFromFilesStructure: false
-    folder: "Hardware Health"
-
-  # ---------------------------------------------------------------------------
-  # Certificate Monitoring Dashboards (Phase 7C)
-  # SSL/TLS certificate expiry tracking for internal PKI and public certs.
-  # ---------------------------------------------------------------------------
-  - name: "Certificates"
-    orgId: 1
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 30
-    allowUiUpdates: false
-    options:
-      path: /var/lib/grafana/dashboards/certs
-      foldersFromFilesStructure: false
-    folder: "Certificate Monitoring"
-

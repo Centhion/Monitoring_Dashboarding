@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Enterprise Linux server health overview. Provides at-a-glance status for CPU, memory, disk, network, load, and systemd services across the Linux fleet.",
+  "description": "Windows Server fleet overview. Displays CPU, memory, disk, network, and service health for all monitored Windows hosts. Metrics sourced from Grafana Alloy via Prometheus recording rules.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -64,10 +64,10 @@
       "keepTime": true,
       "tags": [],
       "targetBlank": false,
-      "title": "Windows Servers",
-      "tooltip": "Windows server detail",
+      "title": "Linux Servers",
+      "tooltip": "Linux server detail",
       "type": "link",
-      "url": "/d/windows-overview/windows-server-overview"
+      "url": "/d/linux-overview/linux-server-overview"
     },
     {
       "asDropdown": false,
@@ -100,16 +100,13 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Average CPU utilization across selected Linux servers. Sourced from the recording rule instance:linux_cpu_utilization:ratio.",
+      "description": "Average CPU utilization across selected Windows servers.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 1,
           "mappings": [],
-          "max": 100,
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -127,13 +124,16 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1
         },
         "overrides": []
       },
       "gridPos": {
         "h": 5,
-        "w": 5,
+        "w": 6,
         "x": 0,
         "y": 1
       },
@@ -150,11 +150,10 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -162,8 +161,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avg(instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"}) * 100",
-          "legendFormat": "CPU Utilization",
+          "expr": "avg(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"}) * 100",
+          "legendFormat": "CPU",
           "range": true,
           "refId": "A"
         }
@@ -176,16 +175,13 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Average memory utilization across selected Linux servers. Sourced from the recording rule instance:linux_memory_utilization:ratio.",
+      "description": "Average memory utilization across selected Windows servers.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 1,
           "mappings": [],
-          "max": 100,
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -203,14 +199,17 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1
         },
         "overrides": []
       },
       "gridPos": {
         "h": 5,
-        "w": 5,
-        "x": 5,
+        "w": 6,
+        "x": 6,
         "y": 1
       },
       "id": 2,
@@ -226,11 +225,10 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -238,8 +236,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avg(instance:linux_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"}) * 100",
-          "legendFormat": "Memory Utilization",
+          "expr": "avg(instance:windows_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"}) * 100",
+          "legendFormat": "Memory",
           "range": true,
           "refId": "A"
         }
@@ -252,35 +250,31 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Average uptime in days across selected Linux servers. Sourced from the recording rule instance:linux_uptime:seconds.",
+      "description": "Average system uptime across selected Windows servers, displayed in days.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 1,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "orange",
-                "value": null
-              },
-              {
                 "color": "green",
-                "value": 1
+                "value": null
               }
             ]
           },
-          "unit": "d"
+          "unit": "d",
+          "decimals": 1
         },
         "overrides": []
       },
       "gridPos": {
         "h": 5,
-        "w": 5,
-        "x": 10,
+        "w": 6,
+        "x": 12,
         "y": 1
       },
       "id": 3,
@@ -296,11 +290,10 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -308,7 +301,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avg(instance:linux_uptime:seconds{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"}) / 86400",
+          "expr": "avg(instance:windows_uptime:seconds{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"}) / 86400",
           "legendFormat": "Uptime",
           "range": true,
           "refId": "A"
@@ -322,87 +315,12 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Average normalized load (1-minute load / CPU count). A value of 1.0 means the system is fully loaded. Sourced from the recording rule instance:linux_load_normalized:ratio.",
+      "description": "Total count of Windows services detected as not running across selected hosts.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 2,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 1.0
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 5,
-        "x": 15,
-        "y": 1
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "11.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "avg(instance:linux_load_normalized:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"})",
-          "legendFormat": "Load Average",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Load Average",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "Total count of failed systemd units across selected Linux servers. Sourced from the recording rule instance:linux_systemd_failed:count.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -421,20 +339,21 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "short",
+          "decimals": 0
         },
         "overrides": []
       },
       "gridPos": {
         "h": 5,
-        "w": 4,
-        "x": 20,
+        "w": 6,
+        "x": 18,
         "y": 1
       },
-      "id": 5,
+      "id": 4,
       "options": {
         "colorMode": "background",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
@@ -444,11 +363,10 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -456,13 +374,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(instance:linux_systemd_failed:count{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"}) or vector(0)",
-          "legendFormat": "Failed Units",
+          "expr": "sum(instance:windows_services_not_running:count{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"})",
+          "legendFormat": "Stopped Services",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Failed Systemd Units",
+      "title": "Services Not Running",
       "type": "stat"
     },
     {
@@ -473,8 +391,8 @@
         "x": 0,
         "y": 6
       },
-      "id": 200,
-      "title": "CPU and Load",
+      "id": 101,
+      "title": "CPU and Memory",
       "type": "row"
     },
     {
@@ -482,7 +400,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "CPU utilization over time for each selected Linux server, expressed as a percentage. Uses the pre-computed recording rule for efficient querying.",
+      "description": "CPU utilization percentage over time, broken down by hostname. Sourced from the recording rule instance:windows_cpu_utilization:ratio.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -520,10 +438,7 @@
               "mode": "off"
             }
           },
-          "decimals": 1,
           "mappings": [],
-          "max": 100,
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -541,7 +456,9 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percent",
+          "min": 0,
+          "max": 100
         },
         "overrides": []
       },
@@ -551,7 +468,7 @@
         "x": 0,
         "y": 7
       },
-      "id": 10,
+      "id": 5,
       "options": {
         "legend": {
           "calcs": [
@@ -567,7 +484,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -575,8 +492,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
-          "legendFormat": "{{hostname}}",
+          "expr": "instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
+          "legendFormat": "{{ hostname }}",
           "range": true,
           "refId": "A"
         }
@@ -589,7 +506,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Breakdown of CPU time by mode (user, system, iowait, idle, etc.) as a stacked area chart. Uses the raw node_cpu_seconds_total counter with rate() to show per-second utilization by mode.",
+      "description": "Breakdown of CPU time by processing mode (user, privileged, idle, interrupt, dpc). Displayed as a stacked area chart to show how CPU time is distributed.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -603,451 +520,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 60,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "percent"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "decimals": 1,
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "idle"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "light-green",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "user"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "blue",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "system"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "iowait"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "red",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 7
-      },
-      "id": 11,
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "pluginVersion": "11.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "avg by (mode) (rate(node_cpu_seconds_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\"}[5m])) * 100",
-          "legendFormat": "{{mode}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "CPU Modes Breakdown",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "System load averages (1m, 5m, 15m) for selected servers. Load is NOT normalized here; compare against CPU count to assess saturation.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "decimals": 2,
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*load1.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "red",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*load5.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byRegexp",
-              "options": ".*load15.*"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "yellow",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 7
-      },
-      "id": 12,
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "pluginVersion": "11.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "node_load1{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}",
-          "legendFormat": "{{hostname}} load1",
-          "range": true,
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "node_load5{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}",
-          "legendFormat": "{{hostname}} load5",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "node_load15{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}",
-          "legendFormat": "{{hostname}} load15",
-          "range": true,
-          "refId": "C"
-        }
-      ],
-      "title": "Load Average (1m, 5m, 15m)",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 15
-      },
-      "id": 300,
-      "title": "Memory",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "Memory utilization over time per selected server. Uses the recording rule which computes 1 - (MemAvailable / MemTotal).",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 15,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "decimals": 1,
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 75
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 16
-      },
-      "id": 20,
-      "options": {
-        "legend": {
-          "calcs": [
-            "mean",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "pluginVersion": "11.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "instance:linux_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
-          "legendFormat": "{{hostname}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Memory Utilization Over Time",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "Breakdown of physical memory into used, buffers, cached, and free components as a stacked area chart. Useful for understanding kernel memory allocation patterns.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 60,
+            "fillOpacity": 80,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -1071,9 +544,7 @@
               "mode": "off"
             }
           },
-          "decimals": 1,
           "mappings": [],
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1083,78 +554,19 @@
               }
             ]
           },
-          "unit": "bytes"
+          "unit": "percent",
+          "min": 0,
+          "max": 100
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Used"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "red",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Buffers"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Cached"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "yellow",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Free"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "green",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 16
+        "y": 7
       },
-      "id": 21,
+      "id": 6,
       "options": {
         "legend": {
           "calcs": [
@@ -1169,7 +581,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -1177,46 +589,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avg by (hostname) (node_memory_MemTotal_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\"} - node_memory_MemFree_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\"} - node_memory_Buffers_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\"} - node_memory_Cached_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\"})",
-          "legendFormat": "Used",
+          "expr": "avg by (mode) (rate(windows_cpu_time_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])) * 100",
+          "legendFormat": "{{ mode }}",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "avg by (hostname) (node_memory_Buffers_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\"})",
-          "legendFormat": "Buffers",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "avg by (hostname) (node_memory_Cached_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\"})",
-          "legendFormat": "Cached",
-          "range": true,
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "avg by (hostname) (node_memory_MemFree_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\"})",
-          "legendFormat": "Free",
-          "range": true,
-          "refId": "D"
         }
       ],
-      "title": "Memory Breakdown",
+      "title": "CPU Modes Breakdown",
       "type": "timeseries"
     },
     {
@@ -1224,7 +603,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Swap memory usage over time. High swap usage indicates memory pressure and potential performance degradation from disk paging.",
+      "description": "Memory utilization percentage over time, broken down by hostname. Sourced from the recording rule instance:windows_memory_utilization:ratio.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1262,19 +641,27 @@
               "mode": "off"
             }
           },
-          "decimals": 1,
           "mappings": [],
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
               }
             ]
           },
-          "unit": "bytes"
+          "unit": "percent",
+          "min": 0,
+          "max": 100
         },
         "overrides": []
       },
@@ -1282,9 +669,9 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 16
+        "y": 7
       },
-      "id": 22,
+      "id": 7,
       "options": {
         "legend": {
           "calcs": [
@@ -1300,7 +687,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -1308,13 +695,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_memory_SwapTotal_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"} - node_memory_SwapFree_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}",
-          "legendFormat": "{{hostname}} swap used",
+          "expr": "instance:windows_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
+          "legendFormat": "{{ hostname }}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Swap Usage",
+      "title": "Memory Utilization Over Time",
       "type": "timeseries"
     },
     {
@@ -1323,9 +710,9 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 15
       },
-      "id": 400,
+      "id": 102,
       "title": "Disk",
       "type": "row"
     },
@@ -1334,7 +721,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Percentage of free disk space per mountpoint and hostname. Uses the recording rule which excludes tmpfs, devtmpfs, squashfs, and overlay filesystems.",
+      "description": "Percentage of free disk space per volume per host. Low values indicate volumes approaching capacity. Sourced from the recording rule instance:windows_disk_free:ratio.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1369,17 +756,10 @@
               "mode": "none"
             },
             "thresholdsStyle": {
-              "mode": "line",
-              "line": {
-                "color": "red",
-                "width": 1
-              }
+              "mode": "line"
             }
           },
-          "decimals": 1,
           "mappings": [],
-          "max": 100,
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1397,7 +777,9 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percent",
+          "min": 0,
+          "max": 100
         },
         "overrides": []
       },
@@ -1405,9 +787,9 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 25
+        "y": 16
       },
-      "id": 30,
+      "id": 8,
       "options": {
         "legend": {
           "calcs": [
@@ -1422,7 +804,7 @@
           "sort": "asc"
         }
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -1430,13 +812,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:linux_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
-          "legendFormat": "{{hostname}} {{mountpoint}}",
+          "expr": "instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
+          "legendFormat": "{{ hostname }} - {{ volume }}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Disk Free %",
+      "title": "Disk Free Space %",
       "type": "timeseries"
     },
     {
@@ -1444,7 +826,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Disk I/O utilization as a percentage of time the device is busy servicing requests. Uses the recording rule based on node_disk_io_time_seconds_total. Sustained values near 100% indicate an I/O bottleneck.",
+      "description": "Disk I/O utilization (proportion of time the disk is busy) per volume. High values indicate I/O saturation. Sourced from the recording rule instance:windows_disk_io_utilization:ratio.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1482,10 +864,7 @@
               "mode": "off"
             }
           },
-          "decimals": 1,
           "mappings": [],
-          "max": 100,
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1503,7 +882,9 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percent",
+          "min": 0,
+          "max": 100
         },
         "overrides": []
       },
@@ -1511,9 +892,9 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 25
+        "y": 16
       },
-      "id": 31,
+      "id": 9,
       "options": {
         "legend": {
           "calcs": [
@@ -1529,7 +910,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -1537,8 +918,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:linux_disk_io_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
-          "legendFormat": "{{hostname}} {{device}}",
+          "expr": "instance:windows_disk_io_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
+          "legendFormat": "{{ hostname }} - {{ volume }}",
           "range": true,
           "refId": "A"
         }
@@ -1551,7 +932,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Disk read and write throughput per block device, computed from the raw counters node_disk_read_bytes_total and node_disk_written_bytes_total.",
+      "description": "Disk read and write throughput per volume, calculated from the raw counter metrics windows_logical_disk_read_bytes_total and windows_logical_disk_write_bytes_total.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1565,7 +946,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 15,
+            "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -1589,9 +970,7 @@
               "mode": "off"
             }
           },
-          "decimals": 1,
           "mappings": [],
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1601,18 +980,37 @@
               }
             ]
           },
-          "unit": "Bps"
+          "unit": "Bps",
+          "min": 0
         },
         "overrides": [
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*write.*"
+              "options": ".*Read.*"
             },
             "properties": [
               {
-                "id": "custom.transform",
-                "value": "negative-Y"
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Write.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
               }
             ]
           }
@@ -1622,9 +1020,9 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 25
+        "y": 16
       },
-      "id": 32,
+      "id": 10,
       "options": {
         "legend": {
           "calcs": [
@@ -1640,7 +1038,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -1648,8 +1046,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(node_disk_read_bytes_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
-          "legendFormat": "{{hostname}} {{device}} read",
+          "expr": "rate(windows_logical_disk_read_bytes_total{volume!~\"HarddiskVolume.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
+          "legendFormat": "{{ hostname }} - {{ volume }} Read",
           "range": true,
           "refId": "A"
         },
@@ -1659,8 +1057,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(node_disk_written_bytes_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
-          "legendFormat": "{{hostname}} {{device}} write",
+          "expr": "rate(windows_logical_disk_write_bytes_total{volume!~\"HarddiskVolume.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
+          "legendFormat": "{{ hostname }} - {{ volume }} Write",
           "range": true,
           "refId": "B"
         }
@@ -1674,9 +1072,9 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 24
       },
-      "id": 500,
+      "id": 103,
       "title": "Network",
       "type": "row"
     },
@@ -1685,7 +1083,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Combined network throughput (receive + transmit) per server. Uses the recording rule which excludes loopback and virtual interfaces.",
+      "description": "Combined network throughput (inbound + outbound) per host. Sourced from the recording rule instance:windows_network_bytes:rate5m.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1723,9 +1121,7 @@
               "mode": "off"
             }
           },
-          "decimals": 1,
           "mappings": [],
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1735,7 +1131,8 @@
               }
             ]
           },
-          "unit": "Bps"
+          "unit": "Bps",
+          "min": 0
         },
         "overrides": []
       },
@@ -1743,9 +1140,9 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 34
+        "y": 25
       },
-      "id": 40,
+      "id": 11,
       "options": {
         "legend": {
           "calcs": [
@@ -1761,7 +1158,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -1769,8 +1166,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:linux_network_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"}",
-          "legendFormat": "{{hostname}}",
+          "expr": "instance:windows_network_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"}",
+          "legendFormat": "{{ hostname }}",
           "range": true,
           "refId": "A"
         }
@@ -1783,7 +1180,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Per-interface network throughput split into receive (positive) and transmit (negative Y-axis) for detailed bandwidth analysis. Excludes loopback and virtual interfaces.",
+      "description": "Network traffic broken down by direction (received vs. sent) per network interface. Uses raw counter metrics for per-NIC granularity.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1791,7 +1188,7 @@
           },
           "custom": {
             "axisBorderShow": false,
-            "axisCenteredZero": true,
+            "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
@@ -1821,7 +1218,6 @@
               "mode": "off"
             }
           },
-          "decimals": 1,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -1832,18 +1228,37 @@
               }
             ]
           },
-          "unit": "Bps"
+          "unit": "Bps",
+          "min": 0
         },
         "overrides": [
           {
             "matcher": {
               "id": "byRegexp",
-              "options": ".*transmit.*"
+              "options": ".*Received.*"
             },
             "properties": [
               {
-                "id": "custom.transform",
-                "value": "negative-Y"
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Sent.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
               }
             ]
           }
@@ -1853,9 +1268,9 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 34
+        "y": 25
       },
-      "id": 41,
+      "id": 12,
       "options": {
         "legend": {
           "calcs": [
@@ -1871,7 +1286,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -1879,8 +1294,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(node_network_receive_bytes_total{device!~\"lo|veth.*|docker.*|br-.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
-          "legendFormat": "{{hostname}} {{device}} receive",
+          "expr": "rate(windows_net_bytes_received_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
+          "legendFormat": "{{ hostname }} - {{ nic }} Received",
           "range": true,
           "refId": "A"
         },
@@ -1890,13 +1305,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(node_network_transmit_bytes_total{device!~\"lo|veth.*|docker.*|br-.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
-          "legendFormat": "{{hostname}} {{device}} transmit",
+          "expr": "rate(windows_net_bytes_sent_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
+          "legendFormat": "{{ hostname }} - {{ nic }} Sent",
           "range": true,
           "refId": "B"
         }
       ],
-      "title": "Network In/Out per Interface",
+      "title": "Network In/Out",
       "type": "timeseries"
     },
     {
@@ -1905,10 +1320,10 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 42
+        "y": 33
       },
-      "id": 600,
-      "title": "Systemd Services",
+      "id": 104,
+      "title": "Services",
       "type": "row"
     },
     {
@@ -1916,7 +1331,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Lists all systemd units currently in a failed state. Equivalent to 'systemctl --failed' on each server. Investigate with 'systemctl status <unit>' and 'journalctl -u <unit>'.",
+      "description": "Lists Windows services that are not in the 'running' state. Useful for identifying stopped critical services that may require attention.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1944,12 +1359,37 @@
           {
             "matcher": {
               "id": "byName",
+              "options": "state"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
               "options": "hostname"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 250
+                "value": 200
               }
             ]
           },
@@ -1961,7 +1401,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 400
+                "value": 300
               }
             ]
           },
@@ -1988,6 +1428,90 @@
                 "value": true
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "instance"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "job"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "os"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "environment"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "datacenter"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "role"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "__name__"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
           }
         ]
       },
@@ -1995,19 +1519,18 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 34
       },
-      "id": 50,
+      "id": 13,
       "options": {
         "cellHeight": "sm",
         "footer": {
-          "countRows": true,
-          "enablePagination": false,
+          "countRows": false,
           "fields": "",
           "reducer": [
-            "count"
+            "sum"
           ],
-          "show": true
+          "show": false
         },
         "showHeader": true,
         "sortBy": [
@@ -2017,7 +1540,7 @@
           }
         ]
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -2026,7 +1549,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "node_systemd_unit_state{state=\"failed\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"} == 1",
+          "expr": "windows_service_state{state!=\"running\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"} == 1",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -2034,17 +1557,19 @@
           "refId": "A"
         }
       ],
-      "title": "Failed Systemd Units",
+      "title": "Windows Services Not Running",
       "transformations": [
         {
-          "id": "filterFieldsByName",
+          "id": "organize",
           "options": {
-            "include": {
-              "names": [
-                "hostname",
-                "name"
-              ]
-            }
+            "excludeByName": {},
+            "includeByName": {},
+            "indexByName": {
+              "hostname": 0,
+              "name": 1,
+              "state": 2
+            },
+            "renameByName": {}
           }
         }
       ],
@@ -2056,9 +1581,9 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 51
+        "y": 42
       },
-      "id": 700,
+      "id": 105,
       "title": "Capacity Forecasting",
       "type": "row",
       "panels": [
@@ -2067,7 +1592,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "description": "Projected days until filesystem is full based on current growth rate over the last 7 days. Negative values indicate usage is decreasing. Only shows filesystems with less than 30% free space and declining trend.",
+          "description": "Projected days until disk volume is full based on current growth rate over the last 7 days. Negative values indicate disk usage is decreasing. Uses predict_linear to extrapolate current trends.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2076,7 +1601,7 @@
               "mappings": [
                 {
                   "options": {
-                    "from": -1e+15,
+                    "from": -1000000000000000.0,
                     "to": 0,
                     "result": {
                       "text": "Shrinking",
@@ -2116,15 +1641,17 @@
             "h": 10,
             "w": 24,
             "x": 0,
-            "y": 52
+            "y": 43
           },
-          "id": 51,
+          "id": 14,
           "options": {
             "cellHeight": "sm",
             "footer": {
               "countRows": false,
               "fields": "",
-              "reducer": ["sum"],
+              "reducer": [
+                "sum"
+              ],
               "show": false
             },
             "showHeader": true,
@@ -2144,12 +1671,27 @@
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "-1 * predict_linear(node_filesystem_avail_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", fstype!~\"tmpfs|overlay|squashfs\", mountpoint!~\"/boot.*\"}[7d], 1) / (node_filesystem_avail_bytes > 0) * 86400",
+              "expr": "predict_linear(windows_logical_disk_free_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\", volume!~\"HarddiskVolume.*\"}[7d], 86400 * 30) / (windows_logical_disk_size_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\", volume!~\"HarddiskVolume.*\"} > 0) < 0 and windows_logical_disk_free_bytes / windows_logical_disk_size_bytes < 0.3",
               "format": "table",
               "instant": true,
               "legendFormat": "__auto",
               "range": false,
-              "refId": "A"
+              "refId": "DiskForecast"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "-1 * predict_linear(windows_logical_disk_free_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\", volume!~\"HarddiskVolume.*\"}[7d], 1) / (windows_logical_disk_free_bytes > 0) * 86400",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "DaysUntilFull",
+              "hide": false
             }
           ],
           "title": "Disk Capacity Forecast (Days Until Full)",
@@ -2161,14 +1703,12 @@
                   "Time": true,
                   "__name__": true,
                   "job": true,
-                  "instance": true,
-                  "device": true,
-                  "fstype": true
+                  "instance": true
                 },
                 "includeByName": {},
                 "indexByName": {
                   "hostname": 0,
-                  "mountpoint": 1,
+                  "volume": 1,
                   "datacenter": 2,
                   "Value": 3
                 },
@@ -2185,7 +1725,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "description": "Projected filesystem available bytes over the next 30 days based on 7-day growth trend.",
+          "description": "Projected disk free bytes over the next 30 days based on 7-day trend. Dashed lines show the linear extrapolation from current usage patterns.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2197,6 +1737,7 @@
                 "axisColorMode": "text",
                 "axisLabel": "",
                 "axisPlacement": "auto",
+                "barAlignment": 0,
                 "drawStyle": "line",
                 "fillOpacity": 0,
                 "gradientMode": "none",
@@ -2205,17 +1746,28 @@
                   "tooltip": false,
                   "viz": false
                 },
+                "insertNulls": false,
                 "lineInterpolation": "linear",
                 "lineStyle": {
-                  "dash": [10, 10],
+                  "dash": [
+                    10,
+                    10
+                  ],
                   "fill": "dash"
                 },
                 "lineWidth": 2,
                 "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
                 "showPoints": "never",
+                "spanNulls": false,
                 "stacking": {
                   "group": "A",
                   "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
                 }
               },
               "mappings": [],
@@ -2237,12 +1789,14 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 62
+            "y": 53
           },
-          "id": 52,
+          "id": 15,
           "options": {
             "legend": {
-              "calcs": ["lastNotNull"],
+              "calcs": [
+                "lastNotNull"
+              ],
               "displayMode": "table",
               "placement": "right",
               "showLegend": true
@@ -2260,13 +1814,13 @@
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "predict_linear(node_filesystem_avail_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", fstype!~\"tmpfs|overlay|squashfs\", mountpoint!~\"/boot.*\"}[7d], 86400 * 30)",
-              "legendFormat": "{{hostname}} ({{mountpoint}})",
+              "expr": "predict_linear(windows_logical_disk_free_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\", volume!~\"HarddiskVolume.*\"}[7d], 86400 * 30)",
+              "legendFormat": "{{hostname}} ({{volume}})",
               "range": true,
               "refId": "A"
             }
           ],
-          "title": "Disk Available Bytes -- 30-Day Projection",
+          "title": "Disk Free Bytes -- 30-Day Projection",
           "type": "timeseries"
         }
       ]
@@ -2275,9 +1829,9 @@
   "refresh": "30s",
   "schemaVersion": 39,
   "tags": [
-    "linux",
-    "overview",
-    "infrastructure"
+    "servers",
+    "windows",
+    "overview"
   ],
   "templating": {
     "list": [
@@ -2291,15 +1845,14 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(instance:linux_cpu_utilization:ratio, environment)",
-        "description": "Filter by deployment environment (production, staging, etc.)",
+        "definition": "label_values(instance:windows_cpu_utilization:ratio, environment)",
         "hide": 0,
         "includeAll": true,
         "label": "Environment",
         "multi": true,
         "name": "environment",
         "options": [],
-        "query": "label_values(instance:linux_cpu_utilization:ratio, environment)",
+        "query": "label_values(instance:windows_cpu_utilization:ratio, environment)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -2317,15 +1870,14 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(instance:linux_cpu_utilization:ratio{environment=~\"$environment\"}, datacenter)",
-        "description": "Filter by datacenter or site location",
+        "definition": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\"}, datacenter)",
         "hide": 0,
         "includeAll": true,
         "label": "Datacenter",
         "multi": true,
         "name": "datacenter",
         "options": [],
-        "query": "label_values(instance:linux_cpu_utilization:ratio{environment=~\"$environment\"}, datacenter)",
+        "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\"}, datacenter)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -2343,41 +1895,39 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, hostname)",
-        "description": "Filter by server hostname. Only shows Linux servers.",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Hostname",
-        "multi": true,
-        "name": "hostname",
-        "options": [],
-        "query": "label_values(instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, hostname)",
-        "refresh": 2,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 1,
-        "type": "query",
-        "allValue": ".*"
-      },
-      {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "prometheus"
-        },
-        "definition": "label_values(instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, role)",
-        "description": "Filter by server role (web, database, application, etc.)",
+        "definition": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, role)",
         "hide": 0,
         "includeAll": true,
         "label": "Role",
         "multi": true,
         "name": "role",
         "options": [],
-        "query": "label_values(instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, role)",
+        "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, role)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query",
+        "allValue": ".*"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}, hostname)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Hostname",
+        "multi": true,
+        "name": "hostname",
+        "options": [],
+        "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}, hostname)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -2393,8 +1943,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Linux Server Overview",
-  "uid": "linux-overview",
+  "title": "Windows Server Overview",
+  "uid": "windows-overview",
   "version": 1,
   "weekStart": ""
 }

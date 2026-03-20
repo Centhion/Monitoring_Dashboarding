@@ -1362,8 +1362,9 @@
   ],
   "schemaVersion": 39,
   "tags": [
-    "iis",
+    "servers",
     "windows",
+    "iis",
     "web-server"
   ],
   "templating": {

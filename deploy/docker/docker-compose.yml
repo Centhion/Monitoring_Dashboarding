@@ -168,14 +168,10 @@ services:
       - ../../configs/grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
       # Notification/contact point provisioning
       - ../../configs/grafana/notifiers/notifiers.yml:/etc/grafana/provisioning/notifiers/notifiers.yml:ro
-      # Dashboard JSON files mounted to the paths expected by the provisioning config
-      - ../../dashboards/windows:/var/lib/grafana/dashboards/windows:ro
-      - ../../dashboards/linux:/var/lib/grafana/dashboards/linux:ro
-      - ../../dashboards/overview:/var/lib/grafana/dashboards/overview:ro
-      # Phase 7 dashboard directories
-      - ../../dashboards/network:/var/lib/grafana/dashboards/network:ro
-      - ../../dashboards/hardware:/var/lib/grafana/dashboards/hardware:ro
-      - ../../dashboards/certs:/var/lib/grafana/dashboards/certs:ro
+      # Dashboard JSON files -- 3 folders matching provisioning config
+      - ../../dashboards/enterprise:/var/lib/grafana/dashboards/enterprise:ro
+      - ../../dashboards/servers:/var/lib/grafana/dashboards/servers:ro
+      - ../../dashboards/infrastructure:/var/lib/grafana/dashboards/infrastructure:ro
       # Persistent Grafana database (users, preferences, annotations)
       - grafana_data:/var/lib/grafana
     environment:

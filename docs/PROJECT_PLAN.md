@@ -31,9 +31,10 @@
 | Phase 7H: Dashboard Hub Architecture | Completed | Enterprise NOC + per-site drill-down dashboards for location-centric monitoring |
 | Phase 8: Access Control and RBAC | Completed | LDAP config, folder/team provisioning, permission model, configure_rbac.py, validate_rbac.py, docs |
 | Phase 9: Requirements Gap Closure | Completed | Agentless probing, file/process, alert dedup, maintenance windows, SLA, SNMP traps, audit logging, forecasting, dashboards, docs |
-| Phase 10A: Deployment Wrapper | In Progress | Interactive config script that generates all stack configs from a single site inventory |
-| Phase 10B: Demo Data Generator | Pending | Synthetic metrics/logs seeder for showcasing dashboards without live agents |
-| Phase 10C: Integration and Polish | Pending | Wrapper + poc_setup.py integration, example config, QUICKSTART update |
+| Phase 10A: Deployment Wrapper | Completed | Interactive config script that generates all stack configs from a single site inventory |
+| Phase 10B: Demo Data Generator | Completed | Synthetic metrics/logs seeder for showcasing dashboards without live agents |
+| Phase 10C: Integration and Polish | Completed | Wrapper + poc_setup.py integration, example config, QUICKSTART update |
+| Phase 11: Dashboard Production Readiness | In Progress | Folder restructure, tag cleanup, role dashboards (SQL, DC, DHCP, CA, File Server), navigation fix |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
 
@@ -1643,6 +1644,72 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 - Enterprise NOC shows all configured sites
 - Site Overview drill-down works per site
 - Adding a new site requires only re-running the wrapper
+
+---
+
+## Phase 11: Dashboard Production Readiness
+
+**Goal**: Remove all development artifacts from dashboards, restructure folders and tags for production, create missing role-specific dashboards, and ensure seamless site-first navigation. Demo must look identical to production.
+
+**Status**: In Progress
+
+**Folder Structure**:
+- **Enterprise**: NOC, SLA Availability, Audit Trail, Probing Overview
+- **Servers**: Windows Overview, Linux Overview, IIS Overview, SQL Overview, DC Overview, DHCP Overview, CA Overview, File Server Overview, Docker Overview, Log Explorer
+- **Infrastructure**: Site Overview, Network, Physical Server Health, Certificate Overview
+
+### Tasks
+
+- [ ] 1. Replace all dashboard tags with functional taxonomy -- Simple
+  - Remove `phase-7a`, `phase-7b` and any other development tags
+  - Apply: servers, windows, linux, iis, sql, dc, network, hardware, certificates, enterprise, sla, security, logs, probing
+- [ ] 2. Restructure provisioning to 3 folders (Enterprise, Servers, Infrastructure) -- Simple
+  - Update `configs/grafana/dashboards/dashboards.yml`
+- [ ] 3. Move dashboard JSON files to `dashboards/enterprise/`, `dashboards/servers/`, `dashboards/infrastructure/` -- Medium
+  - Update docker-compose.yml volume mounts
+  - Update Helm chart references
+- [ ] 4. Rename "Hardware Health" dashboard to "Physical Server Health" -- Simple
+- [ ] 5. Create SQL Server dashboard (`dashboards/servers/sql_overview.json`) -- Medium
+  - Buffer pool hit ratio, wait stats, database sizes, SQL Agent job status, deadlocks
+  - Uses existing `role_sql.alloy` metrics
+- [ ] 6. Create Domain Controller dashboard (`dashboards/servers/dc_overview.json`) -- Medium
+  - AD replication lag, LDAP bind rate, DNS query rate, Kerberos auth, NTDS
+  - Uses existing `role_dc.alloy` metrics
+- [ ] 7. Create DHCP Server dashboard (`dashboards/servers/dhcp_overview.json`) -- Medium
+  - Scope utilization, lease counts, requests/sec, NACK rate
+  - Requires new `role_dhcp.alloy` config
+- [ ] 8. Create Certificate Authority dashboard (`dashboards/servers/ca_overview.json`) -- Medium
+  - Certificate requests, issued/failed/pending, CRL publish status
+  - Requires new `role_ca.alloy` config
+- [ ] 9. Create File Server dashboard (`dashboards/servers/fileserver_overview.json`) -- Medium
+  - SMB sessions, share I/O, DFS replication
+  - Uses existing `role_fileserver.alloy` metrics
+- [ ] 10. Create Docker Host dashboard (`dashboards/servers/docker_overview.json`) -- Medium
+  - Container count, per-container CPU/memory, container status
+  - Uses existing `role_docker.alloy` metrics
+- [ ] 11. Fix NOC -> Site Overview -> detail drill-down links across all dashboards -- Medium
+  - Pre-filter `?var-datacenter=<site>` on all cross-dashboard links
+  - Ensure link bar is consistent across all dashboards
+- [ ] 12. Standardize template variables across all dashboards -- Medium
+  - All dashboards: Environment + Datacenter
+  - Server dashboards add: Role + Hostname
+  - Remove broken/redundant variables, fix warning triangles
+- [ ] 13. Create Alloy role configs for DHCP and CA -- Medium
+  - `configs/alloy/windows/role_dhcp.alloy` (DHCP Server perf counters)
+  - `configs/alloy/windows/role_ca.alloy` (AD CS perf counters)
+- [ ] 14. Update demo data generator for new role metrics (SQL, DC, DHCP, CA, FileServer, Docker) -- Medium
+- [ ] 15. End-to-end validation with demo data -- Medium
+  - Full NOC -> Site -> role drill-down flow
+  - All dashboards populated, no errors, no "No Data" panels
+
+### Success Criteria
+
+- Zero development artifacts visible (no phase tags, no placeholder rows)
+- 3 clean folders: Enterprise, Servers, Infrastructure
+- NOC -> click site -> Site Overview pre-filtered -> click role -> role dashboard pre-filtered
+- All role dashboards populated with demo data
+- All template variable dropdowns work without warning triangles
+- Dashboard looks production-ready for stakeholder demo
 
 ---
 

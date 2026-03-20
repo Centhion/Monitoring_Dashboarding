@@ -60,6 +60,8 @@ DEFAULT_HOST_PROFILE = {
     "sql": 2,
     "iis": 3,
     "fileserver": 2,
+    "dhcp": 1,
+    "ca": 1,
     "docker": 2,
     "generic": 3,
 }
@@ -385,6 +387,101 @@ def _generate_windows_metrics(
             metrics.append(("windows_iis_sent_bytes_total", iis_labels, host.net_bytes_counter * 0.3))
             metrics.append(("windows_iis_received_bytes_total", iis_labels, host.net_bytes_counter * 0.1))
 
+    # SQL Server metrics (only for sql role)
+    if host.role == "sql":
+        sql_labels = {**labels, "job": "windows_sql"}
+        metrics.append(("mssql_buffer_cache_hit_ratio", sql_labels, random.uniform(0.92, 0.99)))
+        metrics.append(("mssql_buffer_manager_page_life_expectancy_seconds", sql_labels, random.uniform(200, 800)))
+        metrics.append(("mssql_sql_statistics_batch_requests_per_sec", sql_labels, random.uniform(50, 500)))
+        metrics.append(("mssql_sql_statistics_sql_compilations_per_sec", sql_labels, random.uniform(5, 50)))
+        metrics.append(("mssql_sql_statistics_sql_recompilations_per_sec", sql_labels, random.uniform(0, 5)))
+        metrics.append(("mssql_general_statistics_user_connections", sql_labels, float(random.randint(10, 100))))
+        metrics.append(("mssql_general_statistics_processes_blocked", sql_labels, float(random.randint(0, 2))))
+        metrics.append(("mssql_locks_lock_waits_per_sec", sql_labels, random.uniform(0, 10)))
+        metrics.append(("mssql_locks_deadlocks_per_sec", sql_labels, random.uniform(0, 0.5)))
+        metrics.append(("mssql_locks_average_wait_time_ms", sql_labels, random.uniform(0, 50)))
+        metrics.append(("mssql_memory_manager_total_server_memory_bytes", sql_labels, random.uniform(4e9, 12e9)))
+        metrics.append(("mssql_memory_manager_target_server_memory_bytes", sql_labels, 12884901888.0))
+        metrics.append(("mssql_memory_manager_memory_grants_pending", sql_labels, 0.0))
+        metrics.append(("mssql_access_methods_full_scans_per_sec", sql_labels, random.uniform(0, 20)))
+        metrics.append(("mssql_access_methods_index_searches_per_sec", sql_labels, random.uniform(100, 2000)))
+        metrics.append(("mssql_access_methods_page_splits_per_sec", sql_labels, random.uniform(0, 50)))
+        # Per-database metrics
+        for db in ["master", "AppDB", "ReportDB"]:
+            db_labels = {**sql_labels, "database": db}
+            metrics.append(("mssql_databases_data_file_size_bytes", db_labels, random.uniform(1e8, 5e10)))
+            metrics.append(("mssql_databases_log_file_size_bytes", db_labels, random.uniform(1e7, 5e9)))
+            metrics.append(("mssql_databases_active_transactions", db_labels, float(random.randint(0, 10))))
+            metrics.append(("mssql_databases_log_flush_waits_per_sec", db_labels, random.uniform(0, 5)))
+        # up for sql job
+        metrics.append(("up", {**sql_labels}, 1.0))
+        # SQL services
+        for svc in ["MSSQLSERVER", "SQLSERVERAGENT", "SQLBrowser"]:
+            metrics.append(("windows_service_state", {**labels, "name": svc, "state": "running"}, 1.0))
+
+    # Domain Controller metrics (only for dc role)
+    if host.role == "dc":
+        dc_labels = {**labels, "job": "windows_dc"}
+        metrics.append(("ad_ds_ldap_searches_per_sec", dc_labels, random.uniform(50, 500)))
+        metrics.append(("ad_ds_ldap_binds_per_sec", dc_labels, random.uniform(10, 100)))
+        metrics.append(("ad_ds_replication_objects_inbound", dc_labels, float(random.randint(100, 10000))))
+        metrics.append(("ad_ds_replication_objects_outbound", dc_labels, float(random.randint(100, 10000))))
+        metrics.append(("ad_ds_dra_inbound_sync_requests_per_sec", dc_labels, random.uniform(0, 5)))
+        metrics.append(("ad_ds_dra_outbound_sync_requests_per_sec", dc_labels, random.uniform(0, 5)))
+        metrics.append(("dns_queries_per_sec", dc_labels, random.uniform(100, 2000)))
+        metrics.append(("dns_recursive_queries_per_sec", dc_labels, random.uniform(10, 200)))
+        metrics.append(("dns_zone_transfer_requests_per_sec", dc_labels, random.uniform(0, 1)))
+        metrics.append(("up", {**dc_labels}, 1.0))
+        # DC services
+        for svc in ["NTDS", "DNS", "Netlogon", "DFSR", "KDC", "ADWS"]:
+            metrics.append(("windows_service_state", {**labels, "name": svc, "state": "running"}, 1.0))
+
+    # DHCP Server metrics (only for dhcp role)
+    if host.role == "dhcp":
+        dhcp_labels = {**labels, "job": "windows_dhcp"}
+        metrics.append(("dhcp_discover_messages_per_sec", dhcp_labels, random.uniform(0, 10)))
+        metrics.append(("dhcp_offer_messages_per_sec", dhcp_labels, random.uniform(0, 10)))
+        metrics.append(("dhcp_request_messages_per_sec", dhcp_labels, random.uniform(0, 10)))
+        metrics.append(("dhcp_ack_messages_per_sec", dhcp_labels, random.uniform(0, 10)))
+        metrics.append(("dhcp_nak_messages_per_sec", dhcp_labels, random.uniform(0, 0.5)))
+        metrics.append(("up", {**dhcp_labels}, 1.0))
+        metrics.append(("windows_service_state", {**labels, "name": "DHCPServer", "state": "running"}, 1.0))
+
+    # Certificate Authority metrics (only for ca role)
+    if host.role == "ca":
+        ca_labels = {**labels, "job": "windows_ca"}
+        metrics.append(("adcs_requests_per_sec", ca_labels, random.uniform(0, 5)))
+        metrics.append(("adcs_issued_per_sec", ca_labels, random.uniform(0, 5)))
+        metrics.append(("adcs_failed_per_sec", ca_labels, random.uniform(0, 0.2)))
+        metrics.append(("adcs_pending_requests", ca_labels, float(random.randint(0, 3))))
+        metrics.append(("up", {**ca_labels}, 1.0))
+        metrics.append(("windows_service_state", {**labels, "name": "CertSvc", "state": "running"}, 1.0))
+
+    # File Server metrics (only for fileserver role)
+    if host.role == "fileserver":
+        fs_labels = {**labels, "job": "windows_fileserver"}
+        metrics.append(("smb_server_sessions_active", fs_labels, float(random.randint(5, 50))))
+        metrics.append(("smb_server_tree_connects_total", fs_labels, float(random.randint(10, 200))))
+        metrics.append(("smb_server_bytes_read_per_sec", fs_labels, random.uniform(1e5, 5e7)))
+        metrics.append(("smb_server_bytes_written_per_sec", fs_labels, random.uniform(1e5, 5e7)))
+        metrics.append(("smb_server_requests_per_sec", fs_labels, random.uniform(10, 500)))
+        for share in ["Data$", "Users$", "Apps$"]:
+            share_labels = {**fs_labels, "share": share}
+            metrics.append(("smb_server_open_files_per_share", share_labels, float(random.randint(0, 50))))
+        # Physical disk I/O
+        for disk in ["PhysicalDisk0", "PhysicalDisk1"]:
+            disk_labels = {**fs_labels, "disk": disk}
+            metrics.append(("physical_disk_read_bytes_per_sec", disk_labels, random.uniform(1e5, 5e7)))
+            metrics.append(("physical_disk_write_bytes_per_sec", disk_labels, random.uniform(1e5, 5e7)))
+            metrics.append(("physical_disk_reads_per_sec", disk_labels, random.uniform(10, 500)))
+            metrics.append(("physical_disk_writes_per_sec", disk_labels, random.uniform(10, 500)))
+            metrics.append(("physical_disk_avg_queue_depth", disk_labels, random.uniform(0, 5)))
+            metrics.append(("physical_disk_avg_read_latency_ms", disk_labels, random.uniform(0.5, 15)))
+            metrics.append(("physical_disk_avg_write_latency_ms", disk_labels, random.uniform(0.5, 20)))
+        metrics.append(("up", {**fs_labels}, 1.0))
+        for svc in ["LanmanServer", "DFSR", "DFS"]:
+            metrics.append(("windows_service_state", {**labels, "name": svc, "state": "running"}, 1.0))
+
     return metrics
 
 
@@ -443,6 +540,21 @@ def _generate_linux_metrics(
 
     # Boot time
     metrics.append(("node_boot_time_seconds", labels, host.uptime_start))
+
+    # Docker-specific metrics (only for docker role)
+    if host.role == "docker":
+        docker_labels = {**labels, "job": "docker_daemon"}
+        running = random.randint(8, 25)
+        stopped = random.randint(0, 3)
+        metrics.append(("engine_daemon_container_states_containers", {**docker_labels, "state": "running"}, float(running)))
+        metrics.append(("engine_daemon_container_states_containers", {**docker_labels, "state": "stopped"}, float(stopped)))
+        metrics.append(("engine_daemon_container_states_containers", {**docker_labels, "state": "paused"}, 0.0))
+        metrics.append(("engine_daemon_images_images", docker_labels, float(random.randint(10, 50))))
+        metrics.append(("engine_daemon_engine_cpus", docker_labels, 4.0))
+        metrics.append(("engine_daemon_engine_memory_bytes", docker_labels, 17179869184.0))
+        metrics.append(("go_goroutines", docker_labels, float(random.randint(30, 100))))
+        metrics.append(("go_memstats_heap_alloc_bytes", docker_labels, random.uniform(5e7, 3e8)))
+        metrics.append(("up", {**docker_labels}, 1.0))
 
     return metrics
 

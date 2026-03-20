@@ -42,7 +42,7 @@ DEFAULT_HOST_PROFILE = {
     "generic": 3,
 }
 
-VALID_ROLES = ["dc", "sql", "iis", "fileserver", "docker", "generic"]
+VALID_ROLES = ["dc", "sql", "iis", "fileserver", "dhcp", "ca", "docker", "generic"]
 
 
 # =============================================================================

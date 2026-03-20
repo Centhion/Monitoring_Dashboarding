@@ -46,6 +46,26 @@ windows/logs_eventlog.alloy
 windows/role_dc.alloy
 ```
 
+**Example: Dedicated DHCP Server**
+```
+common/labels.alloy
+common/remote_write.alloy
+common/loki_push.alloy
+windows/base.alloy
+windows/logs_eventlog.alloy
+windows/role_dhcp.alloy
+```
+
+**Example: Certificate Authority Server**
+```
+common/labels.alloy
+common/remote_write.alloy
+common/loki_push.alloy
+windows/base.alloy
+windows/logs_eventlog.alloy
+windows/role_ca.alloy
+```
+
 **Example: Linux Docker host**
 ```
 common/labels.alloy
@@ -55,6 +75,19 @@ linux/base.alloy
 linux/logs_journal.alloy
 linux/role_docker.alloy
 ```
+
+### Role Co-Location Notes
+
+Some roles share metrics collectors. Follow these rules to avoid duplicate collection:
+
+| Scenario | Role Config | Notes |
+|----------|------------|-------|
+| DHCP on dedicated server | `role_dhcp.alloy` with `ALLOY_ROLE=dhcp` | Standalone DHCP metrics |
+| DHCP co-located on DC | `role_dc.alloy` with `ALLOY_ROLE=dc` | DC config includes DHCP collector automatically |
+| CA on dedicated server | `role_ca.alloy` with `ALLOY_ROLE=ca` | Standalone AD CS metrics |
+| DC + DNS (standard) | `role_dc.alloy` with `ALLOY_ROLE=dc` | DC config includes DNS collector |
+
+Do not deploy both `role_dc.alloy` and `role_dhcp.alloy` on the same server -- the DC config already includes the DHCP collector. If DHCP is on a dedicated server, only deploy `role_dhcp.alloy`.
 
 ---
 

@@ -1,0 +1,59 @@
+// =============================================================================
+// Windows Server Role -- DHCP Server
+// =============================================================================
+// Metrics and service monitoring for dedicated DHCP servers.
+// Deploy alongside base.alloy and logs_eventlog.alloy.
+//
+//   Metrics:
+//   - DHCP Server performance counters (scope utilization, lease activity)
+//   - DHCP service health
+//
+//   Logs:
+//   - DHCP Server operational event log
+//
+// Prerequisites:
+//   - DHCP Server role installed on the target server
+//
+// Note: If DHCP is co-located on a Domain Controller, the DC role config
+// already includes the "dhcp" collector. Do not deploy both.
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// DHCP Server Metrics
+// The "dhcp" collector exposes DHCP Server performance counters for scope
+// utilization, lease counts, message rates, and failover status.
+// ---------------------------------------------------------------------------
+prometheus.exporter.windows "dhcp" {
+  enabled_collectors = [
+    "dhcp",  // DHCP: discovers, offers, requests, acks, nacks, scope stats
+  ]
+
+  // Monitor DHCP service health
+  service {
+    where_clause = "Name='DHCPServer'"
+  }
+}
+
+prometheus.scrape "dhcp_metrics" {
+  targets         = prometheus.exporter.windows.dhcp.targets
+  forward_to      = [prometheus.relabel.add_standard_labels.receiver]
+  scrape_interval = "30s"
+  scrape_timeout  = "15s"
+  job_name        = "windows_dhcp"
+}
+
+// ---------------------------------------------------------------------------
+// DHCP Server Event Log
+// Captures DHCP-specific events: scope exhaustion, lease conflicts,
+// failover state changes, authorization issues.
+// ---------------------------------------------------------------------------
+loki.source.windowsevent "dhcp_server" {
+  eventlog_name          = "Microsoft-Windows-DHCP-Server/Operational"
+  forward_to             = [loki.process.eventlog_metadata.receiver]
+  use_incoming_timestamp = true
+
+  labels = {
+    source  = "eventlog",
+    channel = "dhcp_server",
+  }
+}
