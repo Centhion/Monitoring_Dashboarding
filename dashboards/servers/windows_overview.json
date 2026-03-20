@@ -335,7 +335,14 @@
             ]
           },
           "unit": "short",
-          "decimals": 0
+          "decimals": 0,
+          "links": [
+            {
+              "title": "View Stopped Services",
+              "url": "/d/windows-overview?var-environment=${environment}&var-datacenter=${datacenter}&var-hostname=${hostname}&viewPanel=services-table",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -1932,6 +1939,6 @@
   "timezone": "browser",
   "title": "Windows Server Overview",
   "uid": "windows-overview",
-  "version": 6,
+  "version": 7,
   "weekStart": ""
 }

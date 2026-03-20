@@ -382,7 +382,7 @@
                 "value": null
               },
               {
-                "color": "orange",
+                "color": "yellow",
                 "value": 1
               },
               {
@@ -460,7 +460,7 @@
                 "value": null
               },
               {
-                "color": "orange",
+                "color": "yellow",
                 "value": 1
               },
               {
@@ -1500,6 +1500,6 @@
   "timezone": "browser",
   "title": "Enterprise NOC",
   "uid": "enterprise-noc",
-  "version": 10,
+  "version": 11,
   "weekStart": ""
 }

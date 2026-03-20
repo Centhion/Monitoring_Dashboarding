@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "DHCP Server monitoring dashboard. Displays message rates (discovers, offers, requests, ACKs, NAKs), lease activity trends, and service health for all monitored Windows DHCP servers. Metrics sourced from Grafana Alloy via prometheus.exporter.windows dhcp collector.",
+  "description": "DHCP Server monitoring dashboard. Displays scope utilization, message rates (discovers, offers, requests, ACKs, NAKs), lease activity trends, and service health for all monitored Windows DHCP servers. Metrics sourced from Grafana Alloy via prometheus.exporter.windows dhcp collector.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -79,6 +79,7 @@
         "x": 0,
         "y": 0
       },
+      "id": 50,
       "collapsed": false
     },
     {
@@ -94,6 +95,7 @@
         "x": 0,
         "y": 1
       },
+      "id": 51,
       "targets": [
         {
           "datasource": {
@@ -126,7 +128,8 @@
               }
             ]
           }
-        }
+        },
+        "overrides": []
       }
     },
     {
@@ -142,6 +145,7 @@
         "x": 4,
         "y": 1
       },
+      "id": 52,
       "targets": [
         {
           "datasource": {
@@ -174,7 +178,8 @@
               }
             ]
           }
-        }
+        },
+        "overrides": []
       }
     },
     {
@@ -190,6 +195,7 @@
         "x": 8,
         "y": 1
       },
+      "id": 53,
       "targets": [
         {
           "datasource": {
@@ -222,7 +228,8 @@
               }
             ]
           }
-        }
+        },
+        "overrides": []
       }
     },
     {
@@ -238,6 +245,7 @@
         "x": 12,
         "y": 1
       },
+      "id": 54,
       "targets": [
         {
           "datasource": {
@@ -260,7 +268,8 @@
               }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "options": {
         "reduceOptions": {
@@ -283,6 +292,7 @@
         "x": 16,
         "y": 1
       },
+      "id": 55,
       "targets": [
         {
           "datasource": {
@@ -313,7 +323,8 @@
               }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "options": {
         "reduceOptions": {
@@ -336,6 +347,7 @@
         "x": 20,
         "y": 1
       },
+      "id": 56,
       "targets": [
         {
           "datasource": {
@@ -361,7 +373,8 @@
               }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "options": {
         "reduceOptions": {
@@ -411,7 +424,7 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
+        "w": 5,
         "x": 0,
         "y": 7
       },
@@ -431,7 +444,7 @@
         "textMode": "value_and_name",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
@@ -476,8 +489,8 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 6,
+        "w": 5,
+        "x": 5,
         "y": 7
       },
       "id": 2,
@@ -496,7 +509,7 @@
         "textMode": "value_and_name",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
@@ -541,8 +554,8 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 12,
+        "w": 5,
+        "x": 10,
         "y": 7
       },
       "id": 3,
@@ -561,7 +574,7 @@
         "textMode": "value_and_name",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
@@ -606,8 +619,8 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 18,
+        "w": 5,
+        "x": 15,
         "y": 7
       },
       "id": 4,
@@ -626,7 +639,7 @@
         "textMode": "value_and_name",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
@@ -648,12 +661,19 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Rate of DHCPNAK messages sent per second. NAKs indicate the server rejected a client lease request, often due to scope exhaustion or misconfiguration.",
+      "description": "Rate of DHCPNAK messages sent per second. NAKs indicate the server rejected a client lease request, often due to scope exhaustion or misconfiguration. Click to scroll to Scope Utilization for diagnosis.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "links": [
+            {
+              "title": "View Scope Utilization",
+              "url": "#scope-utilization-row",
+              "targetBlank": false
+            }
+          ],
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -679,9 +699,9 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 0,
-        "y": 12
+        "w": 4,
+        "x": 20,
+        "y": 7
       },
       "id": 5,
       "options": {
@@ -699,7 +719,7 @@
         "textMode": "value_and_name",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
@@ -723,6 +743,634 @@
         "w": 24,
         "x": 0,
         "y": 12
+      },
+      "id": 300,
+      "title": "Scope Utilization",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "All DHCP scopes with current address utilization. Scopes above 90% utilization are critical and risk lease exhaustion. The Utilization column is color-coded: green (<70%), yellow (70-90%), red (>90%).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Scope"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "View scope ${__data.fields.Scope} detail",
+                    "url": "/d/dhcp-overview?var-environment=$environment&var-datacenter=$datacenter&var-hostname=$hostname&viewPanel=32",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Hostname"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Name"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "In Use"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Free"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Utilization %"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 1
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 0.7
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.9
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "1": {
+                        "color": "green",
+                        "text": "Active"
+                      },
+                      "0": {
+                        "color": "orange",
+                        "text": "Inactive"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 30,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Utilization %"
+          }
+        ]
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "windows_dhcp_scope_addresses_in_use{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "refId": "InUse"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "windows_dhcp_scope_addresses_free{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "refId": "Free"
+        }
+      ],
+      "title": "DHCP Scope Utilization",
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "job": true,
+              "environment": true,
+              "datacenter": true
+            },
+            "indexByName": {
+              "hostname": 0,
+              "scope": 1,
+              "name": 2,
+              "Value #InUse": 3,
+              "Value #Free": 4
+            },
+            "renameByName": {
+              "hostname": "Hostname",
+              "scope": "Scope",
+              "name": "Name",
+              "Value #InUse": "In Use",
+              "Value #Free": "Free"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "Total",
+            "mode": "binary",
+            "binary": {
+              "left": "In Use",
+              "operator": "+",
+              "right": "Free"
+            },
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "Utilization %",
+            "mode": "binary",
+            "binary": {
+              "left": "In Use",
+              "operator": "/",
+              "right": "Total"
+            },
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "targetField": "Utilization %",
+                "destinationType": "number"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "id": 400,
+      "title": "Scope Detail",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Number of addresses currently in use over time for each DHCP scope. Helps identify scopes trending toward exhaustion.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Addresses In Use",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 31,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "windows_dhcp_scope_addresses_in_use{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "legendFormat": "{{scope}} ({{hostname}})",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Addresses In Use Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Number of pending DHCP offers over time per scope. A sustained increase may indicate clients failing to complete the DORA handshake.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Pending Offers",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 32,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "windows_dhcp_scope_pending_offers{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "legendFormat": "{{scope}} ({{hostname}})",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Pending Offers Per Scope",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Number of reserved (static) addresses configured per DHCP scope. Reservations guarantee specific clients always receive the same IP.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
+      "id": 33,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "windows_dhcp_scope_reserved_addresses{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "legendFormat": "{{scope}} ({{hostname}})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Reserved Addresses Per Scope",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 42
       },
       "id": 200,
       "title": "DHCP Message Rates",
@@ -806,7 +1454,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 43
       },
       "id": 6,
       "options": {
@@ -825,7 +1473,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
@@ -892,7 +1540,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 53
       },
       "id": 500,
       "title": "Service Health",
@@ -954,7 +1602,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "hostname"
+              "options": "Hostname"
             },
             "properties": [
               {
@@ -966,7 +1614,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "name"
+              "options": "Service"
             },
             "properties": [
               {
@@ -981,7 +1629,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 54
       },
       "id": 11,
       "options": {
@@ -998,11 +1646,11 @@
         "sortBy": [
           {
             "desc": false,
-            "displayName": "Value"
+            "displayName": "Status"
           }
         ]
       },
-      "pluginVersion": "10.4.0",
+      "pluginVersion": "11.0.0",
       "targets": [
         {
           "datasource": {
@@ -1139,6 +1787,6 @@
   "timezone": "browser",
   "title": "DHCP Server Overview",
   "uid": "dhcp-overview",
-  "version": 9,
+  "version": 10,
   "weekStart": ""
 }

@@ -79,7 +79,10 @@
         "w": 24,
         "x": 0
       },
-      "collapsed": false
+      "collapsed": false,
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "type": "gauge",
@@ -221,7 +224,14 @@
                 "value": 20
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Disk Details",
+              "url": "/d/sql-overview",
+              "targetBlank": false
+            }
+          ]
         }
       }
     },
@@ -381,7 +391,10 @@
       },
       "id": 100,
       "title": "Overview",
-      "type": "row"
+      "type": "row",
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "datasource": {
@@ -691,7 +704,14 @@
             ]
           },
           "unit": "short",
-          "decimals": 0
+          "decimals": 0,
+          "links": [
+            {
+              "title": "View Lock Details",
+              "url": "/d/sql-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -744,7 +764,10 @@
       },
       "id": 200,
       "title": "Performance",
-      "type": "row"
+      "type": "row",
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "datasource": {
@@ -1169,7 +1192,10 @@
       },
       "id": 300,
       "title": "Database Size",
-      "type": "row"
+      "type": "row",
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "datasource": {
@@ -1490,7 +1516,10 @@
       },
       "id": 400,
       "title": "I/O & Access",
-      "type": "row"
+      "type": "row",
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "datasource": {
@@ -1737,7 +1766,10 @@
         "w": 24,
         "x": 0
       },
-      "collapsed": false
+      "collapsed": false,
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "type": "timeseries",
@@ -2019,6 +2051,6 @@
   "timezone": "browser",
   "title": "SQL Server Overview",
   "uid": "sql-overview",
-  "version": 13,
+  "version": 14,
   "weekStart": ""
 }

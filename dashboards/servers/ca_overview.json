@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Active Directory Certificate Services (AD CS) monitoring dashboard. Displays certificate request rates, issuance rates, failed and pending requests, and CertSvc service health for all monitored Windows CA servers. Metrics sourced from Grafana Alloy via prometheus.exporter.windows adcs collector.",
+  "description": "Active Directory Certificate Services (AD CS) monitoring dashboard. Displays certificate request totals, issuance counts, failure rates, per-template breakdowns, issuance trends, and CertSvc service health for all monitored Windows CA servers. Metrics sourced from Grafana Alloy via prometheus.exporter.windows adcs collector.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -63,10 +63,10 @@
       "keepTime": true,
       "tags": [],
       "targetBlank": false,
-      "title": "Linux Servers",
+      "title": "Certificate Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/cert-overview?var-environment=$environment&var-datacenter=$datacenter"
     }
   ],
   "panels": [
@@ -79,11 +79,13 @@
         "x": 0,
         "y": 0
       },
+      "id": 10,
       "collapsed": false
     },
     {
       "type": "gauge",
       "title": "CPU Utilization",
+      "description": "Average CPU utilization across all selected CA servers.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -94,12 +96,14 @@
         "x": 0,
         "y": 1
       },
+      "id": 11,
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
+          "editorMode": "code",
           "expr": "avg(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100)",
           "refId": "A"
         }
@@ -112,26 +116,19 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 75
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 75 },
+              { "color": "red", "value": 90 }
             ]
           }
-        }
+        },
+        "overrides": []
       }
     },
     {
       "type": "gauge",
       "title": "Memory Utilization",
+      "description": "Average memory utilization across all selected CA servers.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -142,12 +139,14 @@
         "x": 4,
         "y": 1
       },
+      "id": 12,
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
+          "editorMode": "code",
           "expr": "avg(instance:windows_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100)",
           "refId": "A"
         }
@@ -160,26 +159,19 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 95
-              }
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 80 },
+              { "color": "red", "value": 95 }
             ]
           }
-        }
+        },
+        "overrides": []
       }
     },
     {
       "type": "gauge",
       "title": "Disk Free (Worst)",
+      "description": "Lowest disk free percentage across all volumes on selected CA servers.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -190,12 +182,14 @@
         "x": 8,
         "y": 1
       },
+      "id": 13,
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
+          "editorMode": "code",
           "expr": "min(instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100)",
           "refId": "A"
         }
@@ -208,26 +202,19 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 10
-              },
-              {
-                "color": "green",
-                "value": 20
-              }
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "green", "value": 20 }
             ]
           }
-        }
+        },
+        "overrides": []
       }
     },
     {
       "type": "stat",
       "title": "Network Throughput",
+      "description": "Total network throughput across all interfaces on selected CA servers.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -238,12 +225,14 @@
         "x": 12,
         "y": 1
       },
+      "id": 14,
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
+          "editorMode": "code",
           "expr": "sum(instance:windows_network_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
           "refId": "A"
         }
@@ -254,25 +243,22 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
+              { "color": "blue", "value": null }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "options": {
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
+          "calcs": ["lastNotNull"]
         }
       }
     },
     {
       "type": "stat",
       "title": "Uptime",
+      "description": "Average uptime across selected CA servers.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -283,12 +269,14 @@
         "x": 16,
         "y": 1
       },
+      "id": 15,
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
+          "editorMode": "code",
           "expr": "avg(instance:windows_uptime:seconds{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
           "refId": "A"
         }
@@ -299,33 +287,24 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 86400
-              },
-              {
-                "color": "green",
-                "value": 604800
-              }
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 86400 },
+              { "color": "green", "value": 604800 }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "options": {
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
+          "calcs": ["lastNotNull"]
         }
       }
     },
     {
       "type": "stat",
       "title": "Services Down",
+      "description": "Number of monitored Windows services not in running state on selected CA servers.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -336,12 +315,14 @@
         "x": 20,
         "y": 1
       },
+      "id": 16,
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
+          "editorMode": "code",
           "expr": "sum(instance:windows_services_not_running:count{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}) or vector(0)",
           "refId": "A"
         }
@@ -351,28 +332,22 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "options": {
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
+          "calcs": ["lastNotNull"]
         }
       }
     },
     {
-      "collapsed": false,
+      "type": "row",
+      "title": "Certificate Issuance Overview",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -380,34 +355,15 @@
         "y": 6
       },
       "id": 100,
-      "title": "Certificate Issuance",
-      "type": "row"
+      "collapsed": false
     },
     {
+      "type": "stat",
+      "title": "Total Requests",
+      "description": "Total certificate requests submitted to the CA across all templates.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
-      },
-      "description": "Rate of certificate requests submitted to the CA per second. Includes all request types (new, renewal, key recovery).",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short",
-          "decimals": 1
-        },
-        "overrides": []
       },
       "gridPos": {
         "h": 5,
@@ -415,23 +371,7 @@
         "x": 0,
         "y": 7
       },
-      "id": 1,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.4.0",
+      "id": 101,
       "targets": [
         {
           "datasource": {
@@ -439,21 +379,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(adcs_requests_per_sec{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
-          "legendFormat": "Requests/s",
+          "expr": "sum(windows_adcs_requests_total{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "legendFormat": "Total Requests",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "instant": false
         }
       ],
-      "title": "Requests Submitted",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "Rate of certificates successfully issued per second by the CA.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -463,152 +395,7 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short",
-          "decimals": 1
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 6,
-        "y": 7
-      },
-      "id": 2,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(adcs_issued_per_sec{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
-          "legendFormat": "Issued/s",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Certificates Issued",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "Rate of failed certificate requests per second. Failures may indicate template misconfigurations, permission denials, or CA policy violations.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.01
-              }
-            ]
-          },
-          "unit": "short",
-          "decimals": 1
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 12,
-        "y": 7
-      },
-      "id": 3,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(adcs_failed_per_sec{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
-          "legendFormat": "Failed/s",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Failed Requests",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "Number of certificate requests currently pending manager approval or CA operator action.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 1
-              },
-              {
-                "color": "red",
-                "value": 5
-              }
+              { "color": "blue", "value": null }
             ]
           },
           "unit": "short",
@@ -616,29 +403,35 @@
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 18,
-        "y": 7
-      },
-      "id": 4,
       "options": {
         "colorMode": "background",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
         "textMode": "value_and_name",
         "wideLayout": true
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Issued",
+      "description": "Total certificates successfully issued by the CA.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
       },
-      "pluginVersion": "10.4.0",
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 7
+      },
+      "id": 102,
       "targets": [
         {
           "datasource": {
@@ -646,17 +439,177 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(adcs_pending_requests{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
-          "legendFormat": "Pending",
+          "expr": "sum(windows_adcs_issued_requests_total{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "legendFormat": "Issued",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "instant": false
         }
       ],
-      "title": "Pending Requests",
-      "type": "stat"
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      }
     },
     {
-      "collapsed": false,
+      "type": "stat",
+      "title": "Failed",
+      "description": "Total failed certificate requests. Click to jump to the per-template breakdown table for failure analysis.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 7
+      },
+      "id": 103,
+      "links": [
+        {
+          "title": "View Per-Template Breakdown",
+          "url": "#per-template-breakdown",
+          "targetBlank": false
+        }
+      ],
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(windows_adcs_failed_requests_total{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}) or vector(0)",
+          "legendFormat": "Failed",
+          "range": true,
+          "refId": "A",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Pending",
+      "description": "Number of certificate requests currently pending manager approval or CA operator action.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 7
+      },
+      "id": 104,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(windows_adcs_pending_requests_total{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}) or vector(0)",
+          "legendFormat": "Pending",
+          "range": true,
+          "refId": "A",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      }
+    },
+    {
+      "type": "row",
+      "title": "Per-Template Breakdown",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -664,15 +617,252 @@
         "y": 12
       },
       "id": 200,
-      "title": "Issuance Activity",
-      "type": "row"
+      "collapsed": false
     },
     {
+      "type": "table",
+      "title": "Certificate Requests by Template",
+      "description": "Per-template breakdown of certificate request totals, issuance counts, failures, pending requests, and average processing time. Failed column is color-coded: green for zero failures, red for any failures.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Certificate request, issuance, and failure rates over time. Useful for identifying enrollment storms, template issues, or CA processing backlogs.",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 201,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (cert_template) (windows_adcs_requests_total{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "Requests"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (cert_template) (windows_adcs_issued_requests_total{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "Issued"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (cert_template) (windows_adcs_failed_requests_total{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "Failed"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (cert_template) (windows_adcs_pending_requests_total{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "Pending"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "avg by (cert_template) (windows_adcs_request_processing_time_seconds{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "ProcessingTime"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Failed Total"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "red", "value": 1 }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg Processing Time"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Certificate Template"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 250
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Requests Total"
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "Time 4": true,
+              "Time 5": true
+            },
+            "indexByName": {
+              "cert_template": 0,
+              "Value #Requests": 1,
+              "Value #Issued": 2,
+              "Value #Failed": 3,
+              "Value #Pending": 4,
+              "Value #ProcessingTime": 5
+            },
+            "renameByName": {
+              "cert_template": "Certificate Template",
+              "Value #Requests": "Requests Total",
+              "Value #Issued": "Issued Total",
+              "Value #Failed": "Failed Total",
+              "Value #Pending": "Pending",
+              "Value #ProcessingTime": "Avg Processing Time"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Issuance Trends",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "id": 300,
+      "collapsed": false
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Rate by Template",
+      "description": "Rate of certificate requests per second by template over time. Useful for identifying enrollment storms or unusual request patterns for specific templates.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 301,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (cert_template) (rate(windows_adcs_requests_total{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}[5m]))",
+          "legendFormat": "{{cert_template}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -682,7 +872,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "Operations/sec",
+            "axisLabel": "Requests/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -714,47 +904,17 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
+              { "color": "green", "value": null }
             ]
           },
-          "unit": "short",
-          "decimals": 1
+          "unit": "reqps",
+          "decimals": 2
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Failed/s"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "red",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 13
-      },
-      "id": 6,
       "options": {
         "legend": {
-          "calcs": [
-            "mean",
-            "max",
-            "lastNotNull"
-          ],
+          "calcs": ["mean", "max", "lastNotNull"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -763,8 +923,23 @@
           "mode": "multi",
           "sort": "desc"
         }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Processing Time by Template",
+      "description": "Average certificate request processing time by template over time. Spikes may indicate CA performance degradation or policy module delays.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
       },
-      "pluginVersion": "10.4.0",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 302,
       "targets": [
         {
           "datasource": {
@@ -772,55 +947,115 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(adcs_requests_per_sec{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
-          "legendFormat": "Requests/s",
+          "expr": "avg by (cert_template) (windows_adcs_request_processing_time_seconds{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "legendFormat": "{{cert_template}}",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(adcs_issued_per_sec{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
-          "legendFormat": "Issued/s",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(adcs_failed_per_sec{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
-          "legendFormat": "Failed/s",
-          "range": true,
-          "refId": "C"
         }
       ],
-      "title": "Certificate Issuance Activity Over Time",
-      "type": "timeseries"
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Processing Time",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          },
+          "unit": "s",
+          "decimals": 3
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
     },
     {
-      "collapsed": false,
+      "type": "row",
+      "title": "Service Health",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 34
       },
       "id": 500,
-      "title": "Service Health",
-      "type": "row"
+      "collapsed": false
     },
     {
+      "type": "table",
+      "title": "Certificate Services Status",
+      "description": "State of the CertSvc (Active Directory Certificate Services) Windows service. The service must be running for the CA to process certificate requests.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "State of the CertSvc (Active Directory Certificate Services) Windows service. The service must be running for the CA to process certificate requests.",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 35
+      },
+      "id": 501,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "windows_service_state{hostname=~\"$hostname\", name=\"CertSvc\", state=\"running\", environment=~\"$environment\", datacenter=~\"$datacenter\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -856,14 +1091,8 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
             ]
           }
         },
@@ -871,7 +1100,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "hostname"
+              "options": "Hostname"
             },
             "properties": [
               {
@@ -883,7 +1112,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "name"
+              "options": "Service"
             },
             "properties": [
               {
@@ -894,47 +1123,22 @@
           }
         ]
       },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 24
-      },
-      "id": 11,
       "options": {
         "cellHeight": "sm",
         "footer": {
           "countRows": false,
           "fields": "",
-          "reducer": [
-            "sum"
-          ],
+          "reducer": ["sum"],
           "show": false
         },
         "showHeader": true,
         "sortBy": [
           {
             "desc": false,
-            "displayName": "Value"
+            "displayName": "Status"
           }
         ]
       },
-      "pluginVersion": "10.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "windows_service_state{hostname=~\"$hostname\", name=\"CertSvc\", state=\"running\", environment=~\"$environment\", datacenter=~\"$datacenter\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Certificate Services Status",
       "transformations": [
         {
           "id": "organize",
@@ -942,8 +1146,6 @@
             "excludeByName": {
               "Time": true,
               "__name__": true,
-              "datacenter": false,
-              "environment": false,
               "instance": true,
               "job": true,
               "state": true
@@ -964,11 +1166,10 @@
             }
           }
         }
-      ],
-      "type": "table"
+      ]
     }
   ],
-  "schemaVersion": 39,
+  "schemaVersion": 40,
   "tags": [
     "servers",
     "windows",
@@ -1057,6 +1258,6 @@
   "timezone": "browser",
   "title": "Certificate Authority Overview",
   "uid": "ca-overview",
-  "version": 9,
+  "version": 10,
   "weekStart": ""
 }

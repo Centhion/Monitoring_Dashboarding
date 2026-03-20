@@ -79,7 +79,10 @@
         "x": 0,
         "y": 0
       },
-      "collapsed": false
+      "collapsed": false,
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "type": "gauge",
@@ -386,7 +389,10 @@
       },
       "id": 100,
       "title": "Container Overview",
-      "type": "row"
+      "type": "row",
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "datasource": {
@@ -409,7 +415,14 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "links": [
+            {
+              "title": "View Container Details",
+              "url": "/d/docker-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -473,7 +486,14 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "links": [
+            {
+              "title": "View Stopped Containers",
+              "url": "/d/docker-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -642,7 +662,10 @@
       },
       "id": 200,
       "title": "Container States",
-      "type": "row"
+      "type": "row",
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "datasource": {
@@ -971,7 +994,10 @@
       },
       "id": 300,
       "title": "Docker Engine",
-      "type": "row"
+      "type": "row",
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "datasource": {
@@ -1347,6 +1373,6 @@
   "timezone": "browser",
   "title": "Docker Host Overview",
   "uid": "docker-overview",
-  "version": 11,
+  "version": 12,
   "weekStart": ""
 }

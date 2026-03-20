@@ -195,7 +195,14 @@
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/infra-overview?var-datacenter=${datacenter}",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -269,7 +276,14 @@
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/infra-overview?var-datacenter=${datacenter}",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -343,7 +357,14 @@
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/windows-overview?var-datacenter=${datacenter}",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -1565,6 +1586,6 @@
   "timezone": "browser",
   "title": "Site Overview",
   "uid": "site-overview",
-  "version": 10,
+  "version": 11,
   "weekStart": ""
 }

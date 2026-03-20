@@ -92,7 +92,10 @@
       },
       "id": 1,
       "title": "Certificate Health Summary",
-      "type": "row"
+      "type": "row",
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "datasource": {
@@ -173,7 +176,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "green",
                 "value": null
               }
             ]
@@ -247,7 +250,7 @@
           },
           "links": [
             {
-              "title": "View Details",
+              "title": "View Expiring Certs",
               "url": "/d/cert-overview",
               "targetBlank": false
             }
@@ -321,7 +324,7 @@
           },
           "links": [
             {
-              "title": "View Details",
+              "title": "View Urgent Certs",
               "url": "/d/cert-overview",
               "targetBlank": false
             }
@@ -395,7 +398,7 @@
           },
           "links": [
             {
-              "title": "View Details",
+              "title": "View Critical Certs",
               "url": "/d/cert-overview",
               "targetBlank": false
             }
@@ -469,7 +472,7 @@
           },
           "links": [
             {
-              "title": "View Details",
+              "title": "View Expired Certs",
               "url": "/d/cert-overview",
               "targetBlank": false
             }
@@ -526,7 +529,10 @@
       },
       "id": 8,
       "title": "Certificate Inventory",
-      "type": "row"
+      "type": "row",
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "datasource": {
@@ -817,7 +823,10 @@
       },
       "id": 10,
       "title": "Expiry Timeline",
-      "type": "row"
+      "type": "row",
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "datasource": {
@@ -937,7 +946,10 @@
       },
       "id": 12,
       "title": "Probe Health",
-      "type": "row"
+      "type": "row",
+      "fieldConfig": {
+        "defaults": {}
+      }
     },
     {
       "datasource": {
@@ -1208,6 +1220,6 @@
   "timezone": "browser",
   "title": "Certificate Overview",
   "uid": "cert-overview",
-  "version": 7,
+  "version": 8,
   "weekStart": ""
 }

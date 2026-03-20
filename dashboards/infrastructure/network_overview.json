@@ -413,8 +413,8 @@
           },
           "links": [
             {
-              "title": "View Details",
-              "url": "/d/network-overview",
+              "title": "View Error Details",
+              "url": "/d/network-overview?var-environment=${environment}&var-datacenter=${datacenter}",
               "targetBlank": false
             }
           ]
@@ -1977,5 +1977,5 @@
   "timezone": "",
   "title": "Network Infrastructure",
   "uid": "network-overview",
-  "version": 12
+  "version": 13
 }

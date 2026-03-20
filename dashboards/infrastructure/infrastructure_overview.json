@@ -494,7 +494,7 @@
           "links": [
             {
               "title": "View Details",
-              "url": "/d/windows-overview",
+              "url": "/d/infra-overview",
               "targetBlank": false
             }
           ]
@@ -582,7 +582,7 @@
           "links": [
             {
               "title": "View Details",
-              "url": "/d/windows-overview",
+              "url": "/d/infra-overview",
               "targetBlank": false
             }
           ]
@@ -2707,6 +2707,6 @@
   "timezone": "browser",
   "title": "Infrastructure Overview",
   "uid": "infra-overview",
-  "version": 9,
+  "version": 10,
   "weekStart": ""
 }

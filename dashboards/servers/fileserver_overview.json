@@ -412,7 +412,14 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "links": [
+            {
+              "title": "View Session Details",
+              "url": "/d/fileserver-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -480,7 +487,14 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "short",
+          "links": [
+            {
+              "title": "View Per-Share Details",
+              "url": "/d/fileserver-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -1418,6 +1432,6 @@
   "timezone": "",
   "title": "File Server Overview",
   "uid": "fileserver-overview",
-  "version": 13,
+  "version": 14,
   "weekStart": ""
 }
