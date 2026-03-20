@@ -22,40 +22,18 @@
   "id": null,
   "links": [
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
+      "title": "Enterprise NOC",
+      "url": "/d/enterprise-noc?var-environment=$environment",
+      "type": "link",
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
       "title": "Site Overview",
-      "tooltip": "Drill into a single site",
+      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter",
       "type": "link",
-      "url": "/d/site-overview/site-overview"
-    },
-    {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "Infrastructure Overview",
-      "tooltip": "Fleet-wide server health",
-      "type": "link",
-      "url": "/d/infra-overview/infrastructure-overview"
-    },
-    {
-      "asDropdown": true,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "Detailed Dashboards",
-      "tooltip": "",
-      "type": "dashboards",
-      "url": ""
+      "icon": "dashboard",
+      "targetBlank": false
     }
   ],
   "panels": [
@@ -2246,7 +2224,11 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -2263,7 +2245,8 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "allValue": ".*"
       }
     ]
   },

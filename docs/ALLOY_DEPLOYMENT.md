@@ -89,6 +89,30 @@ Some roles share metrics collectors. Follow these rules to avoid duplicate colle
 
 Do not deploy both `role_dc.alloy` and `role_dhcp.alloy` on the same server -- the DC config already includes the DHCP collector. If DHCP is on a dedicated server, only deploy `role_dhcp.alloy`.
 
+### Role Reference
+
+Complete mapping from role code to Alloy config, metrics collected, and Grafana dashboard:
+
+| Role Code | ALLOY_ROLE | Config File | Metrics Collected | Dashboard | OS | Prerequisites |
+|-----------|-----------|-------------|-------------------|-----------|----|----|
+| `dc` | dc | `role_dc.alloy` | AD DS (LDAP, replication), DNS, DHCP (if co-located) | Domain Controller Overview | Windows | AD DS role installed |
+| `sql` | sql | `role_sql.alloy` | Buffer pool, wait stats, database sizes, SQL Agent | SQL Server Overview | Windows | SQL Server instance running |
+| `iis` | iis | `role_iis.alloy` | Request rates, app pools, HTTP status codes, W3C logs | IIS Web Server Overview | Windows | IIS role installed |
+| `fileserver` | fileserver | `role_fileserver.alloy` | SMB sessions, share I/O, disk IOPS, FSRM quotas | File Server Overview | Windows | File Server role, LanmanServer service |
+| `dhcp` | dhcp | `role_dhcp.alloy` | DHCP messages (discover/offer/request/ack/nak) | DHCP Server Overview | Windows | DHCP Server role (dedicated server) |
+| `ca` | ca | `role_ca.alloy` | Certificate requests, issued/failed/pending, CRL | Certificate Authority Overview | Windows | AD CS role, CertSvc service |
+| `docker` | docker | `role_docker.alloy` | Container states, engine metrics, per-container stats | Docker Host Overview | Linux | Docker daemon with metrics endpoint |
+| `generic` | generic | (base.alloy only) | OS-level metrics (CPU, memory, disk, network, services) | Windows/Linux Overview | Both | None |
+
+### Role Discovery
+
+When building your host inventory, use these methods to identify server roles:
+
+- **Active Directory**: Query AD computer objects by OU structure (e.g., `OU=Domain Controllers`, `OU=SQL Servers`)
+- **Lansweeper**: Use the field mapping config (`inventory/lansweeper_field_map.yml`) to auto-detect roles from asset names, types, and installed software
+- **Naming conventions**: If your servers follow a naming scheme (e.g., `SRV-DC-01`, `SRV-SQL-01`), the wrapper script can infer roles from hostnames
+- **Manual inventory**: For small deployments, assign roles manually during `deploy_configure.py` interactive setup
+
 ---
 
 ## Environment Variables

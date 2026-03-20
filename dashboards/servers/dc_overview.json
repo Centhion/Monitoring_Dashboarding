@@ -22,40 +22,32 @@
   "id": null,
   "links": [
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
       "title": "Enterprise NOC",
-      "tooltip": "Multi-site health overview",
+      "url": "/d/enterprise-noc?var-environment=$environment",
       "type": "link",
-      "url": "/d/enterprise-noc"
+      "icon": "dashboard",
+      "targetBlank": false
     },
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
       "title": "Site Overview",
-      "tooltip": "Single-site deep visibility",
+      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter",
       "type": "link",
-      "url": "/d/site-overview?var-datacenter=$datacenter"
+      "icon": "dashboard",
+      "targetBlank": false
     },
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
       "title": "Windows Servers",
-      "tooltip": "Windows server fleet overview",
+      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter",
       "type": "link",
-      "url": "/d/windows-overview"
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Linux Servers",
+      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "type": "link",
+      "icon": "dashboard",
+      "targetBlank": false
     }
   ],
   "panels": [

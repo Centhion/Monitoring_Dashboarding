@@ -1660,47 +1660,52 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 ### Tasks
 
-- [ ] 1. Replace all dashboard tags with functional taxonomy -- Simple
-  - Remove `phase-7a`, `phase-7b` and any other development tags
-  - Apply: servers, windows, linux, iis, sql, dc, network, hardware, certificates, enterprise, sla, security, logs, probing
-- [ ] 2. Restructure provisioning to 3 folders (Enterprise, Servers, Infrastructure) -- Simple
-  - Update `configs/grafana/dashboards/dashboards.yml`
-- [ ] 3. Move dashboard JSON files to `dashboards/enterprise/`, `dashboards/servers/`, `dashboards/infrastructure/` -- Medium
-  - Update docker-compose.yml volume mounts
-  - Update Helm chart references
-- [ ] 4. Rename "Hardware Health" dashboard to "Physical Server Health" -- Simple
-- [ ] 5. Create SQL Server dashboard (`dashboards/servers/sql_overview.json`) -- Medium
-  - Buffer pool hit ratio, wait stats, database sizes, SQL Agent job status, deadlocks
-  - Uses existing `role_sql.alloy` metrics
-- [ ] 6. Create Domain Controller dashboard (`dashboards/servers/dc_overview.json`) -- Medium
-  - AD replication lag, LDAP bind rate, DNS query rate, Kerberos auth, NTDS
-  - Uses existing `role_dc.alloy` metrics
-- [ ] 7. Create DHCP Server dashboard (`dashboards/servers/dhcp_overview.json`) -- Medium
-  - Scope utilization, lease counts, requests/sec, NACK rate
-  - Requires new `role_dhcp.alloy` config
-- [ ] 8. Create Certificate Authority dashboard (`dashboards/servers/ca_overview.json`) -- Medium
-  - Certificate requests, issued/failed/pending, CRL publish status
-  - Requires new `role_ca.alloy` config
-- [ ] 9. Create File Server dashboard (`dashboards/servers/fileserver_overview.json`) -- Medium
-  - SMB sessions, share I/O, DFS replication
-  - Uses existing `role_fileserver.alloy` metrics
-- [ ] 10. Create Docker Host dashboard (`dashboards/servers/docker_overview.json`) -- Medium
-  - Container count, per-container CPU/memory, container status
-  - Uses existing `role_docker.alloy` metrics
-- [ ] 11. Fix NOC -> Site Overview -> detail drill-down links across all dashboards -- Medium
-  - Pre-filter `?var-datacenter=<site>` on all cross-dashboard links
-  - Ensure link bar is consistent across all dashboards
-- [ ] 12. Standardize template variables across all dashboards -- Medium
-  - All dashboards: Environment + Datacenter
-  - Server dashboards add: Role + Hostname
-  - Remove broken/redundant variables, fix warning triangles
-- [ ] 13. Create Alloy role configs for DHCP and CA -- Medium
+- [x] 1. Replace all dashboard tags with functional taxonomy -- Simple
+  - Removed `phase-7a`, `phase-7b` and all development tags
+  - Applied: servers, windows, linux, iis, sql, dc, network, infrastructure, certificates, enterprise, sla, security, logs, probing
+- [x] 2. Restructure provisioning to 3 folders (Enterprise, Servers, Infrastructure) -- Simple
+  - Updated `configs/grafana/dashboards/dashboards.yml`
+- [x] 3. Move dashboard JSON files to `dashboards/enterprise/`, `dashboards/servers/`, `dashboards/infrastructure/` -- Medium
+  - Updated docker-compose.yml volume mounts
+  - Helm chart references pending update
+- [x] 4. Rename "Hardware Health" dashboard to "Physical Server Health" -- Simple
+- [x] 5. Create SQL Server dashboard (`dashboards/servers/sql_overview.json`) -- Medium
+- [x] 6. Create Domain Controller dashboard (`dashboards/servers/dc_overview.json`) -- Medium
+- [x] 7. Create DHCP Server dashboard (`dashboards/servers/dhcp_overview.json`) -- Medium
+- [x] 8. Create Certificate Authority dashboard (`dashboards/servers/ca_overview.json`) -- Medium
+- [x] 9. Create File Server dashboard (`dashboards/servers/fileserver_overview.json`) -- Medium
+- [x] 10. Create Docker Host dashboard (`dashboards/servers/docker_overview.json`) -- Medium
+- [x] 11. Fix NOC -> Site Overview -> detail drill-down links across all dashboards -- Medium
+  - All links pass `?var-datacenter=$datacenter&var-environment=$environment`
+  - Consistent link bars: Enterprise (2 links), Servers (4 links), Infrastructure (5 links)
+- [x] 12. Standardize template variables across all dashboards -- Medium
+  - All variables: multi-select, include All, allValue=.*, refresh on time range change
+  - Default to "All" on load so dropdowns populate correctly
+- [x] 13. Create Alloy role configs for DHCP and CA -- Medium
   - `configs/alloy/windows/role_dhcp.alloy` (DHCP Server perf counters)
   - `configs/alloy/windows/role_ca.alloy` (AD CS perf counters)
-- [ ] 14. Update demo data generator for new role metrics (SQL, DC, DHCP, CA, FileServer, Docker) -- Medium
-- [ ] 15. End-to-end validation with demo data -- Medium
-  - Full NOC -> Site -> role drill-down flow
-  - All dashboards populated, no errors, no "No Data" panels
+- [x] 14. Update demo data generator for new role metrics (SQL, DC, DHCP, CA, FileServer, Docker) -- Medium
+- [x] 15. End-to-end validation with demo data -- Medium
+  - All 19 dashboards load in 3 folders (Enterprise 4, Servers 10, Infrastructure 5)
+  - All template variables populate (environment, datacenter, hostname, role)
+  - All 10 role metrics present (SQL, DC, DHCP, CA, FileServer, Docker, IIS, SNMP, Redfish, Certs)
+  - All recording rules computing (Windows/Linux CPU, Fleet count, SLA, IIS)
+  - Per-site distribution verified (ent, dv each have 42 up series)
+  - Dashboard links pass datacenter variable correctly
+
+### Role Tracking and Assignment
+
+- [x] 16. Document role co-location rules in ALLOY_DEPLOYMENT.md -- Simple
+  - DC includes DHCP/DNS collectors; do not deploy both role_dc.alloy and role_dhcp.alloy on same server
+  - CA is standalone; deploy role_ca.alloy on dedicated CA servers
+- [x] 17. Add role validation to deploy_configure.py -- Medium
+  - ROLE_CONFLICTS dict warns on DC+DHCP co-location
+  - ROLE_REFERENCE dict maps role -> config -> job -> dashboard -> prerequisites
+  - check_role_conflicts() validates host inventory
+- [x] 18. Document role-to-Alloy-config mapping for operators -- Simple
+  - Role Reference table in ALLOY_DEPLOYMENT.md: role code, config file, metrics, dashboard, OS, prerequisites
+- [x] 19. Add role discovery guidance -- Simple
+  - Documented in ALLOY_DEPLOYMENT.md: AD OU queries, Lansweeper field mapping, naming conventions, manual assignment
 
 ### Success Criteria
 

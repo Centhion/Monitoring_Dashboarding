@@ -22,40 +22,39 @@
   "id": null,
   "links": [
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
       "title": "Enterprise NOC",
-      "tooltip": "Multi-site health overview",
+      "url": "/d/enterprise-noc?var-environment=$environment",
       "type": "link",
-      "url": "/d/enterprise-noc/enterprise-noc"
+      "icon": "dashboard",
+      "targetBlank": false
     },
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
       "title": "Site Overview",
-      "tooltip": "Single-site deep visibility",
+      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter",
       "type": "link",
-      "url": "/d/site-overview/site-overview"
+      "icon": "dashboard",
+      "targetBlank": false
     },
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "Infrastructure",
-      "tooltip": "Fleet-wide server health",
+      "title": "Network",
+      "url": "/d/network-overview?var-environment=$environment&var-datacenter=$datacenter",
       "type": "link",
-      "url": "/d/infra-overview/infrastructure-overview"
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Physical Servers",
+      "url": "/d/hardware-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "type": "link",
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Certificates",
+      "url": "/d/cert-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "type": "link",
+      "icon": "dashboard",
+      "targetBlank": false
     }
   ],
   "panels": [
@@ -1079,7 +1078,11 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1096,10 +1099,15 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "allValue": ".*"
       },
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1116,10 +1124,15 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "allValue": ".*"
       },
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1136,7 +1149,8 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "allValue": ".*"
       }
     ]
   },

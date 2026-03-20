@@ -20,7 +20,36 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
-  "links": [],
+  "links": [
+    {
+      "title": "Enterprise NOC",
+      "url": "/d/enterprise-noc?var-environment=$environment",
+      "type": "link",
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Site Overview",
+      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "type": "link",
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Windows Servers",
+      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "type": "link",
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Linux Servers",
+      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "type": "link",
+      "icon": "dashboard",
+      "targetBlank": false
+    }
+  ],
   "panels": [
     {
       "collapsed": false,

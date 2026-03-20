@@ -22,52 +22,39 @@
   "id": null,
   "links": [
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
       "title": "Enterprise NOC",
-      "tooltip": "Return to multi-site overview",
+      "url": "/d/enterprise-noc?var-environment=$environment",
       "type": "link",
-      "url": "/d/enterprise-noc/enterprise-noc"
+      "icon": "dashboard",
+      "targetBlank": false
     },
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "Windows Servers",
-      "tooltip": "Windows server detail for this site",
+      "title": "Site Overview",
+      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter",
       "type": "link",
-      "url": "/d/windows-overview/windows-server-overview"
+      "icon": "dashboard",
+      "targetBlank": false
     },
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "Linux Servers",
-      "tooltip": "Linux server detail for this site",
+      "title": "Network",
+      "url": "/d/network-overview?var-environment=$environment&var-datacenter=$datacenter",
       "type": "link",
-      "url": "/d/linux-overview/linux-server-overview"
+      "icon": "dashboard",
+      "targetBlank": false
     },
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "IIS Overview",
-      "tooltip": "IIS web server detail for this site",
+      "title": "Physical Servers",
+      "url": "/d/hardware-overview?var-environment=$environment&var-datacenter=$datacenter",
       "type": "link",
-      "url": "/d/iis-overview/iis-overview"
+      "icon": "dashboard",
+      "targetBlank": false
+    },
+    {
+      "title": "Certificates",
+      "url": "/d/cert-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "type": "link",
+      "icon": "dashboard",
+      "targetBlank": false
     }
   ],
   "panels": [
@@ -2163,7 +2150,11 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -2180,19 +2171,24 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "allValue": ".*"
       },
       {
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
         },
         "definition": "label_values(up{job=~\"windows_base|linux_base\", environment=~\"$environment\"}, datacenter)",
         "hide": 0,
-        "includeAll": false,
+        "includeAll": true,
         "label": "Site / Datacenter",
-        "multi": false,
+        "multi": true,
         "name": "datacenter",
         "options": [],
         "query": "label_values(up{job=~\"windows_base|linux_base\", environment=~\"$environment\"}, datacenter)",
@@ -2200,7 +2196,8 @@
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "allValue": ".*"
       }
     ]
   },

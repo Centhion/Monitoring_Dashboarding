@@ -707,7 +707,51 @@ def validate_config(config: dict) -> list[str]:
     if not smtp.get("host"):
         issues.append("SMTP host not configured")
 
+    # Validate demo host profile roles
+    demo = config.get("demo", {})
+    if demo.get("enabled"):
+        profile = demo.get("host_profile", {})
+        for role in profile:
+            if role not in VALID_ROLES:
+                issues.append(f"Demo host_profile contains invalid role: '{role}'")
+
     return issues
+
+
+# Role co-location conflict rules. Key = role, value = set of conflicting roles.
+# DC already collects DHCP/DNS metrics; deploying both causes duplicate collection.
+ROLE_CONFLICTS = {
+    "dc": {"dhcp"},
+    "dhcp": {"dc"},
+}
+
+# Role-to-config-to-dashboard mapping for operator reference
+ROLE_REFERENCE = {
+    "dc":         {"config": "role_dc.alloy",         "job": "windows_dc",         "dashboard": "Domain Controller Overview",  "os": "windows", "includes": "AD DS, DNS, DHCP (if co-located)"},
+    "sql":        {"config": "role_sql.alloy",         "job": "windows_sql",        "dashboard": "SQL Server Overview",         "os": "windows", "includes": "MSSQL perf counters, SQL Agent"},
+    "iis":        {"config": "role_iis.alloy",         "job": "windows_iis",        "dashboard": "IIS Web Server Overview",     "os": "windows", "includes": "Request rates, app pools, W3C logs"},
+    "fileserver": {"config": "role_fileserver.alloy",  "job": "windows_fileserver", "dashboard": "File Server Overview",        "os": "windows", "includes": "SMB sessions, disk I/O, FSRM quotas"},
+    "dhcp":       {"config": "role_dhcp.alloy",        "job": "windows_dhcp",       "dashboard": "DHCP Server Overview",        "os": "windows", "includes": "DHCP messages, scope stats"},
+    "ca":         {"config": "role_ca.alloy",          "job": "windows_ca",         "dashboard": "Certificate Authority Overview", "os": "windows", "includes": "AD CS requests, issuance, CRL"},
+    "docker":     {"config": "role_docker.alloy",      "job": "docker_daemon",      "dashboard": "Docker Host Overview",        "os": "linux",   "includes": "Container states, engine metrics"},
+    "generic":    {"config": "(base.alloy only)",      "job": "windows_base/linux_base", "dashboard": "Windows/Linux Overview", "os": "both",    "includes": "OS-level metrics only"},
+}
+
+
+def check_role_conflicts(hosts_config: dict) -> list[str]:
+    """Check for role co-location conflicts in host inventory."""
+    warnings = []
+    for hostname, host in hosts_config.items():
+        roles = set(host.get("roles", []))
+        for role in roles:
+            conflicts = ROLE_CONFLICTS.get(role, set())
+            overlaps = roles & conflicts
+            if overlaps:
+                warnings.append(
+                    f"Host '{hostname}': role '{role}' conflicts with {overlaps} "
+                    f"(duplicate metric collection). Use only one."
+                )
+    return warnings
 
 
 # =============================================================================

@@ -22,64 +22,32 @@
   "id": null,
   "links": [
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
       "title": "Enterprise NOC",
-      "tooltip": "Multi-site health overview",
+      "url": "/d/enterprise-noc?var-environment=$environment",
       "type": "link",
-      "url": "/d/enterprise-noc/enterprise-noc"
+      "icon": "dashboard",
+      "targetBlank": false
     },
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
       "title": "Site Overview",
-      "tooltip": "Single-site deep visibility",
+      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter",
       "type": "link",
-      "url": "/d/site-overview/site-overview"
+      "icon": "dashboard",
+      "targetBlank": false
     },
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "Infrastructure",
-      "tooltip": "Fleet-wide server health",
+      "title": "Windows Servers",
+      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter",
       "type": "link",
-      "url": "/d/infra-overview/infrastructure-overview"
+      "icon": "dashboard",
+      "targetBlank": false
     },
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
       "title": "Linux Servers",
-      "tooltip": "Linux server detail",
+      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter",
       "type": "link",
-      "url": "/d/linux-overview/linux-server-overview"
-    },
-    {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": true,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
-      "title": "IIS Overview",
-      "tooltip": "IIS web server detail",
-      "type": "link",
-      "url": "/d/iis-overview/iis-overview"
+      "icon": "dashboard",
+      "targetBlank": false
     }
   ],
   "panels": [
