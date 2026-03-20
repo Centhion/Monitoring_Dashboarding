@@ -19,35 +19,54 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
   "links": [
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Enterprise NOC",
-      "url": "/d/enterprise-noc?var-environment=$environment",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/enterprise-noc?var-environment=$environment"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Site Overview",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Windows Servers",
-      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Linux Servers",
-      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter"
     }
   ],
   "panels": [
@@ -101,7 +120,7 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 5,
+        "w": 6,
         "x": 0,
         "y": 1
       },
@@ -119,7 +138,7 @@
           "values": false
         },
         "showPercentChange": false,
-        "textMode": "auto",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
       "pluginVersion": "11.0.0",
@@ -177,8 +196,8 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 5,
-        "x": 5,
+        "w": 6,
+        "x": 6,
         "y": 1
       },
       "id": 2,
@@ -195,7 +214,7 @@
           "values": false
         },
         "showPercentChange": false,
-        "textMode": "auto",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
       "pluginVersion": "11.0.0",
@@ -247,8 +266,8 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 5,
-        "x": 10,
+        "w": 6,
+        "x": 12,
         "y": 1
       },
       "id": 3,
@@ -265,7 +284,7 @@
           "values": false
         },
         "showPercentChange": false,
-        "textMode": "auto",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
       "pluginVersion": "11.0.0",
@@ -321,8 +340,8 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 5,
-        "x": 15,
+        "w": 6,
+        "x": 18,
         "y": 1
       },
       "id": 4,
@@ -339,7 +358,7 @@
           "values": false
         },
         "showPercentChange": false,
-        "textMode": "auto",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
       "pluginVersion": "11.0.0",
@@ -395,9 +414,9 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 4,
-        "x": 20,
-        "y": 1
+        "w": 6,
+        "x": 0,
+        "y": 6
       },
       "id": 5,
       "options": {
@@ -413,7 +432,7 @@
           "values": false
         },
         "showPercentChange": false,
-        "textMode": "auto",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
       "pluginVersion": "11.0.0",
@@ -543,7 +562,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
+          "expr": "sum by (hostname) (instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100)",
           "legendFormat": "{{hostname}}",
           "range": true,
           "refId": "A"
@@ -846,7 +865,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_load1{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}",
+          "expr": "sum by (hostname) (node_load1{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"})",
           "legendFormat": "{{hostname}} load1",
           "range": true,
           "refId": "A"
@@ -857,7 +876,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_load5{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}",
+          "expr": "sum by (hostname) (node_load5{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"})",
           "legendFormat": "{{hostname}} load5",
           "range": true,
           "refId": "B"
@@ -868,7 +887,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_load15{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}",
+          "expr": "sum by (hostname) (node_load15{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"})",
           "legendFormat": "{{hostname}} load15",
           "range": true,
           "refId": "C"
@@ -987,7 +1006,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:linux_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
+          "expr": "sum by (hostname) (instance:linux_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100)",
           "legendFormat": "{{hostname}}",
           "range": true,
           "refId": "A"
@@ -1276,7 +1295,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_memory_SwapTotal_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"} - node_memory_SwapFree_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}",
+          "expr": "sum by (hostname) (node_memory_SwapTotal_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"} - node_memory_SwapFree_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"})",
           "legendFormat": "{{hostname}} swap used",
           "range": true,
           "refId": "A"
@@ -1398,7 +1417,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:linux_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
+          "expr": "sum by (hostname, mountpoint) (instance:linux_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100)",
           "legendFormat": "{{hostname}} {{mountpoint}}",
           "range": true,
           "refId": "A"
@@ -1505,7 +1524,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:linux_disk_io_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
+          "expr": "sum by (hostname, device) (instance:linux_disk_io_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100)",
           "legendFormat": "{{hostname}} {{device}}",
           "range": true,
           "refId": "A"
@@ -1616,7 +1635,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(node_disk_read_bytes_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
+          "expr": "sum by (hostname, device) (rate(node_disk_read_bytes_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m]))",
           "legendFormat": "{{hostname}} {{device}} read",
           "range": true,
           "refId": "A"
@@ -1627,7 +1646,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(node_disk_written_bytes_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
+          "expr": "sum by (hostname, device) (rate(node_disk_written_bytes_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m]))",
           "legendFormat": "{{hostname}} {{device}} write",
           "range": true,
           "refId": "B"
@@ -1737,7 +1756,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:linux_network_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"}",
+          "expr": "sum by (hostname) (instance:linux_network_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"})",
           "legendFormat": "{{hostname}}",
           "range": true,
           "refId": "A"
@@ -1847,7 +1866,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(node_network_receive_bytes_total{device!~\"lo|veth.*|docker.*|br-.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
+          "expr": "sum by (hostname, device) (rate(node_network_receive_bytes_total{device!~\"lo|veth.*|docker.*|br-.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m]))",
           "legendFormat": "{{hostname}} {{device}} receive",
           "range": true,
           "refId": "A"
@@ -1858,7 +1877,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(node_network_transmit_bytes_total{device!~\"lo|veth.*|docker.*|br-.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
+          "expr": "sum by (hostname, device) (rate(node_network_transmit_bytes_total{device!~\"lo|veth.*|docker.*|br-.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m]))",
           "legendFormat": "{{hostname}} {{device}} transmit",
           "range": true,
           "refId": "B"
@@ -2235,7 +2254,7 @@
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "predict_linear(node_filesystem_avail_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", fstype!~\"tmpfs|overlay|squashfs\", mountpoint!~\"/boot.*\"}[7d], 86400 * 30)",
+              "expr": "sum by (hostname, mountpoint) (predict_linear(node_filesystem_avail_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", fstype!~\"tmpfs|overlay|squashfs\", mountpoint!~\"/boot.*\"}[7d], 86400 * 30))",
               "legendFormat": "{{hostname}} ({{mountpoint}})",
               "range": true,
               "refId": "A"
@@ -2257,11 +2276,6 @@
   "templating": {
     "list": [
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -2274,8 +2288,11 @@
         "multi": true,
         "name": "environment",
         "options": [],
-        "query": "label_values(instance:linux_cpu_utilization:ratio, environment)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(instance:linux_cpu_utilization:ratio, environment)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -2283,11 +2300,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -2300,8 +2312,11 @@
         "multi": true,
         "name": "datacenter",
         "options": [],
-        "query": "label_values(instance:linux_cpu_utilization:ratio{environment=~\"$environment\"}, datacenter)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(instance:linux_cpu_utilization:ratio{environment=~\"$environment\"}, datacenter)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -2309,11 +2324,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -2326,8 +2336,11 @@
         "multi": true,
         "name": "hostname",
         "options": [],
-        "query": "label_values(instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, hostname)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, hostname)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -2335,11 +2348,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -2352,8 +2360,11 @@
         "multi": true,
         "name": "role",
         "options": [],
-        "query": "label_values(instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, role)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, role)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -2370,6 +2381,6 @@
   "timezone": "browser",
   "title": "Linux Server Overview",
   "uid": "linux-overview",
-  "version": 1,
+  "version": 5,
   "weekStart": ""
 }

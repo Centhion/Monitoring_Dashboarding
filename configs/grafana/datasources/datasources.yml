@@ -44,7 +44,7 @@ datasources:
 
       # Prometheus type helps Grafana optimize query building.
       prometheusType: Prometheus
-      prometheusVersion: "2.x"
+      prometheusVersion: "2.53.0"
 
       # Enable exemplar support if tracing is added later.
       exemplarTraceIdDestinations: []

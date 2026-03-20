@@ -19,42 +19,66 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
   "links": [
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Enterprise NOC",
-      "url": "/d/enterprise-noc?var-environment=$environment",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/enterprise-noc?var-environment=$environment"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Site Overview",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Network",
-      "url": "/d/network-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/network-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Physical Servers",
-      "url": "/d/hardware-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/hardware-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Certificates",
-      "url": "/d/cert-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/cert-overview?var-environment=$environment&var-datacenter=$datacenter"
     }
   ],
   "panels": [
@@ -1078,11 +1102,6 @@
   "templating": {
     "list": [
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1094,8 +1113,11 @@
         "multi": true,
         "name": "environment",
         "options": [],
-        "query": "label_values(probe_ssl_earliest_cert_expiry{job=\"cert_monitor\"}, environment)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(probe_ssl_earliest_cert_expiry{job=\"cert_monitor\"}, environment)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1103,11 +1125,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1119,8 +1136,11 @@
         "multi": true,
         "name": "datacenter",
         "options": [],
-        "query": "label_values(probe_ssl_earliest_cert_expiry{job=\"cert_monitor\", environment=~\"$environment\"}, datacenter)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(probe_ssl_earliest_cert_expiry{job=\"cert_monitor\", environment=~\"$environment\"}, datacenter)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1128,11 +1148,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1144,8 +1159,11 @@
         "multi": true,
         "name": "cert_type",
         "options": [],
-        "query": "label_values(probe_ssl_earliest_cert_expiry{job=\"cert_monitor\"}, cert_type)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(probe_ssl_earliest_cert_expiry{job=\"cert_monitor\"}, cert_type)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1162,6 +1180,6 @@
   "timezone": "browser",
   "title": "Certificate Overview",
   "uid": "cert-overview",
-  "version": 1,
+  "version": 3,
   "weekStart": ""
 }

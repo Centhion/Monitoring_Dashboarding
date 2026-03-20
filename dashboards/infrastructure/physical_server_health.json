@@ -19,42 +19,66 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
   "links": [
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Enterprise NOC",
-      "url": "/d/enterprise-noc?var-environment=$environment",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/enterprise-noc?var-environment=$environment"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Site Overview",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Network",
-      "url": "/d/network-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/network-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Physical Servers",
-      "url": "/d/hardware-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/hardware-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Certificates",
-      "url": "/d/cert-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/cert-overview?var-environment=$environment&var-datacenter=$datacenter"
     }
   ],
   "panels": [
@@ -1197,295 +1221,6 @@
       ],
       "title": "Total Power by Site",
       "type": "timeseries"
-    },
-    {
-      "collapsed": true,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 34
-      },
-      "id": 104,
-      "panels": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "description": "Drive health status across all monitored servers. Non-zero values indicate degraded drives.",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "custom": {
-                "align": "auto",
-                "cellOptions": {
-                  "type": "auto"
-                },
-                "inspect": false
-              },
-              "mappings": [
-                {
-                  "options": {
-                    "0": {
-                      "color": "green",
-                      "text": "OK"
-                    }
-                  },
-                  "type": "value"
-                },
-                {
-                  "options": {
-                    "from": 1,
-                    "result": {
-                      "color": "red",
-                      "text": "Degraded"
-                    },
-                    "to": 999
-                  },
-                  "type": "range"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 1
-                  }
-                ]
-              }
-            },
-            "overrides": [
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Status"
-                },
-                "properties": [
-                  {
-                    "id": "custom.cellOptions",
-                    "value": {
-                      "mode": "basic",
-                      "type": "color-background"
-                    }
-                  },
-                  {
-                    "id": "custom.width",
-                    "value": 100
-                  }
-                ]
-              }
-            ]
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 35
-          },
-          "id": 12,
-          "options": {
-            "cellHeight": "sm",
-            "footer": {
-              "countRows": true,
-              "fields": "",
-              "reducer": [
-                "count"
-              ],
-              "show": true
-            },
-            "showHeader": true
-          },
-          "pluginVersion": "10.4.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "editorMode": "code",
-              "exemplar": false,
-              "expr": "redfish_drive_health{job=\"redfish\", datacenter=~\"$datacenter\", environment=~\"$environment\", vendor=~\"$vendor\"}",
-              "format": "table",
-              "instant": true,
-              "legendFormat": "",
-              "range": false,
-              "refId": "A"
-            }
-          ],
-          "title": "Drive Health",
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {
-                  "Time": true,
-                  "__name__": true,
-                  "job": true,
-                  "environment": true,
-                  "device_type": true,
-                  "bmc_type": true
-                },
-                "renameByName": {
-                  "datacenter": "Site",
-                  "device_name": "Server",
-                  "instance": "BMC IP",
-                  "vendor": "Vendor",
-                  "Value": "Status",
-                  "drive": "Drive"
-                }
-              }
-            }
-          ],
-          "type": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "description": "Memory module health across all monitored servers.",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "custom": {
-                "align": "auto",
-                "cellOptions": {
-                  "type": "auto"
-                },
-                "inspect": false
-              },
-              "mappings": [
-                {
-                  "options": {
-                    "0": {
-                      "color": "green",
-                      "text": "OK"
-                    }
-                  },
-                  "type": "value"
-                },
-                {
-                  "options": {
-                    "from": 1,
-                    "result": {
-                      "color": "red",
-                      "text": "Degraded"
-                    },
-                    "to": 999
-                  },
-                  "type": "range"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 1
-                  }
-                ]
-              }
-            },
-            "overrides": [
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Status"
-                },
-                "properties": [
-                  {
-                    "id": "custom.cellOptions",
-                    "value": {
-                      "mode": "basic",
-                      "type": "color-background"
-                    }
-                  },
-                  {
-                    "id": "custom.width",
-                    "value": 100
-                  }
-                ]
-              }
-            ]
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 35
-          },
-          "id": 13,
-          "options": {
-            "cellHeight": "sm",
-            "footer": {
-              "countRows": true,
-              "fields": "",
-              "reducer": [
-                "count"
-              ],
-              "show": true
-            },
-            "showHeader": true
-          },
-          "pluginVersion": "10.4.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "editorMode": "code",
-              "exemplar": false,
-              "expr": "redfish_memory_health{job=\"redfish\", datacenter=~\"$datacenter\", environment=~\"$environment\", vendor=~\"$vendor\"}",
-              "format": "table",
-              "instant": true,
-              "legendFormat": "",
-              "range": false,
-              "refId": "A"
-            }
-          ],
-          "title": "Memory Health",
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {
-                  "Time": true,
-                  "__name__": true,
-                  "job": true,
-                  "environment": true,
-                  "device_type": true,
-                  "bmc_type": true
-                },
-                "renameByName": {
-                  "datacenter": "Site",
-                  "device_name": "Server",
-                  "instance": "BMC IP",
-                  "vendor": "Vendor",
-                  "Value": "Status",
-                  "dimm": "DIMM"
-                }
-              }
-            }
-          ],
-          "type": "table"
-        }
-      ],
-      "title": "Component Health (Drives, Memory)"
     }
   ],
   "refresh": "2m",
@@ -1498,11 +1233,6 @@
   "templating": {
     "list": [
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1518,7 +1248,7 @@
           "qryType": 1,
           "query": "label_values(redfish_up{job=\"redfish\"}, environment)"
         },
-        "refresh": 2,
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1526,11 +1256,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1546,7 +1271,7 @@
           "qryType": 1,
           "query": "label_values(redfish_up{job=\"redfish\", environment=~\"$environment\"}, datacenter)"
         },
-        "refresh": 2,
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1554,11 +1279,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1574,7 +1294,7 @@
           "qryType": 1,
           "query": "label_values(redfish_up{job=\"redfish\", datacenter=~\"$datacenter\"}, vendor)"
         },
-        "refresh": 2,
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1582,11 +1302,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1602,7 +1317,7 @@
           "qryType": 1,
           "query": "label_values(redfish_up{job=\"redfish\", datacenter=~\"$datacenter\", vendor=~\"$vendor\"}, instance)"
         },
-        "refresh": 2,
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1619,5 +1334,5 @@
   "timezone": "",
   "title": "Physical Server Health",
   "uid": "hardware-overview",
-  "version": 1
+  "version": 4
 }

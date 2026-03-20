@@ -19,35 +19,54 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
   "links": [
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Enterprise NOC",
-      "url": "/d/enterprise-noc?var-environment=$environment",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/enterprise-noc?var-environment=$environment"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Site Overview",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Windows Servers",
-      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Linux Servers",
-      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter"
     }
   ],
   "panels": [
@@ -89,8 +108,8 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 5,
+        "h": 5,
+        "w": 6,
         "x": 0,
         "y": 1
       },
@@ -107,7 +126,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "value_and_name"
       },
       "title": "Running Containers",
       "type": "stat",
@@ -153,9 +172,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 5,
-        "x": 5,
+        "h": 5,
+        "w": 6,
+        "x": 6,
         "y": 1
       },
       "id": 2,
@@ -171,7 +190,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "value_and_name"
       },
       "title": "Stopped Containers",
       "type": "stat",
@@ -213,9 +232,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 5,
-        "x": 10,
+        "h": 5,
+        "w": 6,
+        "x": 12,
         "y": 1
       },
       "id": 3,
@@ -231,7 +250,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "value_and_name"
       },
       "title": "Total Images",
       "type": "stat",
@@ -273,9 +292,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 5,
-        "x": 15,
+        "h": 5,
+        "w": 6,
+        "x": 18,
         "y": 1
       },
       "id": 4,
@@ -291,7 +310,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "value_and_name"
       },
       "title": "Host CPUs",
       "type": "stat",
@@ -333,10 +352,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 20,
-        "y": 1
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 6
       },
       "id": 5,
       "options": {
@@ -351,7 +370,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "value_and_name"
       },
       "title": "Host Memory",
       "type": "stat",
@@ -736,7 +755,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "go_goroutines{job=\"docker_daemon\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "expr": "sum by (hostname) (go_goroutines{job=\"docker_daemon\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
           "legendFormat": "{{hostname}}",
           "refId": "A"
         }
@@ -830,7 +849,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "go_memstats_heap_alloc_bytes{job=\"docker_daemon\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "expr": "sum by (hostname) (go_memstats_heap_alloc_bytes{job=\"docker_daemon\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
           "legendFormat": "{{hostname}}",
           "refId": "A"
         }
@@ -924,7 +943,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "rate(engine_daemon_network_actions_changes{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}[$__rate_interval])",
+          "expr": "sum by (hostname) (rate(engine_daemon_network_actions_changes{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}[$__rate_interval]))",
           "legendFormat": "{{hostname}} - {{action}}",
           "refId": "A"
         }
@@ -941,11 +960,6 @@
   "templating": {
     "list": [
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -958,8 +972,11 @@
         "multi": true,
         "name": "environment",
         "options": [],
-        "query": "label_values(up{job=\"docker_daemon\"}, environment)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(up{job=\"docker_daemon\"}, environment)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -967,11 +984,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -984,8 +996,11 @@
         "multi": true,
         "name": "datacenter",
         "options": [],
-        "query": "label_values(up{job=\"docker_daemon\", environment=~\"$environment\"}, datacenter)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(up{job=\"docker_daemon\", environment=~\"$environment\"}, datacenter)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -993,11 +1008,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1010,8 +1020,11 @@
         "multi": true,
         "name": "hostname",
         "options": [],
-        "query": "label_values(up{job=\"docker_daemon\", environment=~\"$environment\", datacenter=~\"$datacenter\"}, hostname)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(up{job=\"docker_daemon\", environment=~\"$environment\", datacenter=~\"$datacenter\"}, hostname)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1028,6 +1041,6 @@
   "timezone": "browser",
   "title": "Docker Host Overview",
   "uid": "docker-overview",
-  "version": 1,
+  "version": 5,
   "weekStart": ""
 }

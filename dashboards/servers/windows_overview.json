@@ -19,35 +19,54 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
   "links": [
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Enterprise NOC",
-      "url": "/d/enterprise-noc?var-environment=$environment",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/enterprise-noc?var-environment=$environment"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Site Overview",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Windows Servers",
-      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Linux Servers",
-      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter"
     }
   ],
   "panels": [
@@ -118,7 +137,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
       "pluginVersion": "10.4.0",
@@ -193,7 +212,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
       "pluginVersion": "10.4.0",
@@ -258,7 +277,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
       "pluginVersion": "10.4.0",
@@ -331,7 +350,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
       "pluginVersion": "10.4.0",
@@ -460,7 +479,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
+          "expr": "sum by (hostname) (instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100)",
           "legendFormat": "{{ hostname }}",
           "range": true,
           "refId": "A"
@@ -663,7 +682,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:windows_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
+          "expr": "sum by (hostname) (instance:windows_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100)",
           "legendFormat": "{{ hostname }}",
           "range": true,
           "refId": "A"
@@ -780,7 +799,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
+          "expr": "sum by (hostname, volume) (instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100)",
           "legendFormat": "{{ hostname }} - {{ volume }}",
           "range": true,
           "refId": "A"
@@ -886,7 +905,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:windows_disk_io_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100",
+          "expr": "sum by (hostname, volume) (instance:windows_disk_io_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"} * 100)",
           "legendFormat": "{{ hostname }} - {{ volume }}",
           "range": true,
           "refId": "A"
@@ -1014,7 +1033,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(windows_logical_disk_read_bytes_total{volume!~\"HarddiskVolume.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
+          "expr": "sum by (hostname, volume) (rate(windows_logical_disk_read_bytes_total{volume!~\"HarddiskVolume.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m]))",
           "legendFormat": "{{ hostname }} - {{ volume }} Read",
           "range": true,
           "refId": "A"
@@ -1025,7 +1044,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(windows_logical_disk_write_bytes_total{volume!~\"HarddiskVolume.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
+          "expr": "sum by (hostname, volume) (rate(windows_logical_disk_write_bytes_total{volume!~\"HarddiskVolume.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m]))",
           "legendFormat": "{{ hostname }} - {{ volume }} Write",
           "range": true,
           "refId": "B"
@@ -1134,7 +1153,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:windows_network_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"}",
+          "expr": "sum by (hostname) (instance:windows_network_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", role=~\"$role\"})",
           "legendFormat": "{{ hostname }}",
           "range": true,
           "refId": "A"
@@ -1262,7 +1281,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(windows_net_bytes_received_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
+          "expr": "sum by (hostname, nic) (rate(windows_net_bytes_received_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m]))",
           "legendFormat": "{{ hostname }} - {{ nic }} Received",
           "range": true,
           "refId": "A"
@@ -1273,7 +1292,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(windows_net_bytes_sent_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m])",
+          "expr": "sum by (hostname, nic) (rate(windows_net_bytes_sent_total{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}[5m]))",
           "legendFormat": "{{ hostname }} - {{ nic }} Sent",
           "range": true,
           "refId": "B"
@@ -1782,7 +1801,7 @@
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "predict_linear(windows_logical_disk_free_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\", volume!~\"HarddiskVolume.*\"}[7d], 86400 * 30)",
+              "expr": "sum by (hostname, volume) (predict_linear(windows_logical_disk_free_bytes{hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\", volume!~\"HarddiskVolume.*\"}[7d], 86400 * 30))",
               "legendFormat": "{{hostname}} ({{volume}})",
               "range": true,
               "refId": "A"
@@ -1804,11 +1823,6 @@
   "templating": {
     "list": [
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1820,8 +1834,11 @@
         "multi": true,
         "name": "environment",
         "options": [],
-        "query": "label_values(instance:windows_cpu_utilization:ratio, environment)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(instance:windows_cpu_utilization:ratio, environment)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1829,11 +1846,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1845,8 +1857,11 @@
         "multi": true,
         "name": "datacenter",
         "options": [],
-        "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\"}, datacenter)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\"}, datacenter)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1854,11 +1869,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1870,8 +1880,11 @@
         "multi": true,
         "name": "role",
         "options": [],
-        "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, role)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}, role)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1879,11 +1892,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1895,8 +1903,11 @@
         "multi": true,
         "name": "hostname",
         "options": [],
-        "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}, hostname)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", role=~\"$role\"}, hostname)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1913,6 +1924,6 @@
   "timezone": "browser",
   "title": "Windows Server Overview",
   "uid": "windows-overview",
-  "version": 1,
+  "version": 5,
   "weekStart": ""
 }

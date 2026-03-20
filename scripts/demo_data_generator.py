@@ -352,6 +352,13 @@ def _generate_windows_metrics(
         uptime = time.time() - host.uptime_start
         idle_pct = random.uniform(0.6, 0.95)
         metrics.append(("windows_logical_disk_idle_seconds_total", vol_labels, uptime * idle_pct))
+        # Disk throughput counters (monotonically increasing)
+        read_key = f"win_disk_read_{volume}"
+        write_key = f"win_disk_write_{volume}"
+        host.cpu_counters[read_key] = host.cpu_counters.get(read_key, random.uniform(1e9, 1e11)) + random.uniform(1e5, 5e7) * SCRAPE_INTERVAL
+        host.cpu_counters[write_key] = host.cpu_counters.get(write_key, random.uniform(1e9, 1e11)) + random.uniform(1e5, 5e7) * SCRAPE_INTERVAL
+        metrics.append(("windows_logical_disk_read_bytes_total", vol_labels, host.cpu_counters[read_key]))
+        metrics.append(("windows_logical_disk_write_bytes_total", vol_labels, host.cpu_counters[write_key]))
 
     # Network
     nic_labels = {**labels, "nic": "Ethernet0"}
@@ -478,8 +485,21 @@ def _generate_windows_metrics(
             metrics.append(("physical_disk_avg_queue_depth", disk_labels, random.uniform(0, 5)))
             metrics.append(("physical_disk_avg_read_latency_ms", disk_labels, random.uniform(0.5, 15)))
             metrics.append(("physical_disk_avg_write_latency_ms", disk_labels, random.uniform(0.5, 20)))
+        # FSRM quota metrics
+        for quota_path in [r"C:\Shares\Data", r"C:\Shares\Users", r"C:\Shares\Apps"]:
+            quota_labels = {**fs_labels, "path": quota_path}
+            hard_limit = 1099511627776.0  # 1 TB
+            usage = hard_limit * random.uniform(0.3, 0.85)
+            metrics.append(("fsrm_quota_usage_bytes", quota_labels, usage))
+            metrics.append(("fsrm_quota_hard_limit_bytes", quota_labels, hard_limit))
+            metrics.append(("fsrm_quota_percent_used", quota_labels, (usage / hard_limit) * 100))
         metrics.append(("up", {**fs_labels}, 1.0))
-        for svc in ["LanmanServer", "DFSR", "DFS"]:
+        for svc in ["LanmanServer", "DFSR", "DFS", "SrmSvc"]:
+            metrics.append(("windows_service_state", {**labels, "name": svc, "state": "running"}, 1.0))
+
+    # IIS service state (for iis role)
+    if host.role == "iis":
+        for svc in ["W3SVC", "WAS", "IISADMIN"]:
             metrics.append(("windows_service_state", {**labels, "name": svc, "state": "running"}, 1.0))
 
     return metrics
@@ -503,11 +523,22 @@ def _generate_linux_metrics(
         host.cpu_counters[key] = host.cpu_counters.get(key, random.uniform(1e4, 1e6)) + increment
         metrics.append(("node_cpu_seconds_total", cpu_labels, host.cpu_counters[key]))
 
-    # Memory
+    # Memory (full breakdown for Linux dashboard)
     total_bytes = 17179869184.0  # 16 GB
-    avail_bytes = total_bytes * (1.0 - host.mem_base)
+    used_ratio = host.mem_base
+    free_bytes = total_bytes * 0.05
+    cached_bytes = total_bytes * (1.0 - used_ratio) * 0.6
+    buffers_bytes = total_bytes * (1.0 - used_ratio) * 0.1
+    avail_bytes = free_bytes + cached_bytes + buffers_bytes
+    swap_total = 8589934592.0  # 8 GB
+    swap_free = swap_total * random.uniform(0.8, 1.0)
     metrics.append(("node_memory_MemTotal_bytes", labels, total_bytes))
     metrics.append(("node_memory_MemAvailable_bytes", labels, avail_bytes))
+    metrics.append(("node_memory_MemFree_bytes", labels, free_bytes))
+    metrics.append(("node_memory_Cached_bytes", labels, cached_bytes))
+    metrics.append(("node_memory_Buffers_bytes", labels, buffers_bytes))
+    metrics.append(("node_memory_SwapTotal_bytes", labels, swap_total))
+    metrics.append(("node_memory_SwapFree_bytes", labels, swap_free))
 
     # Filesystem
     for mp, dev, size in [("/", "/dev/sda1", 107374182400.0),
@@ -518,19 +549,28 @@ def _generate_linux_metrics(
         metrics.append(("node_filesystem_size_bytes", fs_labels, size))
         metrics.append(("node_filesystem_avail_bytes", fs_labels, avail))
 
-    # Disk IO
+    # Disk IO (counters -- must be monotonically increasing)
     disk_labels = {**labels, "device": "sda"}
     uptime_secs = time.time() - host.uptime_start
     io_time = uptime_secs * random.uniform(0.05, 0.30)
     metrics.append(("node_disk_io_time_seconds_total", disk_labels, io_time))
+    read_key = "linux_disk_read"
+    write_key = "linux_disk_write"
+    host.cpu_counters[read_key] = host.cpu_counters.get(read_key, random.uniform(1e9, 1e11)) + random.uniform(1e5, 5e7) * SCRAPE_INTERVAL
+    host.cpu_counters[write_key] = host.cpu_counters.get(write_key, random.uniform(1e9, 1e11)) + random.uniform(1e5, 5e7) * SCRAPE_INTERVAL
+    metrics.append(("node_disk_read_bytes_total", disk_labels, host.cpu_counters[read_key]))
+    metrics.append(("node_disk_written_bytes_total", disk_labels, host.cpu_counters[write_key]))
 
     # Network
     net_labels = {**labels, "device": "eth0"}
     metrics.append(("node_network_receive_bytes_total", net_labels, host.net_bytes_counter * 0.6))
     metrics.append(("node_network_transmit_bytes_total", net_labels, host.net_bytes_counter * 0.4))
 
-    # Load
-    metrics.append(("node_load1", labels, host.cpu_base * 4.0 * random.uniform(0.8, 1.2)))
+    # Load (1m, 5m, 15m)
+    load_base = host.cpu_base * 4.0
+    metrics.append(("node_load1", labels, load_base * random.uniform(0.8, 1.2)))
+    metrics.append(("node_load5", labels, load_base * random.uniform(0.85, 1.15)))
+    metrics.append(("node_load15", labels, load_base * random.uniform(0.9, 1.1)))
 
     # Systemd units
     for unit, state in [("docker.service", "active"), ("sshd.service", "active"),
@@ -593,10 +633,12 @@ def generate_network_device_metrics(device: SimulatedNetworkDevice, timestamp_ms
         metrics.append(("ifHCInOctets", if_labels, device.in_octets_counters[i]))
         metrics.append(("ifHCOutOctets", if_labels, device.out_octets_counters[i]))
         metrics.append(("ifSpeed", if_labels, 1e9))  # 1 Gbps
-        metrics.append(("ifInErrors", if_labels, float(random.randint(0, 2))))
-        metrics.append(("ifOutErrors", if_labels, float(random.randint(0, 1))))
-        metrics.append(("ifInDiscards", if_labels, float(random.randint(0, 3))))
-        metrics.append(("ifOutDiscards", if_labels, float(random.randint(0, 1))))
+        # Most interfaces have zero errors; only ~5% have occasional errors
+        has_errors = random.random() < 0.05
+        metrics.append(("ifInErrors", if_labels, float(random.randint(1, 5) if has_errors else 0)))
+        metrics.append(("ifOutErrors", if_labels, float(random.randint(1, 3) if has_errors else 0)))
+        metrics.append(("ifInDiscards", if_labels, float(random.randint(1, 5) if has_errors else 0)))
+        metrics.append(("ifOutDiscards", if_labels, float(1 if has_errors else 0)))
         metrics.append(("ifOperStatus", if_labels, 1.0))  # up
         metrics.append(("ifAdminStatus", if_labels, 1.0))  # up
 
@@ -649,7 +691,7 @@ def generate_probe_metrics(endpoint: SimulatedCertEndpoint, timestamp_ms: int) -
 
     # Probe success (occasional failure for realism)
     success = 1.0 if random.random() > 0.02 else 0.0
-    probe_labels = {**base_labels, "job": "blackbox_exporter", "probe_type": "http"}
+    probe_labels = {**base_labels, "job": "cert_monitor", "probe_type": "http"}
     metrics.append(("probe_success", probe_labels, success))
     metrics.append(("probe_duration_seconds", probe_labels, random.uniform(0.01, 0.5)))
     metrics.append(("up", probe_labels, 1.0))

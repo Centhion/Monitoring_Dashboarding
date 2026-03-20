@@ -19,35 +19,54 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
   "links": [
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Enterprise NOC",
-      "url": "/d/enterprise-noc?var-environment=$environment",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/enterprise-noc?var-environment=$environment"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Site Overview",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Windows Servers",
-      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter"
     },
     {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
       "title": "Linux Servers",
-      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter",
+      "tooltip": "",
       "type": "link",
-      "icon": "dashboard",
-      "targetBlank": false
+      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter"
     }
   ],
   "panels": [
@@ -116,7 +135,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
       "pluginVersion": "10.4.0",
@@ -127,7 +146,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(instance:iis_request_rate:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "expr": "sum(iis:site_requests:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
           "legendFormat": "Requests/s",
           "range": true,
           "refId": "A"
@@ -195,7 +214,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
       "pluginVersion": "10.4.0",
@@ -206,7 +225,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avg(instance:iis_5xx_error:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}) * 100",
+          "expr": "avg(iis:site_error_ratio:5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}) * 100",
           "legendFormat": "5xx Rate",
           "range": true,
           "refId": "A"
@@ -268,7 +287,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
       "pluginVersion": "10.4.0",
@@ -279,7 +298,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(instance:iis_active_connections:total{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "expr": "sum(iis:site_current_connections:current{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
           "legendFormat": "Connections",
           "range": true,
           "refId": "A"
@@ -341,7 +360,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto",
+        "textMode": "value_and_name",
         "wideLayout": true
       },
       "pluginVersion": "10.4.0",
@@ -352,7 +371,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(instance:iis_throughput_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "expr": "sum(iis:site_bytes_sent:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
           "legendFormat": "Throughput",
           "range": true,
           "refId": "A"
@@ -450,7 +469,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (hostname, site) (instance:iis_site_request_rate:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", site=~\"$site\"})",
+          "expr": "sum by (hostname, site) (iis:site_requests:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", site=~\"$site\"})",
           "legendFormat": "{{hostname}} - {{site}}",
           "range": true,
           "refId": "A"
@@ -743,7 +762,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:iis_5xx_error:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "expr": "sum by (hostname) (iis:site_error_ratio:5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
           "legendFormat": "{{hostname}}",
           "range": true,
           "refId": "A"
@@ -830,7 +849,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:iis_4xx_error:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "expr": "sum by (hostname) (iis:site_4xx_errors:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
           "legendFormat": "{{hostname}}",
           "range": true,
           "refId": "A"
@@ -941,7 +960,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "windows_iis_current_connections{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", site=~\"$site\"}",
+          "expr": "sum by (hostname) (windows_iis_current_connections{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", site=~\"$site\"})",
           "legendFormat": "{{hostname}} - {{site}}",
           "range": true,
           "refId": "A"
@@ -1027,7 +1046,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "instance:iis_site_throughput_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", site=~\"$site\"}",
+          "expr": "sum by (hostname) (iis:site_bytes_sent:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\", site=~\"$site\"})",
           "legendFormat": "{{hostname}} - {{site}}",
           "range": true,
           "refId": "A"
@@ -1338,11 +1357,6 @@
   "templating": {
     "list": [
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1354,8 +1368,11 @@
         "multi": true,
         "name": "environment",
         "options": [],
-        "query": "label_values(windows_iis_current_connections, environment)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(windows_iis_current_connections, environment)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1363,11 +1380,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1379,8 +1391,11 @@
         "multi": true,
         "name": "datacenter",
         "options": [],
-        "query": "label_values(windows_iis_current_connections{environment=~\"$environment\"}, datacenter)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(windows_iis_current_connections{environment=~\"$environment\"}, datacenter)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1388,11 +1403,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1404,8 +1414,11 @@
         "multi": true,
         "name": "hostname",
         "options": [],
-        "query": "label_values(windows_iis_current_connections{environment=~\"$environment\", datacenter=~\"$datacenter\"}, hostname)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(windows_iis_current_connections{environment=~\"$environment\", datacenter=~\"$datacenter\"}, hostname)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1413,11 +1426,6 @@
         "allValue": ".*"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -1429,8 +1437,11 @@
         "multi": true,
         "name": "site",
         "options": [],
-        "query": "label_values(windows_iis_current_connections{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}, site)",
-        "refresh": 2,
+        "query": {
+          "query": "label_values(windows_iis_current_connections{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}, site)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
         "sort": 1,
@@ -1526,6 +1537,6 @@
   "timezone": "browser",
   "title": "IIS Web Server Overview",
   "uid": "iis-overview",
-  "version": 1,
+  "version": 6,
   "weekStart": ""
 }
