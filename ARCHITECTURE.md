@@ -13,7 +13,8 @@ This document outlines the architecture and design decisions for the Enterprise 
 | Alert Management | Prometheus Alertmanager | Latest | Alert routing, grouping, deduplication, silencing, and notification dispatch |
 | Visualization | Grafana | Latest | Dashboards, data exploration, unified alerting UI |
 | Notifications | Microsoft Teams Webhooks | N/A | Alert delivery via incoming webhook to Teams channels |
-| Tooling | Python 3.x | 3.10+ | Config validation, dashboard generation, testing scripts |
+| Tooling | Python 3.x | 3.10+ | Config validation, deployment wrapper, demo data generation |
+| Tooling Deps | PyYAML, python-snappy | Latest | YAML config generation and Prometheus remote_write compression |
 
 ## Data Flow
 
@@ -90,12 +91,9 @@ Monitoring_Dashboarding/
 |       +-- ldap.toml           # LDAP/AD authentication template (Phase 8)
 |       +-- provisioning/access-control/ # Team and folder permission definitions
 +-- dashboards/                  # Grafana dashboard JSON files
-|   +-- windows/                # Windows Server dashboards (windows_overview, iis_overview)
-|   +-- linux/                  # Linux Server dashboards (linux_overview)
-|   +-- overview/               # Hub dashboards (enterprise_noc, site_overview, infra, log_explorer, sla, probing, audit)
-|   +-- network/                # Network infrastructure dashboards (Phase 7A)
-|   +-- hardware/               # Hardware health dashboards (Phase 7B)
-|   +-- certs/                  # Certificate monitoring dashboards (Phase 7C)
+|   +-- enterprise/             # Fleet-wide views (NOC, SLA, Audit, Probing)
+|   +-- servers/                # VM dashboards by OS and role (Windows, Linux, SQL, DC, IIS, DHCP, CA, FileServer, Docker, Log Explorer)
+|   +-- infrastructure/         # Physical layer and site views (Site Overview, Network, Physical Servers, Certificates)
 +-- alerts/                      # Alert rule definitions
 |   +-- prometheus/             # Prometheus alerting rules (YAML)
 |   +-- grafana/                # Grafana-managed alert rules (JSON)
@@ -111,6 +109,8 @@ Monitoring_Dashboarding/
 |   +-- validate_fleet_tags.py # Tag compliance audit against Prometheus
 |   +-- configure_rbac.py     # Apply RBAC folder permissions via Grafana API
 |   +-- validate_rbac.py      # Validate RBAC state against config
+|   +-- deploy_configure.py  # Deployment wrapper (generates all stack configs from site inventory)
+|   +-- demo_data_generator.py # Synthetic metrics/logs for dashboard demos
 +-- inventory/                   # Fleet inventory
 |   +-- sites.yml              # Site/datacenter registry
 |   +-- hosts.yml              # Server inventory (hostname, site, role, OS)

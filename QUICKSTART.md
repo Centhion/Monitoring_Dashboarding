@@ -12,6 +12,7 @@ Run the full stack on your workstation for pre-production validation.
 
 - Docker Desktop 4.x+ (with Docker Compose v2)
 - Python 3.10+
+- `pip install -r requirements.txt` (pyyaml + python-snappy)
 
 ### Steps
 
@@ -19,19 +20,23 @@ Run the full stack on your workstation for pre-production validation.
 # 1. Fork and clone
 git clone https://github.com/<YOUR_ORG>/Monitoring_Dashboarding.git
 cd Monitoring_Dashboarding
+pip install -r requirements.txt
 
-# 2. (Optional) Configure environment
-cp .env.example .env
-# Edit .env to set TEAMS_WEBHOOK_URL for notification testing
+# 2. Configure the stack (interactive prompts for sites, SMTP, Teams webhook)
+python scripts/deploy_configure.py
+# Or use the example config: python scripts/deploy_configure.py --config deploy/site_config.example.yml
 
 # 3. Start the stack
 python scripts/poc_setup.py
 
-# 4. Open Grafana
+# 4. (Optional) Start with demo data -- dashboards populate immediately
+python scripts/poc_setup.py --demo-data
+
+# 5. Open Grafana
 #    http://localhost:3000  (admin / admin)
 ```
 
-The setup script starts all containers, waits for health checks, validates Prometheus rules, and confirms Grafana datasources are provisioned.
+The deployment wrapper generates `.env`, `alertmanager.yml`, `notifiers.yml`, and `inventory/sites.yml` from your inputs. The setup script starts all containers, waits for health checks, and validates the stack. With `--demo-data`, synthetic metrics and logs are pushed continuously so all 19 dashboards populate without deploying real agents.
 
 ### Test with Real Data
 

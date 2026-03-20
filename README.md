@@ -24,15 +24,19 @@ Provide centralized infrastructure monitoring, log aggregation, alerting, and da
 git clone https://github.com/<YOUR_ORG>/Monitoring_Dashboarding.git
 cd Monitoring_Dashboarding
 
-# Set up environment
-cp .env.example .env
-# Edit .env with your environment-specific values (webhook URLs, endpoints, etc.)
+# Configure the stack (interactive -- sets up sites, SMTP, Teams webhook)
+python scripts/deploy_configure.py
 
-# Start the full stack locally via Docker Compose
+# Start the stack
 python scripts/poc_setup.py
+
+# Start with demo data (dashboards populate with synthetic multi-site data)
+python scripts/poc_setup.py --demo-data
 
 # Open Grafana at http://localhost:3000 (admin / admin)
 ```
+
+The deployment wrapper generates all config files (`.env`, alertmanager routing, Grafana notifiers, site inventory) from interactive prompts. Re-run to add sites or change settings. See `deploy/site_config.example.yml` for the config schema.
 
 ## Structure
 
@@ -43,7 +47,7 @@ python scripts/poc_setup.py
 | `configs/loki/` | Loki server configuration |
 | `configs/alertmanager/` | Alertmanager routing, receivers, and inhibition rules |
 | `configs/grafana/` | Grafana provisioning (datasources, dashboards, notifiers, LDAP, RBAC) |
-| `dashboards/` | Grafana dashboard JSON (windows/, linux/, overview/, network/, hardware/, certs/) |
+| `dashboards/` | Grafana dashboard JSON (enterprise/, servers/, infrastructure/) |
 | `alerts/` | Prometheus alerting rules and Grafana alert policies |
 | `deploy/docker/` | Docker Compose stack for local testing and PoC |
 | `deploy/helm/` | Helm chart and value overlays for Kubernetes deployment |
@@ -84,23 +88,41 @@ python scripts/poc_setup.py
 
 ## Dashboards
 
-| Dashboard | UID | Folder | Purpose |
-|-----------|-----|--------|---------|
-| Enterprise NOC | `enterprise-noc` | Infrastructure | Multi-site health grid with drill-down links per datacenter |
-| Site Overview | `site-overview` | Infrastructure | Single-site deep view with server, IIS, and log panels |
-| Infrastructure Overview | `infra-overview` | Infrastructure | Fleet-wide server metrics, top problem servers, alerts |
-| Windows Server Overview | `windows-overview` | Windows Servers | Per-host Windows CPU, memory, disk, network, services |
-| Linux Server Overview | `linux-overview` | Linux Servers | Per-host Linux CPU, memory, disk, network, systemd |
-| IIS Overview | `iis-overview` | Windows Servers | IIS request rates, error ratios, connections, access logs |
-| Certificate Overview | `cert-overview` | Certificates | SSL/TLS certificate expiry tracking with probe health |
-| Network Infrastructure | `network-overview` | Network | SNMP device inventory, interface status, traffic, utilization |
-| Hardware Health | `hardware-overview` | Hardware | Redfish BMC health, temperatures, power, component status |
-| SLA Availability | `sla-availability` | Infrastructure | Host/role/site uptime percentages with SLA threshold indicators |
-| Probing Overview | `probing-overview` | Infrastructure | Synthetic probe status grid, success rates, and latency analysis |
-| Audit Trail | `audit-trail` | Infrastructure | Grafana user activity: logins, dashboard changes, API requests |
-| Log Explorer | `log-explorer` | Infrastructure | Cross-platform log search across Windows Event Log, Linux journal, and IIS |
+### Enterprise (fleet-wide views)
 
-All dashboards include a cross-navigation link bar. Template variables (`environment`, `datacenter`, `hostname`) propagate between dashboards for seamless drill-down.
+| Dashboard | UID | Purpose |
+|-----------|-----|---------|
+| Enterprise NOC | `enterprise-noc` | Multi-site health grid with drill-down links per datacenter |
+| SLA Availability | `sla-availability` | Host/role/site uptime percentages with SLA threshold indicators |
+| Audit Trail | `audit-trail` | Grafana user activity: logins, dashboard changes, API requests |
+| Probing Overview | `probing-overview` | Synthetic probe status grid, success rates, and latency analysis |
+
+### Servers (VMs by OS and role)
+
+| Dashboard | UID | Purpose |
+|-----------|-----|---------|
+| Windows Server Overview | `windows-overview` | Per-host Windows CPU, memory, disk, network, services |
+| Linux Server Overview | `linux-overview` | Per-host Linux CPU, memory, disk, network, systemd |
+| SQL Server Overview | `sql-overview` | Buffer cache, wait stats, deadlocks, database sizes |
+| Domain Controller Overview | `dc-overview` | AD replication, LDAP, DNS queries, Kerberos, service health |
+| IIS Web Server Overview | `iis-overview` | Request rates, error ratios, connections, access logs |
+| DHCP Server Overview | `dhcp-overview` | DHCP message rates (discover, offer, request, ack, nak) |
+| Certificate Authority Overview | `ca-overview` | AD CS certificate issuance, failures, pending requests |
+| File Server Overview | `fileserver-overview` | SMB sessions, share I/O, disk IOPS, FSRM quotas |
+| Docker Host Overview | `docker-overview` | Container states, engine metrics, resource usage |
+| Log Explorer | `log-explorer` | Cross-platform log search across Windows Event Log, Linux journal, and IIS |
+
+### Infrastructure (physical layer and site-level views)
+
+| Dashboard | UID | Purpose |
+|-----------|-----|---------|
+| Site Overview | `site-overview` | Single-site drill-down with servers, IIS, network, hardware, certs |
+| Infrastructure Overview | `infra-overview` | Fleet-wide server metrics, top problem servers, alerts |
+| Network Infrastructure | `network-overview` | SNMP device inventory, interface status, traffic, utilization |
+| Physical Server Health | `hardware-overview` | Redfish BMC health, temperatures, power, component status |
+| Certificate Overview | `cert-overview` | SSL/TLS certificate expiry tracking with probe health |
+
+All dashboards include a cross-navigation link bar. Template variables (`environment`, `datacenter`, `hostname`) propagate between dashboards for seamless drill-down. Navigation flow: Enterprise NOC -> Site Overview -> role-specific dashboard.
 
 ## Documentation
 

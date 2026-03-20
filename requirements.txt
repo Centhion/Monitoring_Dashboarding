@@ -4,5 +4,8 @@
 # YAML parsing for Prometheus/Alertmanager/Grafana config validation
 pyyaml>=6.0
 
+# Snappy compression for Prometheus remote_write (required by demo data generator)
+python-snappy>=0.7
+
 # Test runner (optional -- tests also work without pytest via direct execution)
 pytest>=7.0
