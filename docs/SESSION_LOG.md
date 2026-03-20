@@ -246,3 +246,45 @@ Chronological record of work sessions for context continuity.
 - Total across all sessions (3/19-3/20): 12 commits
 
 ---
+
+## Session: 2026-03-20 (final)
+
+### Completed
+
+- **Phase 12 tasks 1-19 complete**: All original 17 tasks plus 2 additional (detail tables, comprehensive click audit)
+- **Dashboard rebuilds**: CA (per-template), DC (replication/LDAP/SAM), DHCP (per-scope utilization)
+- **Demo data expanded**: DC 16 new metrics, DHCP 24 per-scope metrics, CA 25 per-template metrics, SLA downtime simulation, audit trail Loki logs
+- **Click-to-filter**: All actionable stat/gauge panels have click links, 7 dashboards got Stopped Services and Disk Space detail tables
+- **Color fixes**: NOC High CPU, SLA red names, cert expiry standardized, probing thresholds
+- **Comprehensive audit**: 36 remaining click links identified that need detail panel wiring (Phase 12B)
+
+### In Progress
+
+- **Phase 12B**: 16 click-to-filter detail wiring tasks planned (8 Category A = simple URL fixes, 8 Category B = new detail panels needed)
+
+### Decisions
+
+- **Click-to-filter pattern**: Every clickable stat must navigate to a visible, relevant detail panel showing filtered specifics. Not just reload the same dashboard.
+- **Category A vs B**: Stats where a detail panel already exists on the dashboard just need correct anchor URLs. Stats without a matching detail panel need new collapsed-row tables added.
+- **Docker per-container**: Requires cAdvisor (separate dependency). Dashboard stays daemon-level for now. Don't promise per-container drill-down in demo.
+- **DHCP scopes**: Per-scope metrics available from Windows exporter. 4 demo scopes: Servers, Workstations, Printers, VoIP.
+- **CA per-template**: 5 templates in demo: Machine, WebServer, User, DomainController, SubCA. No CRL metrics from Windows exporter.
+
+### Next Session
+
+1. **Phase 12B Category A** (tasks 20-27): Fix 8 click links to anchor to existing detail panels -- quick wins
+2. **Phase 12B Category B** (tasks 28-35): Add 8 new detail panels for stats that lack them
+3. **Visual review**: User continues clicking through dashboards
+4. **Demo prep**: Finalize for stakeholder presentation
+
+### Context
+
+- Stack running with 7 Alterra sites, demo data generator in background
+- 36 click links identified as incomplete -- planned in PROJECT_PLAN.md Phase 12B
+- DHCP now has per-scope metrics (addresses_in_use, addresses_free, scope_state)
+- CA now has per-template metrics (windows_adcs_requests_total by cert_template)
+- DC now has replication bytes, LDAP sessions, SAM password changes, tombstone tracking
+- Demo data simulates ~2% downtime on generic hosts for SLA dashboards
+- Audit trail logs being pushed to Loki (login, dashboard views, failed logins)
+
+---

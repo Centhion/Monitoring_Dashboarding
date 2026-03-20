@@ -1725,41 +1725,58 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 **Status**: In Progress
 
-### Servers Folder
+### Completed
 
-- [ ] 1. SQL Overview: Blocked Processes clickable -> filtered table. Disk Free clickable -> per-volume detail. Per-host view expanded -- Simple
-- [ ] 2. CA Overview: Research and add revocation list metrics, CRL publish status, template usage. Clean up host filter view -- Medium
-- [ ] 3. DHCP Overview: Research and add scope utilization, per-scope lease counts, scope exhaustion. Host-level scope detail -- Medium
-- [ ] 4. Docker Overview: Container stats clickable -> filtered container list. Per-host view shows individual containers with health, CPU, memory -- Complex
-- [ ] 5. DC Overview: Per-host detail expanded -- FSMO roles, replication partner status, tombstone lifetime -- Medium
-- [ ] 6. File Server Overview: Open Files clickable -> filtered list showing hosts and files -- Medium
-- [ ] 7. Windows Overview: Services Stopped clickable -> filtered list showing which services on which hosts -- Medium
+- [x] 1. SQL Overview: Blocked Processes and Disk Free clickable. Storage row added. Layout rebuilt.
+- [x] 2. CA Overview: rebuilt with per-template breakdown table, issuance trends, processing time
+- [x] 3. DHCP Overview: rebuilt with scope utilization table (4 scopes), scope detail trends
+- [x] 4. Docker Overview: container stats clickable (per-container metrics need cAdvisor)
+- [x] 5. DC Overview: rebuilt with LDAP sessions, replication bytes, SAM, tombstones, sync objects
+- [x] 6. File Server Overview: Open Files and Active Sessions clickable
+- [x] 7. Windows Overview: Services Stopped clickable
+- [x] 8. Certificate Overview: colors standardized (<30d red, 30-60d yellow, >60d green)
+- [x] 9. Infrastructure Overview: stat boxes clickable
+- [x] 10. Network Infrastructure: Error Interfaces clickable
+- [x] 11. Site Overview: stats clickable with datacenter pass-through
+- [x] 12. Probing Overview: improved colors and thresholds
+- [x] 13. Audit Trail: added purpose description, demo audit logs in Loki
+- [x] 14. Enterprise NOC: High CPU/Low Disk thresholds fixed, SHG PromQL fixed
+- [x] 15. SLA Overview: fixed red site names, SLA thresholds added, downtime simulated
+- [x] 16. Demo data: SLA downtime simulation (~2% generic hosts go down)
+- [x] 17. Demo data: audit trail log entries pushed to Loki
+- [x] 18. Stopped Services Detail and Disk Space Detail tables added to 7 role dashboards
+- [x] 19. All actionable stat/gauge panels have click links (comprehensive audit: 0 missing)
 
-### Infrastructure Folder
+### Remaining: Click-to-Filter Detail Wiring (Phase 12B)
 
-- [ ] 8. Certificate Overview: Standardize colors (<30d red, 30-60d yellow, >60d green). Cert Health Summary and Expiry clickable/filterable. Fix Probe Health showing too many entries -- Medium
-- [ ] 9. Infrastructure Overview: Review and simplify layout. Fix clickable boxes that don't filter -- Medium
-- [ ] 10. Network Infrastructure: Error Interfaces clickable -> filtered list of specific interfaces with errors -- Simple
-- [ ] 11. Site Overview: Fix panels with no data. Site Health stats, Worst Disk clickable -> detail views -- Medium
+36 clickable stat panels link to dashboards but don't navigate to a specific detail panel. Two categories:
 
-### Enterprise Folder
+**Category A -- Link to existing detail panel (simple URL fix, no new panels):**
+- [ ] 20. Certificate Overview: Expiring/Urgent/Critical/Expired stats -> anchor to Certificate Inventory table -- Simple
+- [ ] 21. Network Infrastructure: Devices Monitored/Down, Interfaces Down -> anchor to Interface Status Table -- Simple
+- [ ] 22. Physical Server Health: Monitored/Warning/Critical/Unreachable -> anchor to Server Health Inventory table -- Simple
+- [ ] 23. Infrastructure Overview: High CPU/Low Disk/Active Alerts -> anchor to Top 10 tables -- Simple
+- [ ] 24. Log Explorer: Error/Warning/Critical stats -> anchor to log stream panels -- Simple
+- [ ] 25. File Server: Active Sessions/Open Files -> anchor to SMB Performance section -- Simple
+- [ ] 26. Probing Overview: Targets Failing -> anchor to probe status grid -- Simple
+- [ ] 27. SLA: Hosts Below SLA/Worst Site/Downtime -> anchor to per-host availability table -- Simple
 
-- [ ] 12. Probing Overview: Status grid better layout, more color coding, better dispersement. Per-site probe health improvements -- Medium
-- [ ] 13. Audit Trail: Fix no data -- add demo audit log entries to Loki. Ensure dashboard shows meaningful login/change activity -- Medium
-- [ ] 14. Enterprise NOC: Fix Site Health Grid error. Fix High CPU showing green (should be red/yellow at threshold). Review color logic -- Medium
-- [ ] 15. SLA Overview: Fix site names showing in red when healthy. Add simulated downtime to demo data so SLA shows realistic 99.5-99.9% availability -- Medium
-
-### Demo Data
-
-- [ ] 16. Add simulated downtime events to demo data generator so SLA dashboards show realistic availability (not 100%) -- Medium
-- [ ] 17. Add audit trail log entries to Loki push so Audit Trail dashboard populates -- Simple
+**Category B -- New detail panel needed:**
+- [ ] 28. SQL: Blocked Processes -> new lock detail table (database, wait type, wait time) -- Medium
+- [ ] 29. SQL: User Connections -> new connection summary table -- Simple
+- [ ] 30. SQL: Disk Free (Worst) -> fix link to existing Storage row -- Simple
+- [ ] 31. Windows: Services Not Running -> new stopped services table -- Medium
+- [ ] 32. DC: Sync Objects Remaining -> link to Replication Health row -- Simple
+- [ ] 33. Docker: Running/Stopped Containers -> link to Container States section -- Simple
+- [ ] 34. Audit Trail: Failed Logins -> filtered log panel for failed auth -- Medium
+- [ ] 35. IIS: Active Connections -> link to connection/request detail section -- Simple
 
 ### Success Criteria
 
-- Every stat panel on hub dashboards is clickable and navigates to a filtered detail view
-- Role dashboards show comprehensive metrics for their role (not just basics)
-- Color coding is consistent and standardized across all dashboards
-- Demo data showcases all features including downtime, errors, and audit activity
+- Every clickable stat navigates to a visible, relevant detail panel
+- Clicking shows filtered/specific data, not the same view
+- Color coding consistent across all dashboards
+- Demo data showcases all features including downtime, errors, audit activity
 - No "No data" panels on any dashboard with demo data running
 
 ---
