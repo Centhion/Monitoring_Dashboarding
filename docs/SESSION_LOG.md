@@ -181,3 +181,68 @@ Chronological record of work sessions for context continuity.
 - Total across both sessions (3/19-3/20): 8 commits
 
 ---
+
+## Session: 2026-03-20 (continued)
+
+### Completed
+
+- **Dashboard operational completeness audit**: Scenario-based review (SQL slow, File Server I/O, AD replication, Network down, Cert expiry, Hardware thermal) -- all 6 pass. Found 24 missing panels across role dashboards.
+
+- **Server Health row on all role dashboards**: Added CPU, Memory, Disk Free, Network, Uptime, Services Down (or Load Average for Linux) gauges/stats to SQL, DC, IIS, DHCP, CA, File Server, Docker dashboards. Moved to top of every dashboard (operator looks at OS health first).
+
+- **SQL dashboard overhaul**: Added Storage row (per-volume disk free, throughput, I/O utilization). Rebuilt layout to fix overlapping panels. 6 SQL stats now fit cleanly in one row at w=4 each.
+
+- **IIS recording rules fix (production bug)**: Added `hostname`, `environment`, `role` to all `by` clauses in `iis_recording_rules.yml`. Without this, IIS dashboard showed "No data" when filtering by individual host because recording rules dropped the hostname label during aggregation.
+
+- **Enterprise NOC PromQL fix (production bug)**: Fixed malformed PromQL in Site Health Grid where filter was placed outside aggregation parentheses: `min by (...) (metric){filter}` -> `min by (...) (metric{filter})`. Same fix in Site Overview.
+
+- **SLA dashboard datacenter filter (production bug)**: Added `{datacenter=~"$datacenter"}` to all 10 SLA queries. Was ignoring site selection and showing all sites regardless.
+
+- **48 threshold assignments**: Every stat/gauge panel now has color coding. Health metrics (CPU, memory, disk) use green/yellow/red. Informational metrics (total counts, rates) use blue. Documented in `docs/THRESHOLD_GUIDE.md`.
+
+- **30 drill-down data links**: Clickable stat panels on hub dashboards (NOC, Infrastructure, Site Overview, Network, Physical Servers, Certificates, SLA, Probing) navigate to detail views.
+
+- **Infrastructure Overview network panel**: Added Fleet Network Throughput (Windows + Linux split) to the fleet trends row.
+
+- **Docker dashboard layout fix**: Fixed Host Memory stat overlapping with Container States timeseries.
+
+- **Demo data improvements**: Role-based disk volumes (SQL 5 drives, FileServer 4, IIS 3). Fixed SNMP error counters to use monotonic counters.
+
+- **User practiced deployment workflow**: User ran through deploy_configure.py -> stack_manage.py --demo-data on local machine with real Alterra site codes (7 sites). Stack running with demo data.
+
+### In Progress
+
+- **Visual review by user**: User is clicking through dashboards finding layout and data issues. Core functionality works but polish continues.
+
+### Blockers
+
+- None for current work. Lansweeper 7D.3-7D.4 still blocked on API credentials.
+
+### Decisions
+
+- **Server Health at top**: First row on every role dashboard. Operators check OS health before role-specific metrics.
+- **Disk volumes are dynamic**: Dashboards query all volumes/disks that exist. Demo data uses role-based counts (SQL=5) but production agents auto-discover. Nothing hardcoded.
+- **Thresholds documented separately**: `docs/THRESHOLD_GUIDE.md` is the single reference for all threshold values. Team reviews and adjusts before production. Changes go in dashboard JSON `thresholds.steps`.
+- **Drill-downs from hub dashboards only**: Stat panels on NOC/Infrastructure/Site Overview are clickable. Role-specific dashboards (SQL, DC, etc.) are endpoints -- their stats don't drill down further.
+- **No environment on site definitions**: Sites are physical locations. Environment (prod/uat) is set per-agent via ALLOY_ENV.
+- **IIS recording rules must preserve hostname**: All `sum by` clauses include `hostname, environment, role` so per-host filtering works on dashboards.
+
+### Next Session
+
+1. **Continue visual dashboard review**: User may find more layout/readability issues
+2. **Work machine deployment**: Same workflow with real site codes at work
+3. **Stakeholder demo**: Stack is demo-ready with 7 Alterra sites
+4. **Lansweeper 7D.3-7D.4**: When API credentials available
+
+### Context
+
+- Stack running on user's machine with 7 Alterra sites: dv, ent, sbt, sno, sol, schw, mm
+- Demo data generator runs as background process, pushes every 30s
+- Workflow: `python3 scripts/deploy_configure.py` -> `python3 scripts/stack_manage.py --demo-data`
+- Data generator has built-in snappy fallback -- works with system Python, no pip install needed
+- macOS requires `python3` not `python`
+- IIS recording rules now preserve hostname -- this was a production bug that would also affect real agents
+- 4 commits this continuation: 642ed59, ac640cb, f563ee3, 1a9d0cc
+- Total across all sessions (3/19-3/20): 12 commits
+
+---
