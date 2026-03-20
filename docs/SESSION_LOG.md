@@ -377,3 +377,36 @@ Chronological record of work sessions for context continuity.
 - Commits this session: 1d107c1, abe6910, 87fa483, e880bd3, af13719, 3afa9a0, 5d22c10
 
 ---
+
+## Session: 2026-03-20 (session 5)
+
+### Completed
+
+- **Certificate Overview dashboard rebuilt**: Replaced unreadable Probe Status History (raw labels as Y-axis) and spaghetti Expiry Timeline with clean visualizations: Certificate Inventory table (sorted by days remaining, color-coded cells), Expiry Distribution (horizontal bar gauge), Probe Health table (UP/DOWN text, no giant green blocks).
+
+- **Hostname and service labels on cert probes**: Added `hostname` (which server hosts the cert) and `service` (what the cert is for) to cert probe demo data and dashboard tables. Operators can see which server to update when a cert expires.
+
+- **Cert expiry ranges fixed**: Demo data now generates realistic spread -- 10% critical (<7d), 10% urgent (8-30d), 15% expiring (31-60d), 65% healthy (61-365d). Expiring/Urgent/Critical stats now show values.
+
+- **Duplicate series fix**: Empty-string labels (`hostname=""`) create separate Prometheus series from label-absent series. Fixed generator to only add labels when non-empty. Added `hostname!=""` filter to cert dashboard tables to exclude recording rule outputs.
+
+### Decisions
+
+- **Cert hostname comes from endpoint config**: In production, operators add hostname/service labels to `configs/alloy/certs/endpoints.yml`. The dashboard shows these to help identify which server hosts each certificate.
+- **Recording rules strip hostname**: `probe_recording_rules.yml` aggregates by datacenter, dropping hostname. Dashboard tables filter with `hostname!=""` to show only raw endpoint data.
+- **Local Grafana accounts for demo evaluation**: Users get local accounts with Viewer role during demo period. No LDAP complexity for evaluation.
+
+### Next Session
+
+1. Continue visual dashboard review
+2. Demo prep for stakeholder presentation
+3. Any remaining dashboard issues from user testing
+
+### Context
+
+- Stack running with 7 Alterra sites, demo data generator in background
+- Certificate Overview fully rebuilt -- user approved ("this is great!")
+- All validations pass, all cross-dashboard drill-downs working
+- Commit: b0057cc
+
+---
