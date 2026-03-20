@@ -119,8 +119,8 @@
           },
           "links": [
             {
-              "title": "View Details",
-              "url": "/d/hardware-overview",
+              "title": "View Server Health Inventory",
+              "url": "/d/hardware-overview?viewPanel=7",
               "targetBlank": false
             }
           ]
@@ -257,8 +257,8 @@
           },
           "links": [
             {
-              "title": "View Details",
-              "url": "/d/hardware-overview",
+              "title": "View Server Health Inventory",
+              "url": "/d/hardware-overview?viewPanel=7",
               "targetBlank": false
             }
           ]
@@ -331,8 +331,8 @@
           },
           "links": [
             {
-              "title": "View Details",
-              "url": "/d/hardware-overview",
+              "title": "View Server Health Inventory",
+              "url": "/d/hardware-overview?viewPanel=7",
               "targetBlank": false
             }
           ]
@@ -405,8 +405,8 @@
           },
           "links": [
             {
-              "title": "View Details",
-              "url": "/d/hardware-overview",
+              "title": "View Server Health Inventory",
+              "url": "/d/hardware-overview?viewPanel=7",
               "targetBlank": false
             }
           ]
@@ -1366,5 +1366,5 @@
   "timezone": "",
   "title": "Physical Server Health",
   "uid": "hardware-overview",
-  "version": 10
+  "version": 15
 }

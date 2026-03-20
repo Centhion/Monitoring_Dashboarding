@@ -79,7 +79,8 @@
         "x": 0,
         "y": 0
       },
-      "collapsed": false
+      "collapsed": false,
+      "id": 403
     },
     {
       "type": "gauge",
@@ -127,7 +128,8 @@
             ]
           }
         }
-      }
+      },
+      "id": 404
     },
     {
       "type": "gauge",
@@ -175,7 +177,8 @@
             ]
           }
         }
-      }
+      },
+      "id": 405
     },
     {
       "type": "gauge",
@@ -225,12 +228,13 @@
           "links": [
             {
               "title": "View Disk Details",
-              "url": "/d/fileserver-overview?viewPanel=service-disk-detail",
+              "url": "/d/fileserver-overview?viewPanel=406",
               "targetBlank": false
             }
           ]
         }
-      }
+      },
+      "id": 406
     },
     {
       "type": "stat",
@@ -275,7 +279,8 @@
             "lastNotNull"
           ]
         }
-      }
+      },
+      "id": 407
     },
     {
       "type": "stat",
@@ -328,7 +333,8 @@
             "lastNotNull"
           ]
         }
-      }
+      },
+      "id": 408
     },
     {
       "type": "stat",
@@ -371,7 +377,7 @@
           "links": [
             {
               "title": "View Stopped Services",
-              "url": "/d/fileserver-overview?viewPanel=service-disk-detail",
+              "url": "/d/fileserver-overview?viewPanel=401",
               "targetBlank": false
             }
           ]
@@ -383,7 +389,8 @@
             "lastNotNull"
           ]
         }
-      }
+      },
+      "id": 409
     },
     {
       "collapsed": false,
@@ -429,8 +436,8 @@
           "unit": "short",
           "links": [
             {
-              "title": "View Session Details",
-              "url": "/d/fileserver-overview",
+              "title": "View Read / Write Throughput",
+              "url": "/d/fileserver-overview?viewPanel=100",
               "targetBlank": false
             }
           ]
@@ -504,8 +511,8 @@
           "unit": "short",
           "links": [
             {
-              "title": "View Per-Share Details",
-              "url": "/d/fileserver-overview",
+              "title": "View Read / Write Throughput",
+              "url": "/d/fileserver-overview?viewPanel=100",
               "targetBlank": false
             }
           ]
@@ -1206,7 +1213,7 @@
       ]
     },
     {
-      "collapsed": true,
+      "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1215,141 +1222,139 @@
       },
       "id": 400,
       "title": "Quotas",
-      "type": "row",
-      "panels": [
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "FSRM quota status per path. Expand this row only when FSRM quota metrics are being collected from the target file servers.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Usage %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 80
+                    },
+                    {
+                      "color": "red",
+                      "value": 95
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 10,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "% Used"
+          }
+        ]
+      },
+      "title": "FSRM Quota Status",
+      "type": "table",
+      "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "description": "FSRM quota status per path. Expand this row only when FSRM quota metrics are being collected from the target file servers.",
-          "fieldConfig": {
-            "defaults": {
-              "custom": {
-                "align": "auto",
-                "cellOptions": {
-                  "type": "auto"
-                },
-                "inspect": false
-              }
-            },
-            "overrides": [
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Usage %"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "percent"
-                  },
-                  {
-                    "id": "custom.cellOptions",
-                    "value": {
-                      "mode": "gradient",
-                      "type": "gauge"
-                    }
-                  },
-                  {
-                    "id": "min",
-                    "value": 0
-                  },
-                  {
-                    "id": "max",
-                    "value": 100
-                  },
-                  {
-                    "id": "thresholds",
-                    "value": {
-                      "mode": "absolute",
-                      "steps": [
-                        {
-                          "color": "green",
-                          "value": null
-                        },
-                        {
-                          "color": "yellow",
-                          "value": 80
-                        },
-                        {
-                          "color": "red",
-                          "value": 95
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            ]
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 24,
-            "x": 0,
-            "y": 24
-          },
-          "id": 10,
+          "expr": "fsrm_quota_percent_used{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
           "options": {
-            "cellHeight": "sm",
-            "footer": {
-              "countRows": false,
-              "fields": "",
-              "reducer": [
-                "sum"
-              ],
-              "show": false
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "environment": true,
+              "datacenter": true,
+              "role": true,
+              "os": true,
+              "job": true
             },
-            "showHeader": true,
-            "sortBy": [
-              {
-                "desc": true,
-                "displayName": "% Used"
-              }
-            ]
-          },
-          "title": "FSRM Quota Status",
-          "type": "table",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "expr": "fsrm_quota_percent_used{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
-              "legendFormat": "",
-              "refId": "A",
-              "format": "table",
-              "instant": true
+            "renameByName": {
+              "hostname": "Server",
+              "path": "Quota Path",
+              "Value": "Usage %"
+            },
+            "indexByName": {
+              "hostname": 0,
+              "path": 1,
+              "Value": 2
             }
-          ],
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {
-                  "Time": true,
-                  "__name__": true,
-                  "instance": true,
-                  "environment": true,
-                  "datacenter": true,
-                  "role": true,
-                  "os": true,
-                  "job": true
-                },
-                "renameByName": {
-                  "hostname": "Server",
-                  "path": "Quota Path",
-                  "Value": "Usage %"
-                },
-                "indexByName": {
-                  "hostname": 0,
-                  "path": 1,
-                  "Value": 2
-                }
-              }
-            }
-          ]
+          }
         }
       ]
     },
@@ -1362,188 +1367,189 @@
         "x": 0,
         "y": 30
       },
-      "collapsed": true,
-      "panels": [
+      "collapsed": false,
+      "id": 410
+    },
+    {
+      "type": "table",
+      "title": "Stopped Services Detail",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "targets": [
         {
-          "type": "table",
-          "title": "Stopped Services Detail",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "gridPos": {
-            "h": 6,
-            "w": 24,
-            "x": 0,
-            "y": 31
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "expr": "windows_service_state{state=\"stopped\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
-              "refId": "A",
-              "format": "table",
-              "instant": true
-            }
-          ],
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {
-                  "Time": true,
-                  "__name__": true,
-                  "instance": true,
-                  "environment": true,
-                  "datacenter": true,
-                  "role": true,
-                  "os": true,
-                  "job": true,
-                  "Value": true
-                },
-                "renameByName": {
-                  "hostname": "Server",
-                  "name": "Service",
-                  "state": "State"
-                }
-              }
-            }
-          ],
-          "fieldConfig": {
-            "defaults": {
-              "custom": {
-                "align": "auto"
-              }
-            },
-            "overrides": []
-          },
-          "options": {
-            "showHeader": true,
-            "sortBy": [
-              {
-                "displayName": "Server",
-                "desc": false
-              }
-            ]
-          }
-        },
+          "expr": "windows_service_state{state=\"stopped\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
         {
-          "type": "table",
-          "title": "Disk Space Detail",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "gridPos": {
-            "h": 6,
-            "w": 24,
-            "x": 0,
-            "y": 37
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "expr": "instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100",
-              "refId": "A",
-              "format": "table",
-              "instant": true
-            }
-          ],
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {
-                  "Time": true,
-                  "__name__": true,
-                  "instance": true,
-                  "environment": true,
-                  "datacenter": true,
-                  "role": true,
-                  "os": true,
-                  "job": true
-                },
-                "renameByName": {
-                  "hostname": "Server",
-                  "volume": "Volume",
-                  "Value": "Free %"
-                }
-              }
-            }
-          ],
-          "fieldConfig": {
-            "defaults": {
-              "custom": {
-                "align": "auto"
-              }
-            },
-            "overrides": [
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Free %"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "percent"
-                  },
-                  {
-                    "id": "custom.cellOptions",
-                    "value": {
-                      "mode": "gradient",
-                      "type": "gauge"
-                    }
-                  },
-                  {
-                    "id": "min",
-                    "value": 0
-                  },
-                  {
-                    "id": "max",
-                    "value": 100
-                  },
-                  {
-                    "id": "thresholds",
-                    "value": {
-                      "mode": "absolute",
-                      "steps": [
-                        {
-                          "color": "red",
-                          "value": null
-                        },
-                        {
-                          "color": "yellow",
-                          "value": 10
-                        },
-                        {
-                          "color": "green",
-                          "value": 20
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            ]
-          },
+          "id": "organize",
           "options": {
-            "showHeader": true,
-            "sortBy": [
-              {
-                "displayName": "Free %",
-                "desc": false
-              }
-            ]
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "environment": true,
+              "datacenter": true,
+              "role": true,
+              "os": true,
+              "job": true,
+              "Value": true
+            },
+            "renameByName": {
+              "hostname": "Server",
+              "name": "Service",
+              "state": "State"
+            }
           }
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Server",
+            "desc": false
+          }
+        ]
+      },
+      "id": 401
+    },
+    {
+      "type": "table",
+      "title": "Disk Space Detail",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 37
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "environment": true,
+              "datacenter": true,
+              "role": true,
+              "os": true,
+              "job": true
+            },
+            "renameByName": {
+              "hostname": "Server",
+              "volume": "Volume",
+              "Value": "Free %"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Free %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 10
+                    },
+                    {
+                      "color": "green",
+                      "value": 20
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Free %",
+            "desc": false
+          }
+        ]
+      },
+      "id": 402
     }
   ],
   "refresh": "30s",
@@ -1638,6 +1644,6 @@
   "timezone": "",
   "title": "File Server Overview",
   "uid": "fileserver-overview",
-  "version": 16,
+  "version": 22,
   "weekStart": ""
 }

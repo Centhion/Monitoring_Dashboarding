@@ -79,7 +79,8 @@
         "x": 0,
         "y": 0
       },
-      "collapsed": false
+      "collapsed": false,
+      "id": 603
     },
     {
       "type": "gauge",
@@ -127,7 +128,8 @@
             ]
           }
         }
-      }
+      },
+      "id": 604
     },
     {
       "type": "gauge",
@@ -175,7 +177,8 @@
             ]
           }
         }
-      }
+      },
+      "id": 605
     },
     {
       "type": "gauge",
@@ -225,12 +228,13 @@
           "links": [
             {
               "title": "View Disk Details",
-              "url": "/d/iis-overview?viewPanel=service-disk-detail",
+              "url": "/d/iis-overview?viewPanel=606",
               "targetBlank": false
             }
           ]
         }
-      }
+      },
+      "id": 606
     },
     {
       "type": "stat",
@@ -275,7 +279,8 @@
             "lastNotNull"
           ]
         }
-      }
+      },
+      "id": 607
     },
     {
       "type": "stat",
@@ -328,7 +333,8 @@
             "lastNotNull"
           ]
         }
-      }
+      },
+      "id": 608
     },
     {
       "type": "stat",
@@ -371,7 +377,7 @@
           "links": [
             {
               "title": "View Stopped Services",
-              "url": "/d/iis-overview?viewPanel=service-disk-detail",
+              "url": "/d/iis-overview?viewPanel=601",
               "targetBlank": false
             }
           ]
@@ -383,7 +389,8 @@
             "lastNotNull"
           ]
         }
-      }
+      },
+      "id": 609
     },
     {
       "collapsed": false,
@@ -509,8 +516,8 @@
           "decimals": 2,
           "links": [
             {
-              "title": "View Details",
-              "url": "/d/iis-overview",
+              "title": "View Request Rate by Status Class",
+              "url": "/d/iis-overview?viewPanel=200",
               "targetBlank": false
             }
           ]
@@ -589,8 +596,8 @@
           "decimals": 0,
           "links": [
             {
-              "title": "View Details",
-              "url": "/d/iis-overview",
+              "title": "View Request Rate by Site",
+              "url": "/d/iis-overview?viewPanel=200",
               "targetBlank": false
             }
           ]
@@ -1684,188 +1691,189 @@
         "x": 0,
         "y": 65
       },
-      "collapsed": true,
-      "panels": [
+      "collapsed": false,
+      "id": 610
+    },
+    {
+      "type": "table",
+      "title": "Stopped Services Detail",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 66
+      },
+      "targets": [
         {
-          "type": "table",
-          "title": "Stopped Services Detail",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "gridPos": {
-            "h": 6,
-            "w": 24,
-            "x": 0,
-            "y": 66
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "expr": "windows_service_state{state=\"stopped\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
-              "refId": "A",
-              "format": "table",
-              "instant": true
-            }
-          ],
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {
-                  "Time": true,
-                  "__name__": true,
-                  "instance": true,
-                  "environment": true,
-                  "datacenter": true,
-                  "role": true,
-                  "os": true,
-                  "job": true,
-                  "Value": true
-                },
-                "renameByName": {
-                  "hostname": "Server",
-                  "name": "Service",
-                  "state": "State"
-                }
-              }
-            }
-          ],
-          "fieldConfig": {
-            "defaults": {
-              "custom": {
-                "align": "auto"
-              }
-            },
-            "overrides": []
-          },
-          "options": {
-            "showHeader": true,
-            "sortBy": [
-              {
-                "displayName": "Server",
-                "desc": false
-              }
-            ]
-          }
-        },
+          "expr": "windows_service_state{state=\"stopped\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
         {
-          "type": "table",
-          "title": "Disk Space Detail",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "gridPos": {
-            "h": 6,
-            "w": 24,
-            "x": 0,
-            "y": 72
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "expr": "instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100",
-              "refId": "A",
-              "format": "table",
-              "instant": true
-            }
-          ],
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {
-                  "Time": true,
-                  "__name__": true,
-                  "instance": true,
-                  "environment": true,
-                  "datacenter": true,
-                  "role": true,
-                  "os": true,
-                  "job": true
-                },
-                "renameByName": {
-                  "hostname": "Server",
-                  "volume": "Volume",
-                  "Value": "Free %"
-                }
-              }
-            }
-          ],
-          "fieldConfig": {
-            "defaults": {
-              "custom": {
-                "align": "auto"
-              }
-            },
-            "overrides": [
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Free %"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "percent"
-                  },
-                  {
-                    "id": "custom.cellOptions",
-                    "value": {
-                      "mode": "gradient",
-                      "type": "gauge"
-                    }
-                  },
-                  {
-                    "id": "min",
-                    "value": 0
-                  },
-                  {
-                    "id": "max",
-                    "value": 100
-                  },
-                  {
-                    "id": "thresholds",
-                    "value": {
-                      "mode": "absolute",
-                      "steps": [
-                        {
-                          "color": "red",
-                          "value": null
-                        },
-                        {
-                          "color": "yellow",
-                          "value": 10
-                        },
-                        {
-                          "color": "green",
-                          "value": 20
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            ]
-          },
+          "id": "organize",
           "options": {
-            "showHeader": true,
-            "sortBy": [
-              {
-                "displayName": "Free %",
-                "desc": false
-              }
-            ]
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "environment": true,
+              "datacenter": true,
+              "role": true,
+              "os": true,
+              "job": true,
+              "Value": true
+            },
+            "renameByName": {
+              "hostname": "Server",
+              "name": "Service",
+              "state": "State"
+            }
           }
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Server",
+            "desc": false
+          }
+        ]
+      },
+      "id": 601
+    },
+    {
+      "type": "table",
+      "title": "Disk Space Detail",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 72
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "environment": true,
+              "datacenter": true,
+              "role": true,
+              "os": true,
+              "job": true
+            },
+            "renameByName": {
+              "hostname": "Server",
+              "volume": "Volume",
+              "Value": "Free %"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Free %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 10
+                    },
+                    {
+                      "color": "green",
+                      "value": 20
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Free %",
+            "desc": false
+          }
+        ]
+      },
+      "id": 602
     }
   ],
   "schemaVersion": 39,
@@ -2058,6 +2066,6 @@
   "timezone": "browser",
   "title": "IIS Web Server Overview",
   "uid": "iis-overview",
-  "version": 15,
+  "version": 21,
   "weekStart": ""
 }

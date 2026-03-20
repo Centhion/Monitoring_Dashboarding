@@ -82,7 +82,8 @@
       "collapsed": false,
       "fieldConfig": {
         "defaults": {}
-      }
+      },
+      "id": 1
     },
     {
       "type": "gauge",
@@ -130,7 +131,8 @@
             ]
           }
         }
-      }
+      },
+      "id": 2
     },
     {
       "type": "gauge",
@@ -178,7 +180,8 @@
             ]
           }
         }
-      }
+      },
+      "id": 3
     },
     {
       "type": "gauge",
@@ -228,12 +231,13 @@
           "links": [
             {
               "title": "View Disk Details",
-              "url": "/d/sql-overview?viewPanel=service-disk-detail",
+              "url": "/d/sql-overview?viewPanel=4",
               "targetBlank": false
             }
           ]
         }
-      }
+      },
+      "id": 4
     },
     {
       "type": "stat",
@@ -278,7 +282,8 @@
             "lastNotNull"
           ]
         }
-      }
+      },
+      "id": 5
     },
     {
       "type": "stat",
@@ -331,7 +336,8 @@
             "lastNotNull"
           ]
         }
-      }
+      },
+      "id": 6
     },
     {
       "type": "stat",
@@ -374,7 +380,7 @@
           "links": [
             {
               "title": "View Stopped Services",
-              "url": "/d/sql-overview?viewPanel=service-disk-detail",
+              "url": "/d/sql-overview?viewPanel=401",
               "targetBlank": false
             }
           ]
@@ -386,7 +392,8 @@
             "lastNotNull"
           ]
         }
-      }
+      },
+      "id": 7
     },
     {
       "collapsed": false,
@@ -642,7 +649,7 @@
           "links": [
             {
               "title": "View Details",
-              "url": "/d/sql-overview",
+              "url": "/d/sql-overview?viewPanel=403",
               "targetBlank": false
             }
           ]
@@ -721,8 +728,8 @@
           "decimals": 0,
           "links": [
             {
-              "title": "View Lock Details",
-              "url": "/d/sql-overview",
+              "title": "View Details",
+              "url": "/d/sql-overview?viewPanel=8",
               "targetBlank": false
             }
           ]
@@ -1783,7 +1790,8 @@
       "collapsed": false,
       "fieldConfig": {
         "defaults": {}
-      }
+      },
+      "id": 401
     },
     {
       "type": "timeseries",
@@ -1849,7 +1857,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "id": 402
     },
     {
       "type": "timeseries",
@@ -1906,7 +1915,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "id": 403
     },
     {
       "type": "timeseries",
@@ -1973,7 +1983,8 @@
         "tooltip": {
           "mode": "multi"
         }
-      }
+      },
+      "id": 404
     },
     {
       "type": "row",
@@ -1984,75 +1995,211 @@
         "x": 0,
         "y": 47
       },
-      "collapsed": true,
-      "panels": [
+      "collapsed": false,
+      "id": 405
+    },
+    {
+      "type": "table",
+      "title": "Stopped Services Detail",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 48
+      },
+      "targets": [
         {
-          "type": "table",
-          "title": "Stopped Services Detail",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "gridPos": {
-            "h": 6,
-            "w": 24,
-            "x": 0,
-            "y": 48
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "expr": "windows_service_state{state=\"stopped\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
-              "refId": "A",
-              "format": "table",
-              "instant": true
-            }
-          ],
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {
-                  "Time": true,
-                  "__name__": true,
-                  "instance": true,
-                  "environment": true,
-                  "datacenter": true,
-                  "role": true,
-                  "os": true,
-                  "job": true,
-                  "Value": true
-                },
-                "renameByName": {
-                  "hostname": "Server",
-                  "name": "Service",
-                  "state": "State"
-                }
-              }
-            }
-          ],
-          "fieldConfig": {
-            "defaults": {
-              "custom": {
-                "align": "auto"
-              }
-            },
-            "overrides": []
-          },
+          "expr": "windows_service_state{state=\"stopped\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
           "options": {
-            "showHeader": true,
-            "sortBy": [
-              {
-                "displayName": "Server",
-                "desc": false
-              }
-            ]
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "environment": true,
+              "datacenter": true,
+              "role": true,
+              "os": true,
+              "job": true,
+              "Value": true
+            },
+            "renameByName": {
+              "hostname": "Server",
+              "name": "Service",
+              "state": "State"
+            }
           }
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Server",
+            "desc": false
+          }
+        ]
+      },
+      "id": 401
+    },
+    {
+      "type": "row",
+      "title": "Lock & Connection Detail",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 48
+      },
+      "collapsed": false,
+      "id": 406
+    },
+    {
+      "type": "table",
+      "title": "Lock Wait Detail",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 49
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "mssql_locks_lock_waits_per_sec{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "mssql_locks_average_wait_time_ms{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "refId": "B",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "__name__": true,
+              "__name__ 1": true,
+              "__name__ 2": true,
+              "instance": true,
+              "environment": true,
+              "datacenter": true,
+              "role": true,
+              "os": true
+            },
+            "renameByName": {
+              "hostname": "Server",
+              "Value #A": "Wait/sec",
+              "Value #B": "Avg Wait (ms)",
+              "job": "Job"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "id": 402
+    },
+    {
+      "type": "timeseries",
+      "title": "User Connections Over Time",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 57
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (hostname) (mssql_general_statistics_user_connections{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "legendFormat": "{{ hostname }}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "id": 403
     }
   ],
   "refresh": "30s",
@@ -2144,6 +2291,6 @@
   "timezone": "browser",
   "title": "SQL Server Overview",
   "uid": "sql-overview",
-  "version": 17,
+  "version": 29,
   "weekStart": ""
 }

@@ -153,8 +153,8 @@
           },
           "links": [
             {
-              "title": "View Failing Probes",
-              "url": "/d/probing-overview",
+              "title": "View Probe Status Grid",
+              "url": "/d/probing-overview?viewPanel=6",
               "targetBlank": false
             }
           ]
@@ -1396,6 +1396,6 @@
   "timezone": "browser",
   "title": "Probing Overview",
   "uid": "probing-overview",
-  "version": 8,
+  "version": 10,
   "weekStart": ""
 }

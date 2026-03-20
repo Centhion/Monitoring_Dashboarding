@@ -166,8 +166,8 @@
           },
           "links": [
             {
-              "title": "View Details",
-              "url": "/d/sla-availability",
+              "title": "View Site Availability (30d)",
+              "url": "/d/sla-availability?viewPanel=6",
               "targetBlank": false
             }
           ]
@@ -250,8 +250,8 @@
           "unit": "percentunit",
           "links": [
             {
-              "title": "View Details",
-              "url": "/d/sla-availability",
+              "title": "View Site Availability (30d)",
+              "url": "/d/sla-availability?viewPanel=6",
               "targetBlank": false
             }
           ]
@@ -329,8 +329,8 @@
           "unit": "m",
           "links": [
             {
-              "title": "View Details",
-              "url": "/d/sla-availability",
+              "title": "View Site Downtime (30d)",
+              "url": "/d/sla-availability?viewPanel=8",
               "targetBlank": false
             }
           ]
@@ -581,8 +581,8 @@
           "unit": "m",
           "links": [
             {
-              "title": "View Details",
-              "url": "/d/sla-availability",
+              "title": "View Site Downtime (30d)",
+              "url": "/d/sla-availability?viewPanel=8",
               "targetBlank": false
             }
           ]
@@ -887,8 +887,8 @@
           },
           "links": [
             {
-              "title": "View Details",
-              "url": "/d/sla-availability",
+              "title": "View Role Availability (30d)",
+              "url": "/d/sla-availability?viewPanel=9",
               "targetBlank": false
             }
           ]
@@ -1453,6 +1453,6 @@
   "timezone": "browser",
   "title": "SLA Availability",
   "uid": "sla-availability",
-  "version": 13,
+  "version": 19,
   "weekStart": ""
 }

@@ -58,7 +58,8 @@
       "options": {
         "content": "Tracks Grafana user activity: logins, dashboard views, configuration changes, and API requests. Data sourced from Grafana server logs forwarded to Loki via Alloy.",
         "mode": "markdown"
-      }
+      },
+      "id": 18
     },
     {
       "collapsed": false,
@@ -219,8 +220,8 @@
           },
           "links": [
             {
-              "title": "View Details",
-              "url": "/d/audit-trail",
+              "title": "View Failed Logins",
+              "url": "/d/audit-trail?viewPanel=4",
               "targetBlank": false
             }
           ]
@@ -702,6 +703,50 @@
       ],
       "title": "All Audit Events",
       "type": "logs"
+    },
+    {
+      "type": "row",
+      "title": "Failed Login Detail",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 57
+      },
+      "collapsed": false,
+      "id": 19
+    },
+    {
+      "id": 17,
+      "type": "logs",
+      "title": "Failed Login Attempts",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 58
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "expr": "{job=\"grafana_audit\"} |~ \"(?i)login_failed|401|unauthorized\"",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "sortOrder": "Descending"
+      }
     }
   ],
   "schemaVersion": 39,
@@ -823,5 +868,5 @@
   "timezone": "browser",
   "title": "Audit Trail",
   "uid": "audit-trail",
-  "version": 5
+  "version": 11
 }

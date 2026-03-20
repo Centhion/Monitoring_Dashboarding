@@ -231,7 +231,7 @@
           "links": [
             {
               "title": "View Disk Details",
-              "url": "/d/dhcp-overview?viewPanel=service-disk-detail",
+              "url": "/d/dhcp-overview?viewPanel=53",
               "targetBlank": false
             }
           ]
@@ -383,7 +383,7 @@
           "links": [
             {
               "title": "View Stopped Services",
-              "url": "/d/dhcp-overview?viewPanel=service-disk-detail",
+              "url": "/d/dhcp-overview?viewPanel=501",
               "targetBlank": false
             }
           ]
@@ -1721,188 +1721,189 @@
         "x": 0,
         "y": 62
       },
-      "collapsed": true,
-      "panels": [
+      "collapsed": false,
+      "id": 503
+    },
+    {
+      "type": "table",
+      "title": "Stopped Services Detail",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 63
+      },
+      "targets": [
         {
-          "type": "table",
-          "title": "Stopped Services Detail",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "gridPos": {
-            "h": 6,
-            "w": 24,
-            "x": 0,
-            "y": 63
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "expr": "windows_service_state{state=\"stopped\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
-              "refId": "A",
-              "format": "table",
-              "instant": true
-            }
-          ],
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {
-                  "Time": true,
-                  "__name__": true,
-                  "instance": true,
-                  "environment": true,
-                  "datacenter": true,
-                  "role": true,
-                  "os": true,
-                  "job": true,
-                  "Value": true
-                },
-                "renameByName": {
-                  "hostname": "Server",
-                  "name": "Service",
-                  "state": "State"
-                }
-              }
-            }
-          ],
-          "fieldConfig": {
-            "defaults": {
-              "custom": {
-                "align": "auto"
-              }
-            },
-            "overrides": []
-          },
-          "options": {
-            "showHeader": true,
-            "sortBy": [
-              {
-                "displayName": "Server",
-                "desc": false
-              }
-            ]
-          }
-        },
+          "expr": "windows_service_state{state=\"stopped\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
         {
-          "type": "table",
-          "title": "Disk Space Detail",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "gridPos": {
-            "h": 6,
-            "w": 24,
-            "x": 0,
-            "y": 69
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "expr": "instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100",
-              "refId": "A",
-              "format": "table",
-              "instant": true
-            }
-          ],
-          "transformations": [
-            {
-              "id": "organize",
-              "options": {
-                "excludeByName": {
-                  "Time": true,
-                  "__name__": true,
-                  "instance": true,
-                  "environment": true,
-                  "datacenter": true,
-                  "role": true,
-                  "os": true,
-                  "job": true
-                },
-                "renameByName": {
-                  "hostname": "Server",
-                  "volume": "Volume",
-                  "Value": "Free %"
-                }
-              }
-            }
-          ],
-          "fieldConfig": {
-            "defaults": {
-              "custom": {
-                "align": "auto"
-              }
-            },
-            "overrides": [
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Free %"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "percent"
-                  },
-                  {
-                    "id": "custom.cellOptions",
-                    "value": {
-                      "mode": "gradient",
-                      "type": "gauge"
-                    }
-                  },
-                  {
-                    "id": "min",
-                    "value": 0
-                  },
-                  {
-                    "id": "max",
-                    "value": 100
-                  },
-                  {
-                    "id": "thresholds",
-                    "value": {
-                      "mode": "absolute",
-                      "steps": [
-                        {
-                          "color": "red",
-                          "value": null
-                        },
-                        {
-                          "color": "yellow",
-                          "value": 10
-                        },
-                        {
-                          "color": "green",
-                          "value": 20
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            ]
-          },
+          "id": "organize",
           "options": {
-            "showHeader": true,
-            "sortBy": [
-              {
-                "displayName": "Free %",
-                "desc": false
-              }
-            ]
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "environment": true,
+              "datacenter": true,
+              "role": true,
+              "os": true,
+              "job": true,
+              "Value": true
+            },
+            "renameByName": {
+              "hostname": "Server",
+              "name": "Service",
+              "state": "State"
+            }
           }
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Server",
+            "desc": false
+          }
+        ]
+      },
+      "id": 501
+    },
+    {
+      "type": "table",
+      "title": "Disk Space Detail",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 69
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "environment": true,
+              "datacenter": true,
+              "role": true,
+              "os": true,
+              "job": true
+            },
+            "renameByName": {
+              "hostname": "Server",
+              "volume": "Volume",
+              "Value": "Free %"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Free %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 10
+                    },
+                    {
+                      "color": "green",
+                      "value": 20
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Free %",
+            "desc": false
+          }
+        ]
+      },
+      "id": 502
     }
   ],
   "schemaVersion": 39,
@@ -1993,6 +1994,6 @@
   "timezone": "browser",
   "title": "DHCP Server Overview",
   "uid": "dhcp-overview",
-  "version": 12,
+  "version": 16,
   "weekStart": ""
 }
