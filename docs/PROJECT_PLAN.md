@@ -35,6 +35,7 @@
 | Phase 10B: Demo Data Generator | Completed | Synthetic metrics/logs seeder for showcasing dashboards without live agents |
 | Phase 10C: Integration and Polish | Completed | Wrapper + stack_manage.py integration, example config, QUICKSTART update |
 | Phase 11: Dashboard Production Readiness | Completed | 19 dashboards in 3 folders, 6 role dashboards, functional tags, 82 bugs fixed, deep audit passed |
+| Phase 12: Dashboard UX Polish | In Progress | Click-to-filter drill-downs, expanded role metrics, color standardization, demo data improvements |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
 
@@ -1715,6 +1716,51 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 - All role dashboards populated with demo data
 - All template variable dropdowns work without warning triangles
 - Dashboard looks production-ready for stakeholder demo
+
+---
+
+## Phase 12: Dashboard UX Polish
+
+**Goal**: Make every dashboard operationally excellent -- clickable stat panels filter to detail views, expanded role metrics, standardized color coding, and demo data that showcases all features including downtime/failures.
+
+**Status**: In Progress
+
+### Servers Folder
+
+- [ ] 1. SQL Overview: Blocked Processes clickable -> filtered table. Disk Free clickable -> per-volume detail. Per-host view expanded -- Simple
+- [ ] 2. CA Overview: Research and add revocation list metrics, CRL publish status, template usage. Clean up host filter view -- Medium
+- [ ] 3. DHCP Overview: Research and add scope utilization, per-scope lease counts, scope exhaustion. Host-level scope detail -- Medium
+- [ ] 4. Docker Overview: Container stats clickable -> filtered container list. Per-host view shows individual containers with health, CPU, memory -- Complex
+- [ ] 5. DC Overview: Per-host detail expanded -- FSMO roles, replication partner status, tombstone lifetime -- Medium
+- [ ] 6. File Server Overview: Open Files clickable -> filtered list showing hosts and files -- Medium
+- [ ] 7. Windows Overview: Services Stopped clickable -> filtered list showing which services on which hosts -- Medium
+
+### Infrastructure Folder
+
+- [ ] 8. Certificate Overview: Standardize colors (<30d red, 30-60d yellow, >60d green). Cert Health Summary and Expiry clickable/filterable. Fix Probe Health showing too many entries -- Medium
+- [ ] 9. Infrastructure Overview: Review and simplify layout. Fix clickable boxes that don't filter -- Medium
+- [ ] 10. Network Infrastructure: Error Interfaces clickable -> filtered list of specific interfaces with errors -- Simple
+- [ ] 11. Site Overview: Fix panels with no data. Site Health stats, Worst Disk clickable -> detail views -- Medium
+
+### Enterprise Folder
+
+- [ ] 12. Probing Overview: Status grid better layout, more color coding, better dispersement. Per-site probe health improvements -- Medium
+- [ ] 13. Audit Trail: Fix no data -- add demo audit log entries to Loki. Ensure dashboard shows meaningful login/change activity -- Medium
+- [ ] 14. Enterprise NOC: Fix Site Health Grid error. Fix High CPU showing green (should be red/yellow at threshold). Review color logic -- Medium
+- [ ] 15. SLA Overview: Fix site names showing in red when healthy. Add simulated downtime to demo data so SLA shows realistic 99.5-99.9% availability -- Medium
+
+### Demo Data
+
+- [ ] 16. Add simulated downtime events to demo data generator so SLA dashboards show realistic availability (not 100%) -- Medium
+- [ ] 17. Add audit trail log entries to Loki push so Audit Trail dashboard populates -- Simple
+
+### Success Criteria
+
+- Every stat panel on hub dashboards is clickable and navigates to a filtered detail view
+- Role dashboards show comprehensive metrics for their role (not just basics)
+- Color coding is consistent and standardized across all dashboards
+- Demo data showcases all features including downtime, errors, and audit activity
+- No "No data" panels on any dashboard with demo data running
 
 ---
 

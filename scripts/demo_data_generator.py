@@ -352,10 +352,12 @@ def generate_host_metrics(host: SimulatedHost, timestamp_ms: int) -> list[tuple]
     else:
         metrics.extend(_generate_linux_metrics(host, base_labels, timestamp_ms))
 
-    # Universal: up metric
+    # Universal: up metric (simulate occasional downtime for SLA dashboards)
+    # ~2% of generic hosts randomly go "down" for short periods to show non-100% SLA
     job = "windows_base" if host.os_type == "windows" else "linux_base"
     up_labels = {**base_labels, "job": job, "os": host.os_type}
-    metrics.append(("up", up_labels, 1.0))
+    is_down = (host.role == "generic" and random.random() < 0.02)
+    metrics.append(("up", up_labels, 0.0 if is_down else 1.0))
 
     return metrics
 
@@ -482,34 +484,93 @@ def _generate_windows_metrics(
     # Domain Controller metrics (only for dc role)
     if host.role == "dc":
         dc_labels = {**labels, "job": "windows_dc"}
+        # LDAP
+        metrics.append(("windows_ad_ldap_searches_total", dc_labels, host.cpu_counters.get("ldap_search", random.uniform(1e5, 1e7))))
+        host.cpu_counters["ldap_search"] = host.cpu_counters.get("ldap_search", random.uniform(1e5, 1e7)) + random.uniform(50, 500) * SCRAPE_INTERVAL
         metrics.append(("ad_ds_ldap_searches_per_sec", dc_labels, random.uniform(50, 500)))
         metrics.append(("ad_ds_ldap_binds_per_sec", dc_labels, random.uniform(10, 100)))
+        metrics.append(("windows_ad_ldap_client_sessions", dc_labels, float(random.randint(20, 200))))
+        # Replication
         metrics.append(("ad_ds_replication_objects_inbound", dc_labels, float(random.randint(100, 10000))))
         metrics.append(("ad_ds_replication_objects_outbound", dc_labels, float(random.randint(100, 10000))))
         metrics.append(("ad_ds_dra_inbound_sync_requests_per_sec", dc_labels, random.uniform(0, 5)))
         metrics.append(("ad_ds_dra_outbound_sync_requests_per_sec", dc_labels, random.uniform(0, 5)))
+        metrics.append(("windows_ad_replication_data_intrasite_bytes_total", dc_labels,
+                         host.cpu_counters.get("repl_intra", random.uniform(1e8, 1e10))))
+        host.cpu_counters["repl_intra"] = host.cpu_counters.get("repl_intra", random.uniform(1e8, 1e10)) + random.uniform(1e3, 1e5) * SCRAPE_INTERVAL
+        metrics.append(("windows_ad_replication_data_intersite_bytes_total", dc_labels,
+                         host.cpu_counters.get("repl_inter", random.uniform(1e7, 1e9))))
+        host.cpu_counters["repl_inter"] = host.cpu_counters.get("repl_inter", random.uniform(1e7, 1e9)) + random.uniform(1e2, 1e4) * SCRAPE_INTERVAL
+        metrics.append(("windows_ad_replication_inbound_sync_objects_remaining", dc_labels, float(random.randint(0, 5))))
+        # SAM and security
+        metrics.append(("windows_ad_sam_password_changes_total", dc_labels,
+                         host.cpu_counters.get("sam_pwd", random.uniform(1e3, 1e5))))
+        host.cpu_counters["sam_pwd"] = host.cpu_counters.get("sam_pwd", random.uniform(1e3, 1e5)) + random.uniform(0, 2) * SCRAPE_INTERVAL
+        metrics.append(("windows_ad_tombstoned_objects_visited_total", dc_labels, float(random.randint(0, 100))))
+        # DNS
         metrics.append(("dns_queries_per_sec", dc_labels, random.uniform(100, 2000)))
         metrics.append(("dns_recursive_queries_per_sec", dc_labels, random.uniform(10, 200)))
         metrics.append(("dns_zone_transfer_requests_per_sec", dc_labels, random.uniform(0, 1)))
         metrics.append(("up", {**dc_labels}, 1.0))
-        # DC services
         for svc in ["NTDS", "DNS", "Netlogon", "DFSR", "KDC", "ADWS"]:
             metrics.append(("windows_service_state", {**labels, "name": svc, "state": "running"}, 1.0))
 
     # DHCP Server metrics (only for dhcp role)
     if host.role == "dhcp":
         dhcp_labels = {**labels, "job": "windows_dhcp"}
+        # Server-level message counters
+        metrics.append(("windows_dhcp_discovers_total", dhcp_labels, host.cpu_counters.get("dhcp_disc", random.uniform(1e4, 1e6))))
+        host.cpu_counters["dhcp_disc"] = host.cpu_counters.get("dhcp_disc", random.uniform(1e4, 1e6)) + random.uniform(1, 10) * SCRAPE_INTERVAL
+        metrics.append(("windows_dhcp_offers_total", dhcp_labels, host.cpu_counters.get("dhcp_offer", random.uniform(1e4, 1e6))))
+        host.cpu_counters["dhcp_offer"] = host.cpu_counters.get("dhcp_offer", random.uniform(1e4, 1e6)) + random.uniform(1, 10) * SCRAPE_INTERVAL
+        metrics.append(("windows_dhcp_requests_total", dhcp_labels, host.cpu_counters.get("dhcp_req", random.uniform(1e4, 1e6))))
+        host.cpu_counters["dhcp_req"] = host.cpu_counters.get("dhcp_req", random.uniform(1e4, 1e6)) + random.uniform(1, 10) * SCRAPE_INTERVAL
+        metrics.append(("windows_dhcp_ack_total", dhcp_labels, host.cpu_counters.get("dhcp_ack", random.uniform(1e4, 1e6))))
+        host.cpu_counters["dhcp_ack"] = host.cpu_counters.get("dhcp_ack", random.uniform(1e4, 1e6)) + random.uniform(1, 10) * SCRAPE_INTERVAL
+        metrics.append(("windows_dhcp_nacks_total", dhcp_labels, host.cpu_counters.get("dhcp_nack", 0.0)))
+        host.cpu_counters["dhcp_nack"] = host.cpu_counters.get("dhcp_nack", 0.0) + (random.uniform(0, 0.1) if random.random() < 0.05 else 0)
+        # Legacy rate metrics (kept for backward compat with existing dashboard)
+        metrics.append(("dhcp_ack_messages_per_sec", dhcp_labels, random.uniform(0, 10)))
+        metrics.append(("dhcp_nak_messages_per_sec", dhcp_labels, random.uniform(0, 0.5)))
         metrics.append(("dhcp_discover_messages_per_sec", dhcp_labels, random.uniform(0, 10)))
         metrics.append(("dhcp_offer_messages_per_sec", dhcp_labels, random.uniform(0, 10)))
         metrics.append(("dhcp_request_messages_per_sec", dhcp_labels, random.uniform(0, 10)))
-        metrics.append(("dhcp_ack_messages_per_sec", dhcp_labels, random.uniform(0, 10)))
-        metrics.append(("dhcp_nak_messages_per_sec", dhcp_labels, random.uniform(0, 0.5)))
+        # Per-scope metrics
+        scopes = [
+            ("10.0.1.0/24", "Servers", 254, random.randint(50, 200)),
+            ("10.0.2.0/24", "Workstations", 254, random.randint(100, 240)),
+            ("10.0.3.0/24", "Printers", 126, random.randint(10, 50)),
+            ("10.0.10.0/24", "VoIP", 254, random.randint(30, 100)),
+        ]
+        for subnet, scope_name, total, in_use in scopes:
+            scope_labels = {**dhcp_labels, "scope": subnet}
+            free = max(0, total - in_use)
+            metrics.append(("windows_dhcp_scope_addresses_in_use", scope_labels, float(in_use)))
+            metrics.append(("windows_dhcp_scope_addresses_free", scope_labels, float(free)))
+            metrics.append(("windows_dhcp_scope_pending_offers", scope_labels, float(random.randint(0, 3))))
+            metrics.append(("windows_dhcp_scope_reserved_address", scope_labels, float(random.randint(5, 20))))
+            metrics.append(("windows_dhcp_scope_state", {**scope_labels, "state": "active"}, 1.0))
+            metrics.append(("windows_dhcp_scope_info", {**scope_labels, "name": scope_name}, 1.0))
         metrics.append(("up", {**dhcp_labels}, 1.0))
         metrics.append(("windows_service_state", {**labels, "name": "DHCPServer", "state": "running"}, 1.0))
 
     # Certificate Authority metrics (only for ca role)
     if host.role == "ca":
         ca_labels = {**labels, "job": "windows_ca"}
+        # Per-template metrics (what the real ADCS collector exposes)
+        templates = ["Machine", "WebServer", "User", "DomainController", "SubCA"]
+        for tmpl in templates:
+            tmpl_labels = {**ca_labels, "cert_template": tmpl}
+            rate = random.uniform(0.1, 3.0) if tmpl in ("Machine", "User") else random.uniform(0, 0.5)
+            host.cpu_counters[f"adcs_req_{tmpl}"] = host.cpu_counters.get(f"adcs_req_{tmpl}", random.uniform(100, 10000)) + rate * SCRAPE_INTERVAL
+            host.cpu_counters[f"adcs_issued_{tmpl}"] = host.cpu_counters.get(f"adcs_issued_{tmpl}", random.uniform(100, 10000)) + rate * 0.95 * SCRAPE_INTERVAL
+            host.cpu_counters[f"adcs_failed_{tmpl}"] = host.cpu_counters.get(f"adcs_failed_{tmpl}", 0) + (random.uniform(0, 0.05) if random.random() < 0.1 else 0)
+            metrics.append(("windows_adcs_requests_total", tmpl_labels, host.cpu_counters[f"adcs_req_{tmpl}"]))
+            metrics.append(("windows_adcs_issued_requests_total", tmpl_labels, host.cpu_counters[f"adcs_issued_{tmpl}"]))
+            metrics.append(("windows_adcs_failed_requests_total", tmpl_labels, host.cpu_counters[f"adcs_failed_{tmpl}"]))
+            metrics.append(("windows_adcs_pending_requests_total", tmpl_labels, float(random.randint(0, 2))))
+            metrics.append(("windows_adcs_request_processing_time_seconds", tmpl_labels, random.uniform(0.01, 0.5)))
+        # Legacy aggregate metrics (kept for backward compat)
         metrics.append(("adcs_requests_per_sec", ca_labels, random.uniform(0, 5)))
         metrics.append(("adcs_issued_per_sec", ca_labels, random.uniform(0, 5)))
         metrics.append(("adcs_failed_per_sec", ca_labels, random.uniform(0, 0.2)))
@@ -934,11 +995,30 @@ def generate_log_entries(hosts: list[SimulatedHost], timestamp_ns: int) -> list[
         event = random.choice(events)
         log_line = json.dumps(event)
 
-        label_str = ", ".join(f'{k}="{v}"' for k, v in sorted(labels.items()))
         streams.append({
             "stream": labels,
             "values": [[str(timestamp_ns), log_line]],
         })
+
+    # Audit trail logs (Grafana activity simulation)
+    audit_labels = {"job": "grafana_audit", "logger": "context"}
+    audit_events = [
+        {"level": "info", "method": "GET", "path": "/api/dashboards/uid/enterprise-noc",
+         "status": 200, "user": "admin", "action": "dashboard_view"},
+        {"level": "info", "method": "GET", "path": "/d/sql-overview",
+         "status": 200, "user": "admin", "action": "dashboard_view"},
+        {"level": "info", "method": "POST", "path": "/login",
+         "status": 200, "user": "admin", "action": "login"},
+        {"level": "info", "method": "GET", "path": "/api/search",
+         "status": 200, "user": "jsmith", "action": "search"},
+        {"level": "warn", "method": "POST", "path": "/login",
+         "status": 401, "user": "unknown", "action": "login_failed"},
+    ]
+    audit_event = random.choice(audit_events)
+    streams.append({
+        "stream": {**audit_labels, "logger": "api" if audit_event.get("method") in ("POST", "PUT", "DELETE") else "context"},
+        "values": [[str(timestamp_ns + 1000), json.dumps(audit_event)]],
+    })
 
     return streams
 
