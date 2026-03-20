@@ -75,7 +75,7 @@ Chronological record of work sessions for context continuity.
 
 - **Phase 10B: Demo Data Generator** (`scripts/demo_data_generator.py`): Pushes 2,800+ synthetic metrics per tick across 46+ metric names covering all dashboard categories. Continuous background mode for live demos. Snappy compression for Prometheus remote_write.
 
-- **Phase 10C: Integration**: poc_setup.py --demo-data flag. site_config.example.yml with ENT/DV sites.
+- **Phase 10C: Integration**: stack_manage.py --demo-data flag. site_config.example.yml with ENT/DV sites.
 
 - **Phase 11: Dashboard Production Readiness** (all 19 tasks complete):
   - Restructured 19 dashboards into 3 folders: Enterprise (4), Servers (10), Infrastructure (5)

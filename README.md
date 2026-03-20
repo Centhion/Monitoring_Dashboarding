@@ -28,10 +28,10 @@ cd Monitoring_Dashboarding
 python scripts/deploy_configure.py
 
 # Start the stack
-python scripts/poc_setup.py
+python scripts/stack_manage.py
 
 # Start with demo data (dashboards populate with synthetic multi-site data)
-python scripts/poc_setup.py --demo-data
+python scripts/stack_manage.py --demo-data
 
 # Open Grafana at http://localhost:3000 (admin / admin)
 ```

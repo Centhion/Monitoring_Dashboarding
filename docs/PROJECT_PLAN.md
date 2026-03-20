@@ -33,7 +33,7 @@
 | Phase 9: Requirements Gap Closure | Completed | Agentless probing, file/process, alert dedup, maintenance windows, SLA, SNMP traps, audit logging, forecasting, dashboards, docs |
 | Phase 10A: Deployment Wrapper | Completed | Interactive config script that generates all stack configs from a single site inventory |
 | Phase 10B: Demo Data Generator | Completed | Synthetic metrics/logs seeder for showcasing dashboards without live agents |
-| Phase 10C: Integration and Polish | Completed | Wrapper + poc_setup.py integration, example config, QUICKSTART update |
+| Phase 10C: Integration and Polish | Completed | Wrapper + stack_manage.py integration, example config, QUICKSTART update |
 | Phase 11: Dashboard Production Readiness | Completed | 19 dashboards in 3 folders, 6 role dashboards, functional tags, 82 bugs fixed, deep audit passed |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
@@ -328,7 +328,7 @@
 - [x] 2. Create `docker-compose.override.yml` for local dev (debug ports, verbose logging)
 - [x] 3. Create `.dockerignore` to exclude non-essential files
 - [x] 4. Create local Alloy config for Windows host pointing at Docker stack -- `configs/alloy/local/`
-- [x] 5. Create `scripts/poc_setup.py` for one-command startup with health validation
+- [x] 5. Create `scripts/stack_manage.py` for one-command startup with health validation
 - [x] 6. Create `docs/LOCAL_TESTING.md` step-by-step guide
 - [x] 7. Update PROJECT_PLAN.md to mark phase complete
 
@@ -464,7 +464,7 @@
   - Created convenience wrappers `dc.sh` (bash) and `dc.ps1` (PowerShell) at repo root
   - Created `deploy/helm/` directory structure for Helm chart
   - Updated all documentation, scripts, and `.dockerignore` to reference new paths
-  - Updated `scripts/poc_setup.py` with `COMPOSE_FILE` constant, `--env-file` support, and `_compose_base_cmd()` helper
+  - Updated `scripts/stack_manage.py` with `COMPOSE_FILE` constant, `--env-file` support, and `_compose_base_cmd()` helper
   - Complexity: Medium
 
 - [x] 3. Create Helm chart (Phase A -- minimal, single-replica)
@@ -1597,7 +1597,7 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 **Status**: In Progress
 
-**Workflow**: `python scripts/deploy_configure.py` (interactive config) then `python scripts/poc_setup.py --demo-data` (start stack + seed data)
+**Workflow**: `python scripts/deploy_configure.py` (interactive config) then `python scripts/stack_manage.py --demo-data` (start stack + seed data)
 
 ### Phase 10A: Core Wrapper Script
 
@@ -1626,7 +1626,7 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 ### Phase 10C: Integration and Polish
 
-- [ ] 1. Integrate with `poc_setup.py` -- add `--demo-data` flag that auto-starts generator after health checks -- Simple
+- [ ] 1. Integrate with `stack_manage.py` -- add `--demo-data` flag that auto-starts generator after health checks -- Simple
 - [ ] 2. Create `deploy/site_config.example.yml` with example multi-site config -- Simple
 - [ ] 3. Update QUICKSTART.md with wrapper workflow -- Simple
 
@@ -1639,7 +1639,7 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 ### Success Criteria
 
-- Run deploy_configure.py, answer prompts, then poc_setup.py --demo-data
+- Run deploy_configure.py, answer prompts, then stack_manage.py --demo-data
 - All dashboards populate with multi-site data within 2 minutes
 - Enterprise NOC shows all configured sites
 - Site Overview drill-down works per site

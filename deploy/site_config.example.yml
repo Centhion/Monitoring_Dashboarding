@@ -9,8 +9,8 @@
 # to enter interactive mode and build this file via prompts.
 #
 # After generation, start the stack with:
-#   python scripts/poc_setup.py              (standard)
-#   python scripts/poc_setup.py --demo-data  (with synthetic data for demos)
+#   python scripts/stack_manage.py              (standard)
+#   python scripts/stack_manage.py --demo-data  (with synthetic data for demos)
 # =============================================================================
 
 # ---------------------------------------------------------------------------
@@ -86,7 +86,7 @@ sites:
 
 # ---------------------------------------------------------------------------
 # Demo Data Settings (optional)
-# When running with `poc_setup.py --demo-data`, the generator uses these
+# When running with `stack_manage.py --demo-data`, the generator uses these
 # settings to create simulated hosts and push synthetic metrics/logs.
 # ---------------------------------------------------------------------------
 demo:

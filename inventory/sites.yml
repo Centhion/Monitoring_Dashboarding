@@ -16,23 +16,71 @@ valid_os:
 - windows
 - linux
 sites:
-  ent:
-    display_name: Enterprise HQ
-    timezone: America/Denver
-    environment: prod
-    contact_email: ent-ops@example.com
-    network_segment: 10.0.0.0/16
-    gateway:
-      enabled: true
-      snmp_targets: true
-      redfish_targets: true
-      cert_targets: true
   dv:
     display_name: Deer Valley
     timezone: America/Denver
     environment: prod
     contact_email: dv-ops@example.com
-    network_segment: 10.1.0.0/16
+    gateway:
+      enabled: true
+      snmp_targets: true
+      redfish_targets: true
+      cert_targets: true
+  ent:
+    display_name: Enterprise
+    timezone: America/Denver
+    environment: prod
+    contact_email: ent-ops@example.com
+    gateway:
+      enabled: true
+      snmp_targets: true
+      redfish_targets: true
+      cert_targets: true
+  sbt:
+    display_name: Steamboat
+    timezone: America/Denver
+    environment: prod
+    contact_email: sbt-ops@example.com
+    gateway:
+      enabled: true
+      snmp_targets: true
+      redfish_targets: true
+      cert_targets: true
+  sno:
+    display_name: Snowshoe
+    timezone: America/Denver
+    environment: prod
+    contact_email: sno-ops@example.com
+    gateway:
+      enabled: true
+      snmp_targets: true
+      redfish_targets: true
+      cert_targets: true
+  sol:
+    display_name: Solitude
+    timezone: America/Denver
+    environment: prod
+    contact_email: sol-ops@example.com
+    gateway:
+      enabled: true
+      snmp_targets: true
+      redfish_targets: true
+      cert_targets: true
+  schw:
+    display_name: Schweitzer
+    timezone: America/Denver
+    environment: prod
+    contact_email: schw-ops@example.com
+    gateway:
+      enabled: true
+      snmp_targets: true
+      redfish_targets: true
+      cert_targets: true
+  mm:
+    display_name: Mammoth
+    timezone: America/Denver
+    environment: prod
+    contact_email: mm-ops@example.com
     gateway:
       enabled: true
       snmp_targets: true

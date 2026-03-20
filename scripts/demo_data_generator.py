@@ -40,10 +40,53 @@ except ImportError:
 
 try:
     import snappy
-
     HAS_SNAPPY = True
 except ImportError:
     HAS_SNAPPY = False
+
+
+def _snappy_compress_fallback(data: bytes) -> bytes:
+    """Minimal snappy block compression for Prometheus remote_write.
+
+    Implements the snappy block format (not streaming) which is what
+    Prometheus expects. Only uses literal-only encoding (no copy ops)
+    which is valid snappy but not optimally compressed. Good enough for
+    demo data payloads.
+
+    Format: varint(uncompressed_length) + chunks
+    Each chunk: tag_byte(0x00 = literal) + length + data
+    """
+    result = _encode_varint_snappy(len(data))
+    offset = 0
+    while offset < len(data):
+        # Max literal chunk is 65536 bytes
+        chunk_size = min(len(data) - offset, 65536)
+        chunk = data[offset : offset + chunk_size]
+
+        if chunk_size <= 60:
+            # Short literal: tag byte encodes length - 1 in upper 6 bits
+            result += bytes([(chunk_size - 1) << 2])
+        elif chunk_size <= 256:
+            # 1-byte length literal
+            result += bytes([0xF0, chunk_size - 1])
+        else:
+            # 2-byte length literal
+            result += bytes([0xF4, (chunk_size - 1) & 0xFF, ((chunk_size - 1) >> 8) & 0xFF])
+
+        result += chunk
+        offset += chunk_size
+
+    return result
+
+
+def _encode_varint_snappy(value: int) -> bytes:
+    """Encode varint for snappy framing."""
+    result = []
+    while value > 0x7F:
+        result.append((value & 0x7F) | 0x80)
+        value >>= 7
+    result.append(value & 0x7F)
+    return bytes(result)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -811,12 +854,14 @@ def push_to_prometheus(metrics: list[tuple], timestamp_ms: int) -> bool:
 
         headers = {
             "Content-Type": "application/x-protobuf",
+            "Content-Encoding": "snappy",
             "X-Prometheus-Remote-Write-Version": "0.1.0",
         }
 
         if HAS_SNAPPY:
             body = snappy.compress(body)
-            headers["Content-Encoding"] = "snappy"
+        else:
+            body = _snappy_compress_fallback(body)
 
         req = urllib.request.Request(PROMETHEUS_URL, data=body, headers=headers, method="POST")
 

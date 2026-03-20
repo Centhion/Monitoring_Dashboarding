@@ -7,10 +7,10 @@ prerequisites, starts services, waits for health checks, and verifies
 the full stack is operational.
 
 Usage:
-    python scripts/poc_setup.py              Start stack and verify health
-    python scripts/poc_setup.py --status     Check health of running stack
-    python scripts/poc_setup.py --stop       Stop stack (preserve data)
-    python scripts/poc_setup.py --reset      Stop stack and delete all data
+    python scripts/stack_manage.py              Start stack and verify health
+    python scripts/stack_manage.py --status     Check health of running stack
+    python scripts/stack_manage.py --stop       Stop stack (preserve data)
+    python scripts/stack_manage.py --reset      Stop stack and delete all data
 """
 
 import argparse
@@ -364,8 +364,8 @@ def main() -> int:
         print("    1. Open Grafana at http://localhost:3000")
         print("    2. Check dashboards under Dashboards menu")
         print("    3. (Optional) Run with demo data:")
-        print("       python scripts/poc_setup.py --demo-data")
-        print("    4. Stop stack: python scripts/poc_setup.py --stop")
+        print("       python scripts/stack_manage.py --demo-data")
+        print("    4. Stop stack: python scripts/stack_manage.py --stop")
 
     return 0
 

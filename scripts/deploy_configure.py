@@ -49,16 +49,20 @@ VALID_ROLES = ["dc", "sql", "iis", "fileserver", "dhcp", "ca", "docker", "generi
 # Interactive Prompt Helpers
 # =============================================================================
 
-def prompt(label: str, default: str = "") -> str:
+def prompt(label: str, default: str = "", required: bool = True) -> str:
     """Prompt user for input with an optional default value."""
     if default:
         raw = input(f"  {label} [{default}]: ").strip()
         return raw if raw else default
-    while True:
-        raw = input(f"  {label}: ").strip()
-        if raw:
-            return raw
+    raw = input(f"  {label}: ").strip()
+    if raw:
+        return raw
+    if not required:
+        return ""
+    while not raw:
         print("    (required)")
+        raw = input(f"  {label}: ").strip()
+    return raw
 
 
 def prompt_yes_no(label: str, default: bool = True) -> bool:
@@ -164,10 +168,6 @@ def collect_interactive() -> dict:
             f"    Ops email for '{code}'", f"{code}-ops@example.com"
         )
         site["timezone"] = prompt("    Timezone", "America/Denver")
-        site["environment"] = prompt("    Environment", "prod")
-        site["network_segment"] = prompt(
-            "    Network segment (optional, for docs)", ""
-        )
 
         site["gateway"] = {}
         if prompt_yes_no("    Enable site gateway (SNMP/Redfish/certs)?", True):
@@ -810,10 +810,10 @@ def write_generated_files(config: dict, dry_run: bool = False) -> None:
     print("  Next steps:")
     print("    1. Review generated files (especially .env)")
     print("    2. Start the stack:")
-    print("       python scripts/poc_setup.py")
+    print("       python scripts/stack_manage.py")
     if config.get("demo", {}).get("enabled"):
         print("    3. Start with demo data:")
-        print("       python scripts/poc_setup.py --demo-data")
+        print("       python scripts/stack_manage.py --demo-data")
     print()
     print("  To reconfigure, re-run this script.")
     print("  To add sites, edit deploy/site_config.yml and re-run with --config.")

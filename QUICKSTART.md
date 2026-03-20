@@ -27,10 +27,10 @@ python scripts/deploy_configure.py
 # Or use the example config: python scripts/deploy_configure.py --config deploy/site_config.example.yml
 
 # 3. Start the stack
-python scripts/poc_setup.py
+python scripts/stack_manage.py
 
 # 4. (Optional) Start with demo data -- dashboards populate immediately
-python scripts/poc_setup.py --demo-data
+python scripts/stack_manage.py --demo-data
 
 # 5. Open Grafana
 #    http://localhost:3000  (admin / admin)
@@ -56,9 +56,9 @@ After 30 seconds, open Grafana and check:
 ### Management
 
 ```bash
-python scripts/poc_setup.py --status    # Health check
-python scripts/poc_setup.py --stop      # Stop (keep data)
-python scripts/poc_setup.py --reset     # Stop and delete data
+python scripts/stack_manage.py --status    # Health check
+python scripts/stack_manage.py --stop      # Stop (keep data)
+python scripts/stack_manage.py --reset     # Stop and delete data
 
 # Direct docker compose commands:
 docker compose -f deploy/docker/docker-compose.yml logs -f           # All services
