@@ -299,5 +299,5 @@ Folder permissions control dashboard visibility only. Users with Explore access 
 
 - [Backend Deployment](BACKEND_DEPLOYMENT.md) -- Grafana deployment configuration
 - [Audit Logging](AUDIT_LOGGING.md) -- Tracking user activity and access
-- [Fleet Onboarding](FLEET_ONBOARDING.md) -- Adding new sites and servers
+- [Alloy Deployment](ALLOY_DEPLOYMENT.md) -- Agent deployment and fleet onboarding
 - [Architecture](../ARCHITECTURE.md) -- Overall system design

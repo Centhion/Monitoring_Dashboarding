@@ -1,5 +1,7 @@
 # Lansweeper Integration Guide
 
+> **Status: In Progress** -- The API client and field mapping are implemented (Phase 7D.1-7D.2). Asset inventory dashboard (7D.3) and webhook-driven sync (7D.4) are not yet complete. Requires a Lansweeper Cloud PAT and site ID for live testing.
+
 This guide covers the Lansweeper-to-monitoring-stack integration, which synchronizes asset inventory data from Lansweeper Cloud into the monitoring platform's host inventory and exposes asset metadata as Prometheus metrics.
 
 ## Overview

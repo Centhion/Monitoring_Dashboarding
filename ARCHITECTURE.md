@@ -137,7 +137,7 @@ Monitoring_Dashboarding/
 |   +-- SNMP_MONITORING.md     # SNMP network device monitoring guide
 |   +-- HARDWARE_MONITORING.md # Redfish BMC hardware health guide
 |   +-- CERTIFICATE_MONITORING.md # SSL/TLS certificate monitoring guide
-|   +-- FLEET_ONBOARDING.md    # Adding sites, servers, and devices
+|   +-- ALLOY_DEPLOYMENT.md    # Agent deployment and fleet onboarding
 |   +-- AGENTLESS_MONITORING.md # Monitoring without agents
 |   +-- RBAC_GUIDE.md          # Grafana RBAC and LDAP/AD integration
 |   +-- LANSWEEPER_INTEGRATION.md # Lansweeper API sync setup and usage (Phase 7D)

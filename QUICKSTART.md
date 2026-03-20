@@ -55,12 +55,76 @@ python scripts/poc_setup.py --status    # Health check
 python scripts/poc_setup.py --stop      # Stop (keep data)
 python scripts/poc_setup.py --reset     # Stop and delete data
 
-# Direct docker compose commands (convenience wrappers):
-./dc.sh logs -f grafana                 # Linux/macOS
-.\dc.ps1 logs -f grafana               # Windows PowerShell
+# Direct docker compose commands:
+docker compose -f deploy/docker/docker-compose.yml logs -f           # All services
+docker compose -f deploy/docker/docker-compose.yml logs -f grafana   # Grafana only
+docker compose -f deploy/docker/docker-compose.yml restart prometheus # Restart after config change
 ```
 
-See `docs/LOCAL_TESTING.md` for the full local testing guide.
+### Services
+
+| Service | URL | Credentials | Purpose |
+|---------|-----|-------------|---------|
+| Grafana | http://localhost:3000 | admin / admin | Dashboards, Explore, alerting UI |
+| Prometheus | http://localhost:9090 | None | Metrics storage, rule evaluation, PromQL |
+| Alertmanager | http://localhost:9093 | None | Alert routing, silencing |
+| Loki | http://localhost:3100 | None (API only) | Log storage (query via Grafana) |
+| Blackbox Exporter | http://localhost:9115 | None | Synthetic probes (ICMP, TCP, HTTP, TLS) |
+
+Optional profiles (disabled by default):
+
+```bash
+docker compose -f deploy/docker/docker-compose.yml --profile snmp up -d       # SNMP trap receiver
+docker compose -f deploy/docker/docker-compose.yml --profile hardware up -d    # Redfish exporter
+```
+
+### Memory Budget
+
+The stack is memory-limited to run on developer workstations (~2 GB total):
+
+| Service | Memory Limit | Typical Usage |
+|---------|-------------|---------------|
+| Prometheus | 768 MB | 200-400 MB |
+| Loki | 512 MB | 100-300 MB |
+| Grafana | 512 MB | 150-250 MB |
+| Alertmanager | 64 MB | 20-40 MB |
+| Blackbox Exporter | 64 MB | 10-20 MB |
+
+### Config Changes
+
+When you modify config files, restart the affected service:
+
+| File Changed | Restart |
+|-------------|---------|
+| `configs/prometheus/*.yml` or `alerts/prometheus/*.yml` | `docker compose ... restart prometheus` |
+| `configs/loki/loki.yml` | `docker compose ... restart loki` |
+| `configs/alertmanager/*.yml` | `docker compose ... restart alertmanager` |
+| `configs/grafana/**` or `dashboards/**/*.json` | `docker compose ... restart grafana` |
+
+Prometheus also supports hot reload: `curl -X POST http://localhost:9090/-/reload`
+
+### Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| Stack fails to start | Check `docker info` is running; check port conflicts on 3000/3100/9090/9093 |
+| "No Data" in Grafana panels | Check datasource health in Settings > Data Sources; verify Alloy is sending data; check recording rules at http://localhost:9090/rules |
+| Prometheus shows 0 rules | Verify volume mounts: `docker compose exec prometheus ls /etc/prometheus/rules/`; run `python scripts/validate_prometheus.py` |
+| Grafana "Datasource not found" | Verify provisioning: `docker compose exec grafana ls /etc/grafana/provisioning/datasources/`; ensure Prometheus/Loki are healthy |
+| Alertmanager webhook errors | Expected if `TEAMS_WEBHOOK_URL` is not set (uses placeholder); set a real URL in `.env` to test |
+| Container OOM restart | Check `docker stats`; increase limits in `docker-compose.yml` or reduce retention |
+
+### Differences from Production (Kubernetes)
+
+| Aspect | Local (Docker Compose) | Production (Kubernetes) |
+|--------|----------------------|------------------------|
+| Storage | Docker named volumes | Persistent Volume Claims |
+| Networking | Docker bridge network | Kubernetes Service DNS |
+| Config delivery | Bind mounts from repo | ConfigMaps / Helm values |
+| Scaling | Single instance | Replicas with HA |
+| Retention | 15 days / 5 GB | 30 days / 50 GB |
+| TLS | None (localhost) | Ingress controller with certs |
+| Auth | admin/admin | AD/LDAP integration |
 
 ---
 
@@ -192,7 +256,7 @@ To onboard new servers into the monitoring platform:
 2. **Run the Ansible playbook** to deploy and configure Alloy with the correct tags
 3. **Verify data flow** in Grafana -- the server should appear in template variable dropdowns within 60 seconds
 
-See `docs/FLEET_ONBOARDING.md` (Phase 5.7) for the complete fleet onboarding guide.
+See `docs/ALLOY_DEPLOYMENT.md` for the complete agent deployment and fleet onboarding guide.
 
 ---
 

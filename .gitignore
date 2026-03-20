@@ -26,6 +26,9 @@ deploy/helm/monitoring-stack/charts/
 # Fleet inventory generated output
 inventory/generated/
 
+# Deployment wrapper generated config (runtime, org-specific)
+deploy/site_config.yml
+
 # Lansweeper textfile collector metrics (runtime artifacts)
 metrics/lansweeper/
 

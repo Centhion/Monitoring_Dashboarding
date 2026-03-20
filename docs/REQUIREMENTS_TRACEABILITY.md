@@ -139,9 +139,9 @@ Maps every project requirement to the specific phase, configuration file, or com
 
 | Requirement | Status | Delivered By | Files |
 |------------|--------|-------------|-------|
-| Folder-based RBAC | Pending | Phase 8 | `configs/grafana/provisioning/` (planned) |
-| LDAP/AD group synchronization | Pending | Phase 8 | `configs/grafana/ldap.toml` (planned) |
-| Per-site dashboard isolation | Pending | Phase 8 | Requires Phase 8 implementation |
+| Folder-based RBAC | Covered | Phase 8 | `configs/grafana/provisioning/`, `scripts/configure_rbac.py` |
+| LDAP/AD group synchronization | Covered | Phase 8 | `configs/grafana/ldap.toml`, `docs/RBAC_GUIDE.md` |
+| Per-site dashboard isolation | Covered | Phase 8 | Folder-based RBAC with datacenter-scoped permissions |
 
 ### Deployment and Operations
 
@@ -150,7 +150,7 @@ Maps every project requirement to the specific phase, configuration file, or com
 | Docker Compose local testing | Covered | Phase 5.5 | `deploy/docker/docker-compose.yml` |
 | Helm chart for Kubernetes | Covered | Phase 5.8 | `deploy/helm/monitoring-stack/` |
 | Configuration validation | Covered | Phase 5 | `scripts/validate_all.py` |
-| Fleet deployment tooling | Pending | Phase 5.7 | `ansible/` (planned) |
+| Fleet deployment tooling | Covered | Phase 5.7 | `docs/ALLOY_DEPLOYMENT.md` (fleet onboarding), `scripts/fleet_inventory.py` |
 | Cloud monitoring (AWS/Azure) | Stub | Phase 7E | `configs/alloy/cloud/*.alloy.example` |
 
 ## Coverage Summary
@@ -169,8 +169,8 @@ Maps every project requirement to the specific phase, configuration file, or com
 | Hardware Health | 3 | 3 | 0 | 0 |
 | Certificate Monitoring | 3 | 3 | 0 | 0 |
 | Audit/Compliance | 5 | 3 | 0 | 2 |
-| Access Control | 3 | 0 | 3 | 0 |
-| Deployment/Operations | 5 | 3 | 2 | 0 |
-| **Total** | **77** | **70** | **5** | **2** |
+| Access Control | 3 | 3 | 0 | 0 |
+| Deployment/Operations | 5 | 4 | 1 | 0 |
+| **Total** | **77** | **74** | **1** | **2** |
 
-**Coverage**: 91% of requirements are delivered. 6% are pending implementation (Phase 8 RBAC, Phase 5.7 fleet tooling). 3% require Grafana Enterprise (full audit diffs, compliance-grade trail).
+**Coverage**: 96% of requirements are delivered. Cloud monitoring (1 item) remains a stub pending cloud adoption. 3% require Grafana Enterprise (full audit diffs, compliance-grade trail).

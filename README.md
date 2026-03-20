@@ -112,14 +112,13 @@ All dashboards include a cross-navigation link bar. Template variables (`environ
 - See `docs/ALERT_RUNBOOKS.md` for alert investigation and remediation procedures
 - See `docs/DASHBOARD_GUIDE.md` for dashboard customization and creation
 - See `docs/VALIDATION_TOOLING.md` for config validation scripts and CI integration
-- See `docs/LOCAL_TESTING.md` for Docker Compose PoC setup and Alloy local testing
 - See `docs/ALERT_DEDUP.md` for mass-outage detection and alert suppression architecture
 - See `docs/MAINTENANCE_WINDOWS.md` for scheduled and ad-hoc alert silencing workflows
 - See `docs/AUDIT_LOGGING.md` for Grafana audit trail setup and LogQL query examples
 - See `docs/SNMP_TRAPS.md` for SNMP trap ingestion pipeline setup
 - See `docs/CLOUD_MONITORING.md` for AWS CloudWatch and Azure Monitor integration
 - See `docs/REQUIREMENTS_TRACEABILITY.md` for full requirements coverage matrix
-- See `docs/FLEET_ONBOARDING.md` for adding sites, servers, and devices to the platform
+- See `docs/ALLOY_DEPLOYMENT.md` for fleet onboarding (adding sites, servers, and devices)
 - See `docs/SNMP_MONITORING.md` for SNMP network device monitoring setup
 - See `docs/HARDWARE_MONITORING.md` for Redfish BMC hardware health monitoring
 - See `docs/CERTIFICATE_MONITORING.md` for SSL/TLS certificate expiry monitoring

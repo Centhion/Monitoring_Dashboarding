@@ -270,3 +270,69 @@ The Alloy UI at `http://localhost:12345` shows:
 | High cardinality metrics | Service filter too broad | Tighten the `where_clause` in the exporter's `service` block |
 | Windows Event Log missing events | Alloy service account lacks permissions | Run Alloy as Local System or grant Event Log Readers group |
 | Docker container logs not appearing | Alloy not in docker group | Run `sudo usermod -aG docker alloy` and restart Alloy |
+| Server not appearing in dashboards | Labels mismatch | Check `ALLOY_DATACENTER` matches dashboard variable values; verify `remote_write` URL |
+| Duplicate hostnames | Two servers report same hostname | Hostnames must be unique within a datacenter; use FQDN or add a disambiguating label |
+
+---
+
+## Fleet Onboarding
+
+### Label Taxonomy
+
+The platform uses five standard labels across all metrics and logs:
+
+| Label | Source | Purpose | Example |
+|-------|--------|---------|---------|
+| environment | ALLOY_ENV | Deployment tier | prod, staging, dev |
+| datacenter | ALLOY_DATACENTER | Physical/logical site | us-east-1, site-alpha |
+| role | ALLOY_ROLE | Server function | dc, sql, iis, fileserver, docker, generic |
+| os | Static in config | Operating system | windows, linux |
+| hostname | Auto-detected | Server name | srv-web-01 |
+
+Dashboard template variables filter on these labels. Alert routing uses `datacenter` for per-site notification. The Enterprise NOC auto-discovers sites from unique `datacenter` values. No backend config changes are needed when adding new servers or sites.
+
+### Adding a New Site (Datacenter)
+
+1. **Choose a site code**: Use a consistent, short identifier (`site-alpha`, `us-east-dc1`). This becomes `ALLOY_DATACENTER` for all servers at that site. Once chosen, do NOT change it (breaks historical metric continuity).
+2. **Deploy backend** (if dedicated): For hub-and-spoke, a single central Prometheus/Loki/Grafana serves all sites. For per-site, deploy a separate stack (see `docs/BACKEND_DEPLOYMENT.md`).
+3. **Deploy site gateway** (optional): Required for SNMP, Redfish, or certificate monitoring at the site. See `configs/alloy/gateway/site_gateway.alloy`.
+4. **Configure alert routing**: Add site-specific email routing in `configs/alertmanager/alertmanager.yml`, matching on the `datacenter` label.
+5. **Verify**: Deploy one test agent, check the Enterprise NOC dashboard for the new site.
+
+### Adding Multiple Servers (Bulk Onboarding)
+
+For deploying to many servers, create a CSV inventory:
+
+```csv
+hostname,site,role,os,ip_address
+srv-web-01,site-alpha,iis,windows,10.0.1.10
+srv-sql-01,site-alpha,sql,windows,10.0.1.20
+srv-docker-01,site-alpha,docker,linux,10.0.2.10
+```
+
+Automation options: Ansible (recommended for large fleets), PowerShell remoting (Windows-only), SSH + shell scripts (Linux-only), SCCM/Intune (enterprises with existing device management).
+
+### Decommissioning
+
+**Removing a server**: Stop and uninstall Alloy. Metrics age out based on Prometheus retention (default 15 days). No backend config changes needed. An alert will fire for host unreachable -- silence or acknowledge it.
+
+**Removing a site**: Decommission all servers, remove the site gateway, remove site-specific alert routing from `alertmanager.yml`, remove the site email from Helm values. Historical data ages out. The site disappears from the Enterprise NOC once metrics expire.
+
+**Removing a network device / BMC / certificate endpoint**: Remove the target from `site_gateway.alloy` or `role_cert_monitor.alloy`, reload Alloy config (`kill -HUP <pid>` or restart).
+
+### Post-Deployment Checklist
+
+- [ ] Alloy UI accessible on port 12345
+- [ ] Metrics visible in Prometheus (`up{hostname="<server>"}`)
+- [ ] Logs visible in Loki (`{hostname="<server>"}`)
+- [ ] Server appears in appropriate dashboard
+- [ ] Alerts would fire if thresholds breached
+
+### Firewall Rules
+
+Outbound from every monitored server:
+
+- TCP to Prometheus `remote_write` endpoint (default 9090)
+- TCP to Loki push endpoint (default 3100)
+
+No inbound ports are needed on monitored servers (push model).

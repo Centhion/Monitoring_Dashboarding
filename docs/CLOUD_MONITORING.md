@@ -1,12 +1,10 @@
 # Cloud Infrastructure Monitoring
 
+> **Status: Stub Only** -- These are placeholder configurations. No cloud resources are currently monitored. The stub configs document the integration approach for when cloud adoption begins. Disabled by default.
+
 ## Overview
 
 The monitoring platform includes stub configurations for extending monitoring to cloud infrastructure (AWS and Azure). These configs are disabled by default and activated when cloud resources are deployed.
-
-## Status
-
-Cloud monitoring is a placeholder capability. No cloud resources are currently deployed. The stub configs document the integration approach and required prerequisites so the team can activate monitoring quickly when cloud adoption begins.
 
 ## Supported Providers
 

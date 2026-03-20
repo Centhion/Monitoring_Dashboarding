@@ -1,0 +1,107 @@
+# =============================================================================
+# Deployment Configuration -- Site Inventory and Stack Settings
+# =============================================================================
+# This file is the single source of truth for deploying the monitoring stack.
+# Run `python scripts/deploy_configure.py --config deploy/site_config.yml`
+# to generate all config files from this definition.
+#
+# Alternatively, run `python scripts/deploy_configure.py` without --config
+# to enter interactive mode and build this file via prompts.
+#
+# After generation, start the stack with:
+#   python scripts/poc_setup.py              (standard)
+#   python scripts/poc_setup.py --demo-data  (with synthetic data for demos)
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Stack-Wide Settings
+# These apply to the entire monitoring deployment.
+# ---------------------------------------------------------------------------
+stack:
+  # Cluster identifier applied as an external label to all metrics.
+  # Useful for federation or multi-cluster disambiguation.
+  cluster_name: "monitoring-prod"
+
+  # Grafana admin credentials for initial login.
+  # Change immediately after first login in production.
+  grafana_admin_user: admin
+  grafana_admin_password: admin
+
+  # Prometheus time-series retention.
+  retention_time: 15d
+  retention_size: 5GB
+
+# ---------------------------------------------------------------------------
+# Notification Settings
+# SMTP and Teams webhook configuration for alert delivery.
+# ---------------------------------------------------------------------------
+notifications:
+  # Microsoft Teams incoming webhook URL.
+  # Create via: Teams channel > Connectors > Incoming Webhook.
+  # Leave as placeholder if not testing notifications.
+  teams_webhook_url: "https://example.com/webhook/placeholder"
+
+  # SMTP relay for email alert delivery.
+  smtp:
+    host: "smtp.example.com"
+    port: 587
+    from_address: "monitoring@example.com"
+    auth_username: "monitoring@example.com"
+    auth_password: "changeme"
+    require_tls: true
+
+  # Default catch-all email for alerts from unmapped sites.
+  default_email: "ops-team@example.com"
+
+# ---------------------------------------------------------------------------
+# Site Definitions
+# Each site represents a physical datacenter or logical location.
+# The site code becomes the `datacenter` label on all metrics and logs.
+#
+# Required fields: code, display_name, contact_email
+# Optional fields: timezone, environment, network_segment, gateway
+# ---------------------------------------------------------------------------
+sites:
+  - code: "ent"
+    display_name: "Enterprise HQ"
+    contact_email: "ent-ops@example.com"
+    timezone: "America/Denver"
+    environment: prod
+    network_segment: "10.0.0.0/16"
+    gateway:
+      snmp: true
+      redfish: true
+      certs: true
+
+  - code: "dv"
+    display_name: "Deer Valley"
+    contact_email: "dv-ops@example.com"
+    timezone: "America/Denver"
+    environment: prod
+    network_segment: "10.1.0.0/16"
+    gateway:
+      snmp: true
+      redfish: true
+      certs: true
+
+# ---------------------------------------------------------------------------
+# Demo Data Settings (optional)
+# When running with `poc_setup.py --demo-data`, the generator uses these
+# settings to create simulated hosts and push synthetic metrics/logs.
+# ---------------------------------------------------------------------------
+demo:
+  enabled: true
+
+  # Role mix per site. Each entry generates simulated hosts with
+  # realistic metric patterns for that role.
+  host_profile:
+    dc: 2          # Domain Controllers
+    sql: 2         # SQL Servers
+    iis: 3         # IIS Web Servers
+    fileserver: 2  # File Servers
+    docker: 2      # Docker/Linux hosts
+    generic: 3     # Generic Windows servers
+
+  # How many minutes of historical data to backfill on first run.
+  # Recording rules and SLA dashboards need 30+ min to compute.
+  backfill_minutes: 30

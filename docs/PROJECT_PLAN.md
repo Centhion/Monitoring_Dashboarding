@@ -31,6 +31,9 @@
 | Phase 7H: Dashboard Hub Architecture | Completed | Enterprise NOC + per-site drill-down dashboards for location-centric monitoring |
 | Phase 8: Access Control and RBAC | Completed | LDAP config, folder/team provisioning, permission model, configure_rbac.py, validate_rbac.py, docs |
 | Phase 9: Requirements Gap Closure | Completed | Agentless probing, file/process, alert dedup, maintenance windows, SLA, SNMP traps, audit logging, forecasting, dashboards, docs |
+| Phase 10A: Deployment Wrapper | In Progress | Interactive config script that generates all stack configs from a single site inventory |
+| Phase 10B: Demo Data Generator | Pending | Synthetic metrics/logs seeder for showcasing dashboards without live agents |
+| Phase 10C: Integration and Polish | Pending | Wrapper + poc_setup.py integration, example config, QUICKSTART update |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
 
@@ -1584,6 +1587,62 @@ Week 3:
 ### Human Actions Required
 
 None for Phase 9. All work is configuration. Deployment-time customization (probe target lists, process names, file paths, SLA targets, trap OID mappings) is documented but not hard-coded.
+
+---
+
+## Phase 10: Deployment Configuration Wrapper
+
+**Goal**: An interactive deployment script that collects all stack configuration (sites, notifications, credentials) via prompts, generates every config file needed for a working multi-site deployment, and optionally seeds demo data so dashboards populate without live agents. Eliminates manual YAML editing for first-time deployment.
+
+**Status**: In Progress
+
+**Workflow**: `python scripts/deploy_configure.py` (interactive config) then `python scripts/poc_setup.py --demo-data` (start stack + seed data)
+
+### Phase 10A: Core Wrapper Script
+
+**Goal**: Interactive CLI that walks through all deployment parameters and generates config files.
+
+- [ ] 1. Create `deploy/site_config.yml` schema -- single YAML file defining all deployment config (stack-wide settings + per-site definitions) -- Medium
+- [ ] 2. Build `scripts/deploy_configure.py` with interactive prompt flow -- collects stack-wide settings (SMTP, Teams webhook, Grafana admin, retention) then per-site settings (code, name, contact email, gateway options) -- Medium
+- [ ] 3. Generator: `inventory/sites.yml` + `inventory/hosts.yml` from site_config.yml -- Simple
+- [ ] 4. Generator: `.env` with all stack-wide and per-site env vars -- Simple
+- [ ] 5. Generator: `configs/alertmanager/alertmanager.yml` -- per-site receivers + routes, preserving group_by and inhibition rules -- Complex
+- [ ] 6. Generator: `configs/grafana/notifiers/notifiers.yml` -- per-site contact points -- Simple
+- [ ] 7. Non-interactive mode (`--config deploy/site_config.yml`) for re-runs -- Simple
+- [ ] 8. Validation pass -- verify generated configs are syntactically valid before writing -- Medium
+
+### Phase 10B: Demo Data Generator
+
+**Goal**: Push synthetic metrics into Prometheus and logs into Loki that match real Alloy agent output, so all dashboards populate with realistic multi-site data.
+
+- [ ] 1. Map dashboard panels to required metrics -- ensure demo data covers all dashboard categories (Windows, Linux, Overview, Network, Hardware, Certs, NOC) -- Complex
+- [ ] 2. Build metric generator -- time-series data with correct label sets matching real Alloy output -- Complex
+- [ ] 3. Per-site host simulation -- generate realistic host inventories (DCs, SQL, IIS, file servers, Docker) per site from site_config.yml -- Medium
+- [ ] 4. Push to Prometheus via remote_write API -- Medium
+- [ ] 5. Push synthetic log entries to Loki with matching labels -- Medium
+- [ ] 6. Continuous background mode that keeps pushing data during demo -- Simple
+- [ ] 7. Seed enough historical data (30+ min) for recording rules and SLA calculations -- Medium
+
+### Phase 10C: Integration and Polish
+
+- [ ] 1. Integrate with `poc_setup.py` -- add `--demo-data` flag that auto-starts generator after health checks -- Simple
+- [ ] 2. Create `deploy/site_config.example.yml` with example multi-site config -- Simple
+- [ ] 3. Update QUICKSTART.md with wrapper workflow -- Simple
+
+### Human Actions Required
+
+- [ ] Provide site codes and display names when running the wrapper
+- [ ] Provide SMTP relay details (or accept placeholders for demo)
+- [ ] Provide Teams webhook URL (or accept placeholder for demo)
+- [ ] Validate demo data looks correct in dashboards after first run
+
+### Success Criteria
+
+- Run deploy_configure.py, answer prompts, then poc_setup.py --demo-data
+- All dashboards populate with multi-site data within 2 minutes
+- Enterprise NOC shows all configured sites
+- Site Overview drill-down works per site
+- Adding a new site requires only re-running the wrapper
 
 ---
 

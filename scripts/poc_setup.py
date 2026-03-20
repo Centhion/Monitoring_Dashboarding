@@ -274,6 +274,10 @@ def main() -> int:
         "--reset", action="store_true",
         help="Stop the stack and delete all data volumes"
     )
+    parser.add_argument(
+        "--demo-data", action="store_true",
+        help="After startup, backfill and stream demo data for showcasing dashboards"
+    )
     args = parser.parse_args()
 
     if args.status:
@@ -326,13 +330,42 @@ def main() -> int:
     else:
         print("  Some validations had warnings -- check output above.")
 
-    print()
-    print("  Next steps:")
-    print("    1. Open Grafana at http://localhost:3000")
-    print("    2. Check dashboards under Dashboards menu")
-    print("    3. (Optional) Run Alloy on this machine:")
-    print("       alloy run configs/alloy/local/")
-    print("    4. Stop stack: python scripts/poc_setup.py --stop")
+    # Demo data mode: backfill + continuous push
+    if args.demo_data:
+        print()
+        print("Starting demo data generator...")
+        config_path = PROJECT_ROOT / "deploy" / "site_config.yml"
+        if not config_path.exists():
+            print("  WARNING: deploy/site_config.yml not found.")
+            print("  Run deploy_configure.py first to generate site config.")
+            print("  Skipping demo data.")
+        else:
+            try:
+                from demo_data_generator import build_inventory, backfill, run_continuous
+                import yaml as _yaml
+                with open(config_path) as f:
+                    demo_config = _yaml.safe_load(f)
+                inventory = build_inventory(demo_config)
+                backfill_min = demo_config.get("demo", {}).get("backfill_minutes", 30)
+                backfill(inventory, backfill_min)
+                print()
+                print("  Backfill complete. Starting continuous push...")
+                print("  Ctrl+C to stop data generation (stack keeps running).")
+                print()
+                run_continuous(inventory)
+            except KeyboardInterrupt:
+                print("\n  Demo data stopped. Stack is still running.")
+            except ImportError as exc:
+                print(f"  ERROR importing demo_data_generator: {exc}")
+                print("  Ensure PyYAML is installed: pip install pyyaml")
+    else:
+        print()
+        print("  Next steps:")
+        print("    1. Open Grafana at http://localhost:3000")
+        print("    2. Check dashboards under Dashboards menu")
+        print("    3. (Optional) Run with demo data:")
+        print("       python scripts/poc_setup.py --demo-data")
+        print("    4. Stop stack: python scripts/poc_setup.py --stop")
 
     return 0
 
