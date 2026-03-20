@@ -110,11 +110,18 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/infra-overview?var-datacenter=${datacenter}",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -370,7 +377,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "min by (datacenter, environment) (instance:windows_disk_free:ratio){environment=~\"$environment\", datacenter=\"$datacenter\"}",
+          "expr": "min by (datacenter, environment) (instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
           "legendFormat": "Worst Disk Free",
           "range": true,
           "refId": "A"
@@ -407,7 +414,14 @@
                 "value": 5
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/windows-overview?var-datacenter=${datacenter}",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -441,7 +455,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (datacenter, environment) (instance:windows_services_not_running:count){environment=~\"$environment\", datacenter=\"$datacenter\"} or vector(0)",
+          "expr": "sum by (datacenter, environment) (instance:windows_services_not_running:count{environment=~\"$environment\", datacenter=~\"$datacenter\"}) or vector(0)",
           "legendFormat": "Services Down",
           "range": true,
           "refId": "A"
@@ -488,7 +502,14 @@
                 "value": 1000
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/iis-overview?var-datacenter=${datacenter}",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -1190,7 +1211,14 @@
               }
             ]
           },
-          "unit": "reqps"
+          "unit": "reqps",
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/iis-overview?var-datacenter=${datacenter}",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -1273,7 +1301,14 @@
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/iis-overview?var-datacenter=${datacenter}",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -1530,6 +1565,6 @@
   "timezone": "browser",
   "title": "Site Overview",
   "uid": "site-overview",
-  "version": 5,
+  "version": 10,
   "weekStart": ""
 }

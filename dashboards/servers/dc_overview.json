@@ -71,12 +71,313 @@
   ],
   "panels": [
     {
-      "collapsed": false,
+      "type": "row",
+      "title": "Server Health",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 0
+      },
+      "collapsed": false
+    },
+    {
+      "type": "gauge",
+      "title": "CPU Utilization",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "avg(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Memory Utilization",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "avg(instance:windows_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Disk Free (Worst)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "min(instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "green",
+                "value": 20
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Network Throughput",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(instance:windows_network_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Uptime",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "avg(instance:windows_uptime:seconds{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dtdurations",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 86400
+              },
+              {
+                "color": "green",
+                "value": 604800
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Services Down",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(instance:windows_services_not_running:count{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}) or vector(0)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 6
       },
       "id": 100,
       "title": "Active Directory",
@@ -120,7 +421,7 @@
         "h": 5,
         "w": 6,
         "x": 0,
-        "y": 1
+        "y": 7
       },
       "id": 1,
       "options": {
@@ -193,7 +494,7 @@
         "h": 5,
         "w": 6,
         "x": 6,
-        "y": 1
+        "y": 7
       },
       "id": 2,
       "options": {
@@ -266,7 +567,7 @@
         "h": 5,
         "w": 6,
         "x": 12,
-        "y": 1
+        "y": 7
       },
       "id": 3,
       "options": {
@@ -339,7 +640,7 @@
         "h": 5,
         "w": 6,
         "x": 18,
-        "y": 1
+        "y": 7
       },
       "id": 4,
       "options": {
@@ -436,7 +737,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 6
+        "y": 12
       },
       "id": 5,
       "options": {
@@ -481,6 +782,152 @@
       ],
       "title": "LDAP Operations",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Total DNS queries per second handled by selected domain controllers.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5000
+              },
+              {
+                "color": "red",
+                "value": 15000
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 12
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(dns_queries_per_sec{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "legendFormat": "DNS Queries/sec",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "DNS Queries/sec",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Rate of recursive DNS queries per second. High recursive query rates may indicate missing forwarder configuration or external resolution load.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1000
+              },
+              {
+                "color": "red",
+                "value": 5000
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 12
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(dns_recursive_queries_per_sec{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "legendFormat": "Recursive Queries/sec",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Recursive Queries/sec",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -575,7 +1022,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 6
+        "y": 12
       },
       "id": 6,
       "options": {
@@ -616,168 +1063,28 @@
           "legendFormat": "{{ hostname }} Outbound",
           "range": true,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (hostname) (ad_ds_dra_inbound_sync_requests_per_sec{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "legendFormat": "{{ hostname }} Inbound Sync",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (hostname) (ad_ds_dra_outbound_sync_requests_per_sec{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "legendFormat": "{{ hostname }} Outbound Sync",
+          "refId": "D"
         }
       ],
       "title": "Replication Sync",
       "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 14
-      },
-      "id": 101,
-      "title": "DNS",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "Total DNS queries per second handled by selected domain controllers.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 5000
-              },
-              {
-                "color": "red",
-                "value": 15000
-              }
-            ]
-          },
-          "unit": "short",
-          "decimals": 1
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 0,
-        "y": 6
-      },
-      "id": 7,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(dns_queries_per_sec{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
-          "legendFormat": "DNS Queries/sec",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "DNS Queries/sec",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "Rate of recursive DNS queries per second. High recursive query rates may indicate missing forwarder configuration or external resolution load.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 1000
-              },
-              {
-                "color": "red",
-                "value": 5000
-              }
-            ]
-          },
-          "unit": "short",
-          "decimals": 1
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 6,
-        "y": 6
-      },
-      "id": 8,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum(dns_recursive_queries_per_sec{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
-          "legendFormat": "Recursive Queries/sec",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Recursive Queries/sec",
-      "type": "stat"
     },
     {
       "datasource": {
@@ -817,7 +1124,7 @@
         "h": 5,
         "w": 6,
         "x": 12,
-        "y": 6
+        "y": 12
       },
       "id": 9,
       "options": {
@@ -851,6 +1158,18 @@
       ],
       "title": "Zone Transfers",
       "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 101,
+      "title": "DNS",
+      "type": "row"
     },
     {
       "datasource": {
@@ -914,7 +1233,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 26
       },
       "id": 10,
       "options": {
@@ -966,7 +1285,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 34
       },
       "id": 102,
       "title": "Services",
@@ -1165,7 +1484,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 35
       },
       "id": 11,
       "options": {
@@ -1311,6 +1630,6 @@
   "timezone": "browser",
   "title": "Domain Controller Overview",
   "uid": "dc-overview",
-  "version": 5,
+  "version": 11,
   "weekStart": ""
 }

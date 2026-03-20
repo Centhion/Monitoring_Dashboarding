@@ -74,7 +74,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -132,7 +132,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -256,7 +256,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -802,5 +802,5 @@
   "timezone": "browser",
   "title": "Audit Trail",
   "uid": "audit-trail",
-  "version": 2
+  "version": 3
 }

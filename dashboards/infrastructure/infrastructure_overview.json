@@ -110,11 +110,18 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/windows-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -173,11 +180,18 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/windows-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -236,11 +250,18 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/linux-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -469,7 +490,14 @@
                 "value": 5
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/windows-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -550,7 +578,14 @@
                 "value": 5
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/windows-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -705,7 +740,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 6,
         "x": 0,
         "y": 6
       },
@@ -843,8 +878,8 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 8,
+        "w": 6,
+        "x": 6,
         "y": 6
       },
       "id": 11,
@@ -973,8 +1008,8 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 16,
+        "w": 6,
+        "x": 12,
         "y": 6
       },
       "id": 12,
@@ -1685,7 +1720,14 @@
                 "value": 5
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/infra-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -2539,6 +2581,63 @@
           "type": "table"
         }
       ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Fleet Network Throughput",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 6
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(instance:windows_network_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
+          "legendFormat": "Windows",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(instance:linux_network_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
+          "legendFormat": "Linux",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
     }
   ],
   "refresh": "1m",
@@ -2608,6 +2707,6 @@
   "timezone": "browser",
   "title": "Infrastructure Overview",
   "uid": "infra-overview",
-  "version": 4,
+  "version": 9,
   "weekStart": ""
 }

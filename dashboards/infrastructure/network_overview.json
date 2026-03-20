@@ -112,7 +112,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -183,7 +183,14 @@
                 "value": 1
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/network-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -254,7 +261,14 @@
                 "value": 5
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/network-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -396,7 +410,14 @@
                 "value": 5
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/network-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -1956,5 +1977,5 @@
   "timezone": "",
   "title": "Network Infrastructure",
   "uid": "network-overview",
-  "version": 8
+  "version": 12
 }

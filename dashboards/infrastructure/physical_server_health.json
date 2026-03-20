@@ -112,7 +112,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -176,7 +176,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -247,7 +247,14 @@
                 "value": 1
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/hardware-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -314,7 +321,14 @@
                 "value": 1
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/hardware-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -381,7 +395,14 @@
                 "value": 1
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/hardware-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -1338,5 +1359,5 @@
   "timezone": "",
   "title": "Physical Server Health",
   "uid": "hardware-overview",
-  "version": 5
+  "version": 9
 }

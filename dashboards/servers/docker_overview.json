@@ -71,12 +71,318 @@
   ],
   "panels": [
     {
-      "collapsed": false,
+      "type": "row",
+      "title": "Server Health",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 0
+      },
+      "collapsed": false
+    },
+    {
+      "type": "gauge",
+      "title": "CPU Utilization",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "avg(instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Memory Utilization",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "avg(instance:linux_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Disk Free (Worst)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "min(instance:linux_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "green",
+                "value": 20
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Network Throughput",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(instance:linux_network_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Uptime",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "avg(instance:linux_uptime:seconds{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dtdurations",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 86400
+              },
+              {
+                "color": "green",
+                "value": 604800
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Load Average",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "avg(instance:linux_load_normalized:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 1.0
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 6
       },
       "id": 100,
       "title": "Container Overview",
@@ -98,7 +404,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -109,9 +415,9 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
+        "w": 4,
         "x": 0,
-        "y": 1
+        "y": 7
       },
       "id": 1,
       "options": {
@@ -173,9 +479,9 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 6,
-        "y": 1
+        "w": 4,
+        "x": 4,
+        "y": 7
       },
       "id": 2,
       "options": {
@@ -233,9 +539,9 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 12,
-        "y": 1
+        "w": 4,
+        "x": 8,
+        "y": 7
       },
       "id": 3,
       "options": {
@@ -282,7 +588,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "purple",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -293,9 +599,9 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 18,
-        "y": 1
+        "w": 4,
+        "x": 12,
+        "y": 7
       },
       "id": 4,
       "options": {
@@ -327,6 +633,18 @@
       ]
     },
     {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 200,
+      "title": "Container States",
+      "type": "row"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -342,7 +660,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "orange",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -353,9 +671,9 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 0,
-        "y": 6
+        "w": 4,
+        "x": 20,
+        "y": 7
       },
       "id": 5,
       "options": {
@@ -385,18 +703,6 @@
           "refId": "A"
         }
       ]
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 5
-      },
-      "id": 200,
-      "title": "Container States",
-      "type": "row"
     },
     {
       "datasource": {
@@ -505,7 +811,7 @@
         "h": 8,
         "w": 16,
         "x": 0,
-        "y": 6
+        "y": 13
       },
       "id": 6,
       "options": {
@@ -612,7 +918,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 6
+        "y": 13
       },
       "id": 7,
       "options": {
@@ -661,7 +967,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 21
       },
       "id": 300,
       "title": "Docker Engine",
@@ -728,7 +1034,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 15
+        "y": 22
       },
       "id": 8,
       "options": {
@@ -822,7 +1128,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 15
+        "y": 22
       },
       "id": 9,
       "options": {
@@ -916,7 +1222,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 15
+        "y": 22
       },
       "id": 10,
       "options": {
@@ -1041,6 +1347,6 @@
   "timezone": "browser",
   "title": "Docker Host Overview",
   "uid": "docker-overview",
-  "version": 5,
+  "version": 11,
   "weekStart": ""
 }

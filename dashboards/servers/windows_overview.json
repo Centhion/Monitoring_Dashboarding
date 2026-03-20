@@ -248,12 +248,20 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 86400
+              },
+              {
+                "color": "green",
+                "value": 604800
               }
             ]
           },
-          "unit": "d",
+          "unit": "dtdurations",
           "decimals": 1
         },
         "overrides": []
@@ -1924,6 +1932,6 @@
   "timezone": "browser",
   "title": "Windows Server Overview",
   "uid": "windows-overview",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }

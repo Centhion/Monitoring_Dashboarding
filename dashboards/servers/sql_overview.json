@@ -71,12 +71,313 @@
   ],
   "panels": [
     {
-      "collapsed": false,
+      "type": "row",
+      "title": "Server Health",
       "gridPos": {
+        "y": 0,
         "h": 1,
         "w": 24,
-        "x": 0,
-        "y": 0
+        "x": 0
+      },
+      "collapsed": false
+    },
+    {
+      "type": "gauge",
+      "title": "CPU Utilization",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "y": 1,
+        "h": 5,
+        "w": 4,
+        "x": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "avg(instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Memory Utilization",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "y": 1,
+        "h": 5,
+        "w": 4,
+        "x": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "avg(instance:windows_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Disk Free (Worst)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "y": 1,
+        "h": 5,
+        "w": 4,
+        "x": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "min(instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "green",
+                "value": 20
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Network Throughput",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "y": 1,
+        "h": 5,
+        "w": 4,
+        "x": 12
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(instance:windows_network_bytes:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Uptime",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "y": 1,
+        "h": 5,
+        "w": 4,
+        "x": 16
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "avg(instance:windows_uptime:seconds{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dtdurations",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 86400
+              },
+              {
+                "color": "green",
+                "value": 604800
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Services Down",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "y": 1,
+        "h": 5,
+        "w": 4,
+        "x": 20
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(instance:windows_services_not_running:count{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}) or vector(0)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "y": 6,
+        "h": 1,
+        "w": 24,
+        "x": 0
       },
       "id": 100,
       "title": "Overview",
@@ -119,10 +420,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 0,
-        "y": 1
+        "y": 7,
+        "h": 4,
+        "w": 4,
+        "x": 0
       },
       "id": 1,
       "options": {
@@ -192,10 +493,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 6,
-        "y": 1
+        "y": 7,
+        "h": 4,
+        "w": 4,
+        "x": 4
       },
       "id": 2,
       "options": {
@@ -246,7 +547,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -257,10 +558,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 12,
-        "y": 1
+        "y": 7,
+        "h": 4,
+        "w": 4,
+        "x": 8
       },
       "id": 3,
       "options": {
@@ -311,7 +612,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -322,10 +623,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 18,
-        "y": 1
+        "y": 7,
+        "h": 4,
+        "w": 4,
+        "x": 12
       },
       "id": 4,
       "options": {
@@ -395,10 +696,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 0,
-        "y": 6
+        "y": 7,
+        "h": 4,
+        "w": 4,
+        "x": 16
       },
       "id": 5,
       "options": {
@@ -434,6 +735,18 @@
       "type": "stat"
     },
     {
+      "collapsed": false,
+      "gridPos": {
+        "y": 11,
+        "h": 1,
+        "w": 24,
+        "x": 0
+      },
+      "id": 200,
+      "title": "Performance",
+      "type": "row"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -464,10 +777,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 6,
-        "y": 6
+        "y": 7,
+        "h": 4,
+        "w": 4,
+        "x": 20
       },
       "id": 6,
       "options": {
@@ -501,18 +814,6 @@
       ],
       "title": "Deadlocks/sec",
       "type": "stat"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 6
-      },
-      "id": 200,
-      "title": "Performance",
-      "type": "row"
     },
     {
       "datasource": {
@@ -573,10 +874,10 @@
         "overrides": []
       },
       "gridPos": {
+        "y": 12,
         "h": 8,
         "w": 8,
-        "x": 0,
-        "y": 7
+        "x": 0
       },
       "id": 7,
       "options": {
@@ -692,10 +993,10 @@
         "overrides": []
       },
       "gridPos": {
+        "y": 12,
         "h": 8,
         "w": 8,
-        "x": 8,
-        "y": 7
+        "x": 8
       },
       "id": 8,
       "options": {
@@ -800,10 +1101,10 @@
         "overrides": []
       },
       "gridPos": {
+        "y": 12,
         "h": 8,
         "w": 8,
-        "x": 16,
-        "y": 7
+        "x": 16
       },
       "id": 9,
       "options": {
@@ -844,6 +1145,15 @@
           "legendFormat": "{{ hostname }} Target Memory",
           "range": true,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (hostname) (mssql_memory_manager_memory_grants_pending{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"})",
+          "legendFormat": "{{ hostname }} Grants Pending",
+          "refId": "C"
         }
       ],
       "title": "Memory: Total vs Target",
@@ -852,10 +1162,10 @@
     {
       "collapsed": false,
       "gridPos": {
+        "y": 20,
         "h": 1,
         "w": 24,
-        "x": 0,
-        "y": 15
+        "x": 0
       },
       "id": 300,
       "title": "Database Size",
@@ -991,10 +1301,10 @@
         ]
       },
       "gridPos": {
+        "y": 21,
         "h": 8,
         "w": 12,
-        "x": 0,
-        "y": 16
+        "x": 0
       },
       "id": 10,
       "options": {
@@ -1132,10 +1442,10 @@
         "overrides": []
       },
       "gridPos": {
+        "y": 21,
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 16
+        "x": 12
       },
       "id": 11,
       "options": {
@@ -1173,10 +1483,10 @@
     {
       "collapsed": false,
       "gridPos": {
+        "y": 29,
         "h": 1,
         "w": 24,
-        "x": 0,
-        "y": 24
+        "x": 0
       },
       "id": 400,
       "title": "I/O & Access",
@@ -1272,10 +1582,10 @@
         ]
       },
       "gridPos": {
+        "y": 30,
         "h": 8,
         "w": 12,
-        "x": 0,
-        "y": 25
+        "x": 0
       },
       "id": 12,
       "options": {
@@ -1380,10 +1690,10 @@
         "overrides": []
       },
       "gridPos": {
+        "y": 30,
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 25
+        "x": 12
       },
       "id": 13,
       "options": {
@@ -1417,6 +1727,207 @@
       ],
       "title": "Page Splits",
       "type": "timeseries"
+    },
+    {
+      "type": "row",
+      "title": "Storage",
+      "gridPos": {
+        "y": 38,
+        "h": 1,
+        "w": 24,
+        "x": 0
+      },
+      "collapsed": false
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk Free Space %",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "y": 39,
+        "h": 8,
+        "w": 8,
+        "x": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100",
+          "legendFormat": "{{ hostname }} - {{ volume }}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "green",
+                "value": 20
+              }
+            ]
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk Read/Write Throughput",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "y": 39,
+        "h": 8,
+        "w": 8,
+        "x": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (hostname, volume) (rate(windows_logical_disk_read_bytes_total{volume!~\"HarddiskVolume.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\"}[5m]))",
+          "legendFormat": "{{ volume }} Read",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (hostname, volume) (rate(windows_logical_disk_write_bytes_total{volume!~\"HarddiskVolume.*\", hostname=~\"$hostname\", environment=~\"$environment\", datacenter=~\"$datacenter\"}[5m]))",
+          "legendFormat": "{{ volume }} Write",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk I/O Utilization",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "y": 39,
+        "h": 8,
+        "w": 8,
+        "x": 16
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "instance:windows_disk_io_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100",
+          "legendFormat": "{{ hostname }} - {{ volume }}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
     }
   ],
   "refresh": "30s",
@@ -1508,6 +2019,6 @@
   "timezone": "browser",
   "title": "SQL Server Overview",
   "uid": "sql-overview",
-  "version": 5,
+  "version": 13,
   "weekStart": ""
 }

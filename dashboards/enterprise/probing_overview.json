@@ -74,7 +74,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -147,7 +147,14 @@
                 "value": 3
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/probing-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -280,7 +287,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -1328,6 +1335,6 @@
   "timezone": "browser",
   "title": "Probing Overview",
   "uid": "probing-overview",
-  "version": 3,
+  "version": 7,
   "weekStart": ""
 }

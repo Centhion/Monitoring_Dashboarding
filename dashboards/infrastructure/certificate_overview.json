@@ -173,7 +173,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
@@ -244,7 +244,14 @@
                 "value": 1
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/cert-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -311,7 +318,14 @@
                 "value": 1
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/cert-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -378,7 +392,14 @@
                 "value": 1
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/cert-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -445,7 +466,14 @@
                 "value": 1
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/cert-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -1180,6 +1208,6 @@
   "timezone": "browser",
   "title": "Certificate Overview",
   "uid": "cert-overview",
-  "version": 3,
+  "version": 7,
   "weekStart": ""
 }

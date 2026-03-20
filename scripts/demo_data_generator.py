@@ -383,8 +383,18 @@ def _generate_windows_metrics(
     metrics.append(("windows_memory_physical_total_bytes", labels, total_bytes))
     metrics.append(("windows_memory_physical_free_bytes", labels, free_bytes))
 
-    # Disk (C: and D: volumes)
-    for volume in ["C:", "D:"]:
+    # Disk volumes -- vary by role to reflect realistic server configurations
+    role_volumes = {
+        "sql": ["C:", "D:", "E:", "F:", "G:"],  # OS, Data, Logs, TempDB, Backup
+        "fileserver": ["C:", "D:", "E:", "F:"],  # OS, Data1, Data2, Archive
+        "iis": ["C:", "D:", "E:"],               # OS, Sites, Logs
+        "dc": ["C:", "D:"],                      # OS, NTDS/SYSVOL
+        "generic": ["C:", "D:"],
+        "dhcp": ["C:", "D:"],
+        "ca": ["C:", "D:"],
+    }
+    volumes = role_volumes.get(host.role, ["C:", "D:"])
+    for volume in volumes:
         vol_labels = {**labels, "volume": volume}
         size = 536870912000.0 if volume == "C:" else 1099511627776.0  # 500GB / 1TB
         free = size * (1.0 - host.disk_used_ratio * random.uniform(0.9, 1.1))

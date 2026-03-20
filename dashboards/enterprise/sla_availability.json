@@ -126,7 +126,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avg(sla:site_availability:30d)",
+          "expr": "avg(sla:site_availability:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
           "legendFormat": "Fleet Availability",
           "range": true,
           "refId": "A"
@@ -163,7 +163,14 @@
                 "value": 5
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/sla-availability",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -197,7 +204,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(sla:role_hosts_below_sla:count)",
+          "expr": "sum(sla:role_hosts_below_sla:count{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
           "legendFormat": "Hosts Below SLA",
           "range": true,
           "refId": "A"
@@ -240,7 +247,14 @@
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/sla-availability",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -274,7 +288,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "min(sla:site_availability:30d)",
+          "expr": "min(sla:site_availability:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
           "legendFormat": "Worst Site",
           "range": true,
           "refId": "A"
@@ -301,6 +315,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 44
+              },
+              {
+                "color": "red",
+                "value": 432
               }
             ]
           },
@@ -338,7 +360,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(sla:site_downtime_minutes:30d)",
+          "expr": "sum(sla:site_downtime_minutes:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
           "legendFormat": "Total Downtime",
           "range": true,
           "refId": "A"
@@ -438,7 +460,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sla:site_availability:30d",
+          "expr": "sla:site_availability:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "{{datacenter}}",
@@ -484,6 +506,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 44
+              },
+              {
+                "color": "red",
+                "value": 432
               }
             ]
           },
@@ -521,7 +551,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sla:site_downtime_minutes:30d",
+          "expr": "sla:site_downtime_minutes:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
           "legendFormat": "{{datacenter}}",
           "range": true,
           "refId": "A"
@@ -621,7 +651,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sla:role_availability:30d",
+          "expr": "sla:role_availability:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -729,7 +759,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sla:role_availability_min:30d",
+          "expr": "sla:role_availability_min:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -820,7 +850,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sla:role_hosts_below_sla:count",
+          "expr": "sla:role_hosts_below_sla:count{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
           "legendFormat": "{{datacenter}} - {{role}}",
           "range": true,
           "refId": "A"
@@ -1240,7 +1270,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sla:site_availability:30d",
+          "expr": "sla:site_availability:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
           "legendFormat": "{{datacenter}}",
           "range": true,
           "refId": "A"
@@ -1348,6 +1378,6 @@
   "timezone": "browser",
   "title": "SLA Availability",
   "uid": "sla-availability",
-  "version": 3,
+  "version": 9,
   "weekStart": ""
 }

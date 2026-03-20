@@ -74,11 +74,18 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/infra-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -141,7 +148,14 @@
                 "value": null
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/infra-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -216,7 +230,14 @@
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/infra-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -291,7 +312,14 @@
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/infra-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -362,7 +390,14 @@
                 "value": 5
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/infra-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -433,7 +468,14 @@
                 "value": 5
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/infra-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -853,7 +895,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "min by (datacenter, environment) (instance:windows_disk_free:ratio){environment=~\"$environment\"}",
+          "expr": "min by (datacenter, environment) (instance:windows_disk_free:ratio{environment=~\"$environment\"})",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -898,7 +940,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (datacenter, environment) (instance:windows_services_not_running:count){environment=~\"$environment\"} or 0 * fleet:servers_reporting:count{environment=~\"$environment\"}",
+          "expr": "sum by (datacenter, environment) (instance:windows_services_not_running:count{environment=~\"$environment\"}) or 0 * fleet:servers_reporting:count{environment=~\"$environment\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1458,6 +1500,6 @@
   "timezone": "browser",
   "title": "Enterprise NOC",
   "uid": "enterprise-noc",
-  "version": 5,
+  "version": 10,
   "weekStart": ""
 }
