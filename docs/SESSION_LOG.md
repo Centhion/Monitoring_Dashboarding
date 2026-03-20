@@ -288,3 +288,38 @@ Chronological record of work sessions for context continuity.
 - Audit trail logs being pushed to Loki (login, dashboard views, failed logins)
 
 ---
+
+## Session: 2026-03-20 (session 3)
+
+### Completed
+
+- **Phase 12B complete**: All 16 click-to-filter detail wiring tasks (20-35) done
+- **Category A** (8 tasks): Fixed click links to anchor to existing detail panels (Certificate Inventory, Interface Status Table, Server Health Inventory, Top 10 tables, log streams, SMB panels, probe grid, SLA tables)
+- **Category B** (8 tasks): Added new detail panels where missing (SQL Lock Wait + User Connections, Windows Stopped Services, Audit Trail Failed Login log filter, DC/Docker/IIS/File Server anchors)
+- **Collapsed row fix**: Uncollapsed all detail rows -- Grafana viewPanel parameter doesn't work with panels inside collapsed rows
+- **Panel ID assignment**: Assigned IDs to all panels across 9 dashboards that had missing IDs (stripped during earlier layout rebuilds)
+- **47 click links verified**: Final audit shows 0 incomplete click-to-filter links
+
+### Blockers
+
+- None. Phase 12 fully complete.
+
+### Decisions
+
+- **No collapsed rows for detail panels**: viewPanel only works with top-level panels. Detail tables are regular (uncollapsed) rows at the bottom of each dashboard.
+- **viewPanel for drill-down**: Clicking a stat opens the target panel in Grafana's focused panel view. This is the standard Grafana approach for same-dashboard drill-downs.
+
+### Next Session
+
+1. User continues visual dashboard review
+2. Demo prep for stakeholder presentation
+3. Lansweeper 7D.3-7D.4 when API credentials available
+
+### Context
+
+- Stack running with 7 Alterra sites, demo data flowing
+- All 19 dashboards have complete click-to-filter coverage
+- "out of order sample" warnings in demo data generator are harmless (clock sync)
+- 5 commits this session: 1d107c1, abe6910, 87fa483, e880bd3, af13719
+
+---

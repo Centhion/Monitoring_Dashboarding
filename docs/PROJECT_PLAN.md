@@ -35,7 +35,7 @@
 | Phase 10B: Demo Data Generator | Completed | Synthetic metrics/logs seeder for showcasing dashboards without live agents |
 | Phase 10C: Integration and Polish | Completed | Wrapper + stack_manage.py integration, example config, QUICKSTART update |
 | Phase 11: Dashboard Production Readiness | Completed | 19 dashboards in 3 folders, 6 role dashboards, functional tags, 82 bugs fixed, deep audit passed |
-| Phase 12: Dashboard UX Polish | In Progress | Click-to-filter drill-downs, expanded role metrics, color standardization, demo data improvements |
+| Phase 12: Dashboard UX Polish | Completed | Click-to-filter drill-downs, expanded role metrics, color standardization, demo data improvements |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
 
@@ -1752,24 +1752,24 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 36 clickable stat panels link to dashboards but don't navigate to a specific detail panel. Two categories:
 
 **Category A -- Link to existing detail panel (simple URL fix, no new panels):**
-- [ ] 20. Certificate Overview: Expiring/Urgent/Critical/Expired stats -> anchor to Certificate Inventory table -- Simple
-- [ ] 21. Network Infrastructure: Devices Monitored/Down, Interfaces Down -> anchor to Interface Status Table -- Simple
-- [ ] 22. Physical Server Health: Monitored/Warning/Critical/Unreachable -> anchor to Server Health Inventory table -- Simple
-- [ ] 23. Infrastructure Overview: High CPU/Low Disk/Active Alerts -> anchor to Top 10 tables -- Simple
-- [ ] 24. Log Explorer: Error/Warning/Critical stats -> anchor to log stream panels -- Simple
-- [ ] 25. File Server: Active Sessions/Open Files -> anchor to SMB Performance section -- Simple
-- [ ] 26. Probing Overview: Targets Failing -> anchor to probe status grid -- Simple
-- [ ] 27. SLA: Hosts Below SLA/Worst Site/Downtime -> anchor to per-host availability table -- Simple
+- [x] 20. Certificate Overview: Expiring/Urgent/Critical/Expired stats -> anchor to Certificate Inventory table -- Simple
+- [x] 21. Network Infrastructure: Devices Monitored/Down, Interfaces Down -> anchor to Interface Status Table -- Simple
+- [x] 22. Physical Server Health: Monitored/Warning/Critical/Unreachable -> anchor to Server Health Inventory table -- Simple
+- [x] 23. Infrastructure Overview: High CPU/Low Disk/Active Alerts -> anchor to Top 10 tables -- Simple
+- [x] 24. Log Explorer: Error/Warning/Critical stats -> anchor to log stream panels -- Simple
+- [x] 25. File Server: Active Sessions/Open Files -> anchor to SMB Performance section -- Simple
+- [x] 26. Probing Overview: Targets Failing -> anchor to probe status grid -- Simple
+- [x] 27. SLA: Hosts Below SLA/Worst Site/Downtime -> anchor to per-host availability table -- Simple
 
 **Category B -- New detail panel needed:**
-- [ ] 28. SQL: Blocked Processes -> new lock detail table (database, wait type, wait time) -- Medium
-- [ ] 29. SQL: User Connections -> new connection summary table -- Simple
-- [ ] 30. SQL: Disk Free (Worst) -> fix link to existing Storage row -- Simple
-- [ ] 31. Windows: Services Not Running -> new stopped services table -- Medium
-- [ ] 32. DC: Sync Objects Remaining -> link to Replication Health row -- Simple
-- [ ] 33. Docker: Running/Stopped Containers -> link to Container States section -- Simple
-- [ ] 34. Audit Trail: Failed Logins -> filtered log panel for failed auth -- Medium
-- [ ] 35. IIS: Active Connections -> link to connection/request detail section -- Simple
+- [x] 28. SQL: Blocked Processes -> new lock detail table (database, wait type, wait time) -- Medium
+- [x] 29. SQL: User Connections -> new connection summary table -- Simple
+- [x] 30. SQL: Disk Free (Worst) -> fix link to existing Storage row -- Simple
+- [x] 31. Windows: Services Not Running -> new stopped services table -- Medium
+- [x] 32. DC: Sync Objects Remaining -> link to Replication Health row -- Simple
+- [x] 33. Docker: Running/Stopped Containers -> link to Container States section -- Simple
+- [x] 34. Audit Trail: Failed Logins -> filtered log panel for failed auth -- Medium
+- [x] 35. IIS: Active Connections -> link to connection/request detail section -- Simple
 
 ### Success Criteria
 
