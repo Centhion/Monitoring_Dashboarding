@@ -116,7 +116,14 @@
                 "value": null
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/hardware-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -1359,5 +1366,5 @@
   "timezone": "",
   "title": "Physical Server Health",
   "uid": "hardware-overview",
-  "version": 9
+  "version": 10
 }

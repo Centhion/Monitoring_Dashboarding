@@ -529,7 +529,14 @@
                   }
                 ]
               },
-              "unit": "short"
+              "unit": "short",
+              "links": [
+                {
+                  "title": "View Details",
+                  "url": "/d/log-explorer",
+                  "targetBlank": false
+                }
+              ]
             },
             "overrides": []
           },
@@ -600,7 +607,14 @@
                   }
                 ]
               },
-              "unit": "short"
+              "unit": "short",
+              "links": [
+                {
+                  "title": "View Details",
+                  "url": "/d/log-explorer",
+                  "targetBlank": false
+                }
+              ]
             },
             "overrides": []
           },
@@ -671,7 +685,14 @@
                   }
                 ]
               },
-              "unit": "short"
+              "unit": "short",
+              "links": [
+                {
+                  "title": "View Details",
+                  "url": "/d/log-explorer",
+                  "targetBlank": false
+                }
+              ]
             },
             "overrides": []
           },
@@ -795,7 +816,14 @@
                   }
                 ]
               },
-              "unit": "short"
+              "unit": "short",
+              "links": [
+                {
+                  "title": "View Details",
+                  "url": "/d/log-explorer",
+                  "targetBlank": false
+                }
+              ]
             },
             "overrides": []
           },
@@ -866,7 +894,14 @@
                   }
                 ]
               },
-              "unit": "short"
+              "unit": "short",
+              "links": [
+                {
+                  "title": "View Details",
+                  "url": "/d/log-explorer",
+                  "targetBlank": false
+                }
+              ]
             },
             "overrides": []
           },
@@ -1160,6 +1195,6 @@
   "timezone": "browser",
   "title": "Log Explorer",
   "uid": "log-explorer",
-  "version": 3,
+  "version": 8,
   "weekStart": ""
 }

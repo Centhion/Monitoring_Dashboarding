@@ -326,7 +326,14 @@
               }
             ]
           },
-          "unit": "m"
+          "unit": "m",
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/sla-availability",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -571,7 +578,14 @@
               }
             ]
           },
-          "unit": "m"
+          "unit": "m",
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/sla-availability",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -870,7 +884,14 @@
                 "value": 5
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/sla-availability",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -1432,6 +1453,6 @@
   "timezone": "browser",
   "title": "SLA Availability",
   "uid": "sla-availability",
-  "version": 10,
+  "version": 13,
   "weekStart": ""
 }

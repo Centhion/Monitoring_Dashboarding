@@ -408,7 +408,14 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "none",
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/linux-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -2402,6 +2409,6 @@
   "timezone": "browser",
   "title": "Linux Server Overview",
   "uid": "linux-overview",
-  "version": 6,
+  "version": 7,
   "weekStart": ""
 }

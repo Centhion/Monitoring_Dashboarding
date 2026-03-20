@@ -116,9 +116,18 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 75 },
-              { "color": "red", "value": 90 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
             ]
           }
         },
@@ -159,9 +168,18 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 80 },
-              { "color": "red", "value": 95 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
             ]
           }
         },
@@ -202,11 +220,27 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 10 },
-              { "color": "green", "value": 20 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "green",
+                "value": 20
+              }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Disk Details",
+              "url": "/d/ca-overview?viewPanel=service-disk-detail",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       }
@@ -243,7 +277,10 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "blue", "value": null }
+              {
+                "color": "blue",
+                "value": null
+              }
             ]
           }
         },
@@ -251,7 +288,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         }
       }
     },
@@ -287,9 +326,18 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 86400 },
-              { "color": "green", "value": 604800 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 86400
+              },
+              {
+                "color": "green",
+                "value": 604800
+              }
             ]
           }
         },
@@ -297,7 +345,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         }
       }
     },
@@ -332,16 +382,31 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Stopped Services",
+              "url": "/d/ca-overview?viewPanel=service-disk-detail",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         }
       }
     },
@@ -395,7 +460,10 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "blue", "value": null }
+              {
+                "color": "blue",
+                "value": null
+              }
             ]
           },
           "unit": "short",
@@ -409,7 +477,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -455,7 +525,10 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           },
           "unit": "short",
@@ -469,7 +542,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -522,12 +597,25 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 1 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              }
             ]
           },
           "unit": "short",
-          "decimals": 0
+          "decimals": 0,
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/ca-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -537,7 +625,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -583,13 +673,29 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 1 },
-              { "color": "red", "value": 5 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
             ]
           },
           "unit": "short",
-          "decimals": 0
+          "decimals": 0,
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/ca-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -599,7 +705,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -712,7 +820,10 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
@@ -734,8 +845,14 @@
                 "value": {
                   "mode": "absolute",
                   "steps": [
-                    { "color": "green", "value": null },
-                    { "color": "red", "value": 1 }
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
                   ]
                 }
               }
@@ -776,7 +893,9 @@
         "footer": {
           "countRows": false,
           "fields": "",
-          "reducer": ["sum"],
+          "reducer": [
+            "sum"
+          ],
           "show": false
         },
         "showHeader": true,
@@ -904,7 +1023,10 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           },
           "unit": "reqps",
@@ -914,7 +1036,11 @@
       },
       "options": {
         "legend": {
-          "calcs": ["mean", "max", "lastNotNull"],
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -994,7 +1120,10 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           },
           "unit": "s",
@@ -1004,7 +1133,11 @@
       },
       "options": {
         "legend": {
-          "calcs": ["mean", "max", "lastNotNull"],
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -1091,8 +1224,14 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "green", "value": 1 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
             ]
           }
         },
@@ -1128,7 +1267,9 @@
         "footer": {
           "countRows": false,
           "fields": "",
-          "reducer": ["sum"],
+          "reducer": [
+            "sum"
+          ],
           "show": false
         },
         "showHeader": true,
@@ -1164,6 +1305,198 @@
               "hostname": "Hostname",
               "name": "Service"
             }
+          }
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Service & Disk Detail",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "collapsed": true,
+      "panels": [
+        {
+          "type": "table",
+          "title": "Stopped Services Detail",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 44
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "windows_service_state{state=\"stopped\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+              "refId": "A",
+              "format": "table",
+              "instant": true
+            }
+          ],
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "__name__": true,
+                  "instance": true,
+                  "environment": true,
+                  "datacenter": true,
+                  "role": true,
+                  "os": true,
+                  "job": true,
+                  "Value": true
+                },
+                "renameByName": {
+                  "hostname": "Server",
+                  "name": "Service",
+                  "state": "State"
+                }
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "sortBy": [
+              {
+                "displayName": "Server",
+                "desc": false
+              }
+            ]
+          }
+        },
+        {
+          "type": "table",
+          "title": "Disk Space Detail",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 50
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100",
+              "refId": "A",
+              "format": "table",
+              "instant": true
+            }
+          ],
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "__name__": true,
+                  "instance": true,
+                  "environment": true,
+                  "datacenter": true,
+                  "role": true,
+                  "os": true,
+                  "job": true
+                },
+                "renameByName": {
+                  "hostname": "Server",
+                  "volume": "Volume",
+                  "Value": "Free %"
+                }
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto"
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Free %"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "gradient",
+                      "type": "gauge"
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "red",
+                          "value": null
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 10
+                        },
+                        {
+                          "color": "green",
+                          "value": 20
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "showHeader": true,
+            "sortBy": [
+              {
+                "displayName": "Free %",
+                "desc": false
+              }
+            ]
           }
         }
       ]
@@ -1258,6 +1591,6 @@
   "timezone": "browser",
   "title": "Certificate Authority Overview",
   "uid": "ca-overview",
-  "version": 10,
+  "version": 14,
   "weekStart": ""
 }

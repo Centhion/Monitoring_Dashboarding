@@ -228,7 +228,7 @@
           "links": [
             {
               "title": "View Disk Details",
-              "url": "/d/sql-overview",
+              "url": "/d/sql-overview?viewPanel=service-disk-detail",
               "targetBlank": false
             }
           ]
@@ -370,7 +370,14 @@
                 "value": 1
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Stopped Services",
+              "url": "/d/sql-overview?viewPanel=service-disk-detail",
+              "targetBlank": false
+            }
+          ]
         }
       },
       "options": {
@@ -631,7 +638,14 @@
             ]
           },
           "unit": "short",
-          "decimals": 0
+          "decimals": 0,
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/sql-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -1960,6 +1974,85 @@
           "mode": "multi"
         }
       }
+    },
+    {
+      "type": "row",
+      "title": "Service & Disk Detail",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 47
+      },
+      "collapsed": true,
+      "panels": [
+        {
+          "type": "table",
+          "title": "Stopped Services Detail",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 48
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "windows_service_state{state=\"stopped\", environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
+              "refId": "A",
+              "format": "table",
+              "instant": true
+            }
+          ],
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "__name__": true,
+                  "instance": true,
+                  "environment": true,
+                  "datacenter": true,
+                  "role": true,
+                  "os": true,
+                  "job": true,
+                  "Value": true
+                },
+                "renameByName": {
+                  "hostname": "Server",
+                  "name": "Service",
+                  "state": "State"
+                }
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "sortBy": [
+              {
+                "displayName": "Server",
+                "desc": false
+              }
+            ]
+          }
+        }
+      ]
     }
   ],
   "refresh": "30s",
@@ -2051,6 +2144,6 @@
   "timezone": "browser",
   "title": "SQL Server Overview",
   "uid": "sql-overview",
-  "version": 14,
+  "version": 17,
   "weekStart": ""
 }

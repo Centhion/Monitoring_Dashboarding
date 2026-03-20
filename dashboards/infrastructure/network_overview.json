@@ -116,7 +116,14 @@
                 "value": null
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Details",
+              "url": "/d/network-overview",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
       },
@@ -1977,5 +1984,5 @@
   "timezone": "",
   "title": "Network Infrastructure",
   "uid": "network-overview",
-  "version": 13
+  "version": 14
 }

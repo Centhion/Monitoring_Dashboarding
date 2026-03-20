@@ -224,7 +224,14 @@
                 "value": 20
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "View Disk Details",
+              "url": "/d/docker-overview?viewPanel=service-disk-detail",
+              "targetBlank": false
+            }
+          ]
         }
       }
     },
@@ -1280,6 +1287,132 @@
           "refId": "A"
         }
       ]
+    },
+    {
+      "type": "row",
+      "title": "Disk Detail",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
+      "collapsed": true,
+      "panels": [
+        {
+          "type": "table",
+          "title": "Disk Space Detail",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 31
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "instance:linux_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"} * 100",
+              "refId": "A",
+              "format": "table",
+              "instant": true
+            }
+          ],
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "__name__": true,
+                  "instance": true,
+                  "environment": true,
+                  "datacenter": true,
+                  "role": true,
+                  "os": true,
+                  "job": true
+                },
+                "renameByName": {
+                  "hostname": "Server",
+                  "mountpoint": "Volume",
+                  "Value": "Free %"
+                }
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto"
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Free %"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "gradient",
+                      "type": "gauge"
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "red",
+                          "value": null
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 10
+                        },
+                        {
+                          "color": "green",
+                          "value": 20
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "showHeader": true,
+            "sortBy": [
+              {
+                "displayName": "Free %",
+                "desc": false
+              }
+            ]
+          }
+        }
+      ]
     }
   ],
   "schemaVersion": 39,
@@ -1373,6 +1506,6 @@
   "timezone": "browser",
   "title": "Docker Host Overview",
   "uid": "docker-overview",
-  "version": 12,
+  "version": 14,
   "weekStart": ""
 }
