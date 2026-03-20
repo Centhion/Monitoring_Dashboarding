@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,7 +42,7 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     },
     {
       "asDropdown": false,
@@ -54,7 +54,7 @@
       "title": "Windows Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/windows-overview"
     },
     {
       "asDropdown": false,
@@ -66,10 +66,26 @@
       "title": "Linux Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/linux-overview"
     }
   ],
   "panels": [
+    {
+      "id": 310,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "Docker host monitoring. Shows container counts by state, engine health, and host resource usage. Per-container metrics require cAdvisor deployment.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
     {
       "type": "row",
       "title": "Server Health",
@@ -77,7 +93,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "collapsed": false,
       "fieldConfig": {
@@ -96,7 +112,7 @@
         "h": 5,
         "w": 4,
         "x": 0,
-        "y": 1
+        "y": 3
       },
       "targets": [
         {
@@ -145,7 +161,7 @@
         "h": 5,
         "w": 4,
         "x": 4,
-        "y": 1
+        "y": 3
       },
       "targets": [
         {
@@ -194,7 +210,7 @@
         "h": 5,
         "w": 4,
         "x": 8,
-        "y": 1
+        "y": 3
       },
       "targets": [
         {
@@ -227,14 +243,7 @@
                 "value": 20
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Disk Details",
-              "url": "/d/docker-overview?viewPanel=305",
-              "targetBlank": false
-            }
-          ]
+          }
         }
       },
       "id": 305
@@ -250,7 +259,7 @@
         "h": 5,
         "w": 4,
         "x": 12,
-        "y": 1
+        "y": 3
       },
       "targets": [
         {
@@ -296,7 +305,7 @@
         "h": 5,
         "w": 4,
         "x": 16,
-        "y": 1
+        "y": 3
       },
       "targets": [
         {
@@ -350,7 +359,7 @@
         "h": 5,
         "w": 4,
         "x": 20,
-        "y": 1
+        "y": 3
       },
       "targets": [
         {
@@ -399,7 +408,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "id": 100,
       "title": "Container Overview",
@@ -429,14 +438,7 @@
               }
             ]
           },
-          "unit": "short",
-          "links": [
-            {
-              "title": "View Container Count by State",
-              "url": "/d/docker-overview?viewPanel=6",
-              "targetBlank": false
-            }
-          ]
+          "unit": "short"
         },
         "overrides": []
       },
@@ -444,7 +446,7 @@
         "h": 5,
         "w": 4,
         "x": 0,
-        "y": 7
+        "y": 9
       },
       "id": 1,
       "options": {
@@ -500,14 +502,7 @@
               }
             ]
           },
-          "unit": "short",
-          "links": [
-            {
-              "title": "View Container Count by State",
-              "url": "/d/docker-overview?viewPanel=6",
-              "targetBlank": false
-            }
-          ]
+          "unit": "short"
         },
         "overrides": []
       },
@@ -515,7 +510,7 @@
         "h": 5,
         "w": 4,
         "x": 4,
-        "y": 7
+        "y": 9
       },
       "id": 2,
       "options": {
@@ -575,7 +570,7 @@
         "h": 5,
         "w": 4,
         "x": 8,
-        "y": 7
+        "y": 9
       },
       "id": 3,
       "options": {
@@ -635,7 +630,7 @@
         "h": 5,
         "w": 4,
         "x": 12,
-        "y": 7
+        "y": 9
       },
       "id": 4,
       "options": {
@@ -672,7 +667,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 14
       },
       "id": 200,
       "title": "Container States",
@@ -710,7 +705,7 @@
         "h": 5,
         "w": 4,
         "x": 20,
-        "y": 7
+        "y": 9
       },
       "id": 5,
       "options": {
@@ -848,7 +843,7 @@
         "h": 8,
         "w": 16,
         "x": 0,
-        "y": 13
+        "y": 15
       },
       "id": 6,
       "options": {
@@ -955,7 +950,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 13
+        "y": 15
       },
       "id": 7,
       "options": {
@@ -1004,7 +999,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 23
       },
       "id": 300,
       "title": "Docker Engine",
@@ -1074,7 +1069,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 22
+        "y": 24
       },
       "id": 8,
       "options": {
@@ -1168,7 +1163,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 22
+        "y": 24
       },
       "id": 9,
       "options": {
@@ -1262,7 +1257,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 22
+        "y": 24
       },
       "id": 10,
       "options": {
@@ -1302,7 +1297,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 32
       },
       "collapsed": false,
       "id": 309
@@ -1318,7 +1313,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 33
       },
       "targets": [
         {
@@ -1465,7 +1460,7 @@
         "hide": 0,
         "includeAll": true,
         "label": "Datacenter",
-        "multi": true,
+        "multi": false,
         "name": "datacenter",
         "options": [],
         "query": {
@@ -1513,6 +1508,6 @@
   "timezone": "browser",
   "title": "Docker Host Overview",
   "uid": "docker-overview",
-  "version": 20,
+  "version": 26,
   "weekStart": ""
 }

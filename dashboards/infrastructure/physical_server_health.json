@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,7 +42,7 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     },
     {
       "asDropdown": false,
@@ -54,7 +54,7 @@
       "title": "Network",
       "tooltip": "",
       "type": "link",
-      "url": "/d/network-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/network-overview"
     },
     {
       "asDropdown": false,
@@ -66,7 +66,7 @@
       "title": "Physical Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/hardware-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/hardware-overview"
     },
     {
       "asDropdown": false,
@@ -78,17 +78,33 @@
       "title": "Certificates",
       "tooltip": "",
       "type": "link",
-      "url": "/d/cert-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/cert-overview"
     }
   ],
   "panels": [
+    {
+      "id": 104,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "Physical server (BMC) health via Redfish API. Chassis health status, inlet/CPU temperatures, power consumption, and component status for iLO/iDRAC endpoints.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
     {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "id": 100,
       "title": "Hardware Health Summary",
@@ -116,14 +132,7 @@
                 "value": null
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Server Health Inventory",
-              "url": "/d/hardware-overview?viewPanel=7",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -131,7 +140,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 1
+        "y": 3
       },
       "id": 1,
       "options": {
@@ -195,7 +204,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 1
+        "y": 3
       },
       "id": 2,
       "options": {
@@ -254,14 +263,7 @@
                 "value": 1
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Server Health Inventory",
-              "url": "/d/hardware-overview?viewPanel=7",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -269,7 +271,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 1
+        "y": 3
       },
       "id": 3,
       "options": {
@@ -328,14 +330,7 @@
                 "value": 1
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Server Health Inventory",
-              "url": "/d/hardware-overview?viewPanel=7",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -343,7 +338,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 1
+        "y": 3
       },
       "id": 4,
       "options": {
@@ -402,14 +397,7 @@
                 "value": 1
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Server Health Inventory",
-              "url": "/d/hardware-overview?viewPanel=7",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -417,7 +405,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 1
+        "y": 3
       },
       "id": 5,
       "options": {
@@ -482,7 +470,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 1
+        "y": 3
       },
       "id": 6,
       "options": {
@@ -522,7 +510,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 7
       },
       "id": 101,
       "title": "Server Health Inventory",
@@ -749,7 +737,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "id": 7,
       "options": {
@@ -867,7 +855,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 18
       },
       "id": 102,
       "title": "Temperature Monitoring",
@@ -942,7 +930,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 17
+        "y": 19
       },
       "id": 8,
       "options": {
@@ -1029,7 +1017,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 17
+        "y": 19
       },
       "id": 9,
       "options": {
@@ -1070,7 +1058,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 27
       },
       "id": 103,
       "title": "Power Consumption",
@@ -1128,7 +1116,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 26
+        "y": 28
       },
       "id": 10,
       "options": {
@@ -1215,7 +1203,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 26
+        "y": 28
       },
       "id": 11,
       "options": {
@@ -1293,7 +1281,7 @@
         "hide": 0,
         "includeAll": true,
         "label": "Site",
-        "multi": true,
+        "multi": false,
         "name": "datacenter",
         "options": [],
         "query": {
@@ -1366,5 +1354,5 @@
   "timezone": "",
   "title": "Physical Server Health",
   "uid": "hardware-overview",
-  "version": 15
+  "version": 21
 }

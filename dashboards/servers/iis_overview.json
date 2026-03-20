@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,7 +42,7 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     },
     {
       "asDropdown": false,
@@ -54,7 +54,7 @@
       "title": "Windows Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/windows-overview"
     },
     {
       "asDropdown": false,
@@ -66,10 +66,26 @@
       "title": "Linux Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/linux-overview"
     }
   ],
   "panels": [
+    {
+      "id": 611,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "IIS Web Server monitoring. Request rates, error ratios (4xx/5xx), active connections, and throughput per IIS site. Filter by hostname to isolate a specific web server.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
     {
       "type": "row",
       "title": "Server Health",
@@ -77,7 +93,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "collapsed": false,
       "id": 603
@@ -93,7 +109,7 @@
         "h": 5,
         "w": 4,
         "x": 0,
-        "y": 1
+        "y": 3
       },
       "targets": [
         {
@@ -142,7 +158,7 @@
         "h": 5,
         "w": 4,
         "x": 4,
-        "y": 1
+        "y": 3
       },
       "targets": [
         {
@@ -191,7 +207,7 @@
         "h": 5,
         "w": 4,
         "x": 8,
-        "y": 1
+        "y": 3
       },
       "targets": [
         {
@@ -224,14 +240,7 @@
                 "value": 20
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Disk Details",
-              "url": "/d/iis-overview?viewPanel=606",
-              "targetBlank": false
-            }
-          ]
+          }
         }
       },
       "id": 606
@@ -247,7 +256,7 @@
         "h": 5,
         "w": 4,
         "x": 12,
-        "y": 1
+        "y": 3
       },
       "targets": [
         {
@@ -293,7 +302,7 @@
         "h": 5,
         "w": 4,
         "x": 16,
-        "y": 1
+        "y": 3
       },
       "targets": [
         {
@@ -347,7 +356,7 @@
         "h": 5,
         "w": 4,
         "x": 20,
-        "y": 1
+        "y": 3
       },
       "targets": [
         {
@@ -373,14 +382,7 @@
                 "value": 1
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Stopped Services",
-              "url": "/d/iis-overview?viewPanel=601",
-              "targetBlank": false
-            }
-          ]
+          }
         }
       },
       "options": {
@@ -398,7 +400,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "id": 100,
       "title": "Overview",
@@ -442,7 +444,7 @@
         "h": 5,
         "w": 6,
         "x": 0,
-        "y": 7
+        "y": 9
       },
       "id": 1,
       "options": {
@@ -513,14 +515,7 @@
           "unit": "percent",
           "min": 0,
           "max": 100,
-          "decimals": 2,
-          "links": [
-            {
-              "title": "View Request Rate by Status Class",
-              "url": "/d/iis-overview?viewPanel=200",
-              "targetBlank": false
-            }
-          ]
+          "decimals": 2
         },
         "overrides": []
       },
@@ -528,7 +523,7 @@
         "h": 5,
         "w": 6,
         "x": 6,
-        "y": 7
+        "y": 9
       },
       "id": 2,
       "options": {
@@ -593,14 +588,7 @@
             ]
           },
           "unit": "short",
-          "decimals": 0,
-          "links": [
-            {
-              "title": "View Request Rate by Site",
-              "url": "/d/iis-overview?viewPanel=200",
-              "targetBlank": false
-            }
-          ]
+          "decimals": 0
         },
         "overrides": []
       },
@@ -608,7 +596,7 @@
         "h": 5,
         "w": 6,
         "x": 12,
-        "y": 7
+        "y": 9
       },
       "id": 3,
       "options": {
@@ -681,7 +669,7 @@
         "h": 5,
         "w": 6,
         "x": 18,
-        "y": 7
+        "y": 9
       },
       "id": 4,
       "options": {
@@ -722,7 +710,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 14
       },
       "id": 200,
       "title": "Request Rates",
@@ -780,7 +768,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 13
+        "y": 15
       },
       "id": 5,
       "options": {
@@ -927,7 +915,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 13
+        "y": 15
       },
       "id": 6,
       "options": {
@@ -1000,7 +988,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 23
       },
       "id": 300,
       "title": "Error Analysis",
@@ -1073,7 +1061,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 22
+        "y": 24
       },
       "id": 7,
       "options": {
@@ -1160,7 +1148,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 22
+        "y": 24
       },
       "id": 8,
       "options": {
@@ -1200,7 +1188,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 32
       },
       "id": 400,
       "title": "Connections and Throughput",
@@ -1271,7 +1259,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 31
+        "y": 33
       },
       "id": 9,
       "options": {
@@ -1357,7 +1345,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 31
+        "y": 33
       },
       "id": 10,
       "options": {
@@ -1397,7 +1385,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 41
       },
       "id": 500,
       "title": "Service Health",
@@ -1486,7 +1474,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 40
+        "y": 42
       },
       "id": 11,
       "options": {
@@ -1554,7 +1542,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 48
+        "y": 50
       },
       "id": 600,
       "title": "IIS Access Logs",
@@ -1610,7 +1598,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 51
       },
       "id": 12,
       "options": {
@@ -1653,7 +1641,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 55
+        "y": 57
       },
       "id": 13,
       "options": {
@@ -1689,7 +1677,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 65
+        "y": 67
       },
       "collapsed": false,
       "id": 610
@@ -1705,7 +1693,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 66
+        "y": 68
       },
       "targets": [
         {
@@ -1772,7 +1760,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 72
+        "y": 74
       },
       "targets": [
         {
@@ -1917,7 +1905,7 @@
         "hide": 0,
         "includeAll": true,
         "label": "Datacenter",
-        "multi": true,
+        "multi": false,
         "name": "datacenter",
         "options": [],
         "query": {
@@ -2066,6 +2054,6 @@
   "timezone": "browser",
   "title": "IIS Web Server Overview",
   "uid": "iis-overview",
-  "version": 21,
+  "version": 27,
   "weekStart": ""
 }

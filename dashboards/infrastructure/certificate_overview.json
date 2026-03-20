@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,7 +42,7 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     },
     {
       "asDropdown": false,
@@ -54,7 +54,7 @@
       "title": "Network",
       "tooltip": "",
       "type": "link",
-      "url": "/d/network-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/network-overview"
     },
     {
       "asDropdown": false,
@@ -66,7 +66,7 @@
       "title": "Physical Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/hardware-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/hardware-overview"
     },
     {
       "asDropdown": false,
@@ -78,17 +78,33 @@
       "title": "Certificates",
       "tooltip": "",
       "type": "link",
-      "url": "/d/cert-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/cert-overview"
     }
   ],
   "panels": [
+    {
+      "id": 15,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "TLS certificate expiry tracking. Red (<30 days), yellow (30-60 days), green (>60 days). Probe health shows endpoint reachability. Click urgency stats to see specific certificates.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
     {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "id": 1,
       "title": "Certificate Health Summary",
@@ -125,7 +141,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 1
+        "y": 3
       },
       "id": 2,
       "options": {
@@ -188,7 +204,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 1
+        "y": 3
       },
       "id": 3,
       "options": {
@@ -247,14 +263,7 @@
                 "value": 1
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Certificate Inventory",
-              "url": "/d/cert-overview?viewPanel=9",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -262,7 +271,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 1
+        "y": 3
       },
       "id": 4,
       "options": {
@@ -321,14 +330,7 @@
                 "value": 1
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Certificate Inventory",
-              "url": "/d/cert-overview?viewPanel=9",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -336,7 +338,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 1
+        "y": 3
       },
       "id": 5,
       "options": {
@@ -395,14 +397,7 @@
                 "value": 1
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Certificate Inventory",
-              "url": "/d/cert-overview?viewPanel=9",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -410,7 +405,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 1
+        "y": 3
       },
       "id": 6,
       "options": {
@@ -469,14 +464,7 @@
                 "value": 1
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Certificate Inventory",
-              "url": "/d/cert-overview?viewPanel=9",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -484,7 +472,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 1
+        "y": 3
       },
       "id": 7,
       "options": {
@@ -525,7 +513,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 7
       },
       "id": 8,
       "title": "Certificate Inventory",
@@ -714,7 +702,7 @@
         "h": 14,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "id": 9,
       "options": {
@@ -819,7 +807,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 22
       },
       "id": 10,
       "title": "Expiry Timeline",
@@ -902,7 +890,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 23
       },
       "id": 11,
       "options": {
@@ -942,7 +930,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 33
       },
       "id": 12,
       "title": "Probe Health",
@@ -1002,7 +990,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 32
+        "y": 34
       },
       "id": 13,
       "options": {
@@ -1097,7 +1085,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 32
+        "y": 34
       },
       "id": 14,
       "options": {
@@ -1173,7 +1161,7 @@
         "hide": 0,
         "includeAll": true,
         "label": "Site / Datacenter",
-        "multi": true,
+        "multi": false,
         "name": "datacenter",
         "options": [],
         "query": {
@@ -1220,6 +1208,6 @@
   "timezone": "browser",
   "title": "Certificate Overview",
   "uid": "cert-overview",
-  "version": 13,
+  "version": 19,
   "weekStart": ""
 }

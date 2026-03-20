@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,7 +42,7 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     },
     {
       "asDropdown": false,
@@ -54,7 +54,7 @@
       "title": "Windows Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/windows-overview"
     },
     {
       "asDropdown": false,
@@ -66,15 +66,31 @@
       "title": "Linux Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/linux-overview"
     }
   ],
   "panels": [
     {
+      "id": 407,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "SQL Server instance monitoring. Server Health at top shows OS status. SQL-specific metrics below: buffer cache, lock contention, database sizes, and per-volume storage I/O.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
+    {
       "type": "row",
       "title": "Server Health",
       "gridPos": {
-        "y": 0,
+        "y": 2,
         "h": 1,
         "w": 24,
         "x": 0
@@ -93,7 +109,7 @@
         "uid": "prometheus"
       },
       "gridPos": {
-        "y": 1,
+        "y": 3,
         "h": 5,
         "w": 4,
         "x": 0
@@ -142,7 +158,7 @@
         "uid": "prometheus"
       },
       "gridPos": {
-        "y": 1,
+        "y": 3,
         "h": 5,
         "w": 4,
         "x": 4
@@ -191,7 +207,7 @@
         "uid": "prometheus"
       },
       "gridPos": {
-        "y": 1,
+        "y": 3,
         "h": 5,
         "w": 4,
         "x": 8
@@ -227,14 +243,7 @@
                 "value": 20
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Disk Details",
-              "url": "/d/sql-overview?viewPanel=4",
-              "targetBlank": false
-            }
-          ]
+          }
         }
       },
       "id": 4
@@ -247,7 +256,7 @@
         "uid": "prometheus"
       },
       "gridPos": {
-        "y": 1,
+        "y": 3,
         "h": 5,
         "w": 4,
         "x": 12
@@ -293,7 +302,7 @@
         "uid": "prometheus"
       },
       "gridPos": {
-        "y": 1,
+        "y": 3,
         "h": 5,
         "w": 4,
         "x": 16
@@ -347,7 +356,7 @@
         "uid": "prometheus"
       },
       "gridPos": {
-        "y": 1,
+        "y": 3,
         "h": 5,
         "w": 4,
         "x": 20
@@ -376,14 +385,7 @@
                 "value": 1
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Stopped Services",
-              "url": "/d/sql-overview?viewPanel=401",
-              "targetBlank": false
-            }
-          ]
+          }
         }
       },
       "options": {
@@ -398,7 +400,7 @@
     {
       "collapsed": false,
       "gridPos": {
-        "y": 6,
+        "y": 8,
         "h": 1,
         "w": 24,
         "x": 0
@@ -447,7 +449,7 @@
         "overrides": []
       },
       "gridPos": {
-        "y": 7,
+        "y": 9,
         "h": 4,
         "w": 4,
         "x": 0
@@ -520,7 +522,7 @@
         "overrides": []
       },
       "gridPos": {
-        "y": 7,
+        "y": 9,
         "h": 4,
         "w": 4,
         "x": 4
@@ -585,7 +587,7 @@
         "overrides": []
       },
       "gridPos": {
-        "y": 7,
+        "y": 9,
         "h": 4,
         "w": 4,
         "x": 8
@@ -645,19 +647,12 @@
             ]
           },
           "unit": "short",
-          "decimals": 0,
-          "links": [
-            {
-              "title": "View Details",
-              "url": "/d/sql-overview?viewPanel=403",
-              "targetBlank": false
-            }
-          ]
+          "decimals": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "y": 7,
+        "y": 9,
         "h": 4,
         "w": 4,
         "x": 12
@@ -725,19 +720,12 @@
             ]
           },
           "unit": "short",
-          "decimals": 0,
-          "links": [
-            {
-              "title": "View Details",
-              "url": "/d/sql-overview?viewPanel=8",
-              "targetBlank": false
-            }
-          ]
+          "decimals": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "y": 7,
+        "y": 9,
         "h": 4,
         "w": 4,
         "x": 16
@@ -778,7 +766,7 @@
     {
       "collapsed": false,
       "gridPos": {
-        "y": 11,
+        "y": 13,
         "h": 1,
         "w": 24,
         "x": 0
@@ -821,7 +809,7 @@
         "overrides": []
       },
       "gridPos": {
-        "y": 7,
+        "y": 9,
         "h": 4,
         "w": 4,
         "x": 20
@@ -918,7 +906,7 @@
         "overrides": []
       },
       "gridPos": {
-        "y": 12,
+        "y": 14,
         "h": 8,
         "w": 8,
         "x": 0
@@ -1037,7 +1025,7 @@
         "overrides": []
       },
       "gridPos": {
-        "y": 12,
+        "y": 14,
         "h": 8,
         "w": 8,
         "x": 8
@@ -1145,7 +1133,7 @@
         "overrides": []
       },
       "gridPos": {
-        "y": 12,
+        "y": 14,
         "h": 8,
         "w": 8,
         "x": 16
@@ -1206,7 +1194,7 @@
     {
       "collapsed": false,
       "gridPos": {
-        "y": 20,
+        "y": 22,
         "h": 1,
         "w": 24,
         "x": 0
@@ -1348,7 +1336,7 @@
         ]
       },
       "gridPos": {
-        "y": 21,
+        "y": 23,
         "h": 8,
         "w": 12,
         "x": 0
@@ -1489,7 +1477,7 @@
         "overrides": []
       },
       "gridPos": {
-        "y": 21,
+        "y": 23,
         "h": 8,
         "w": 12,
         "x": 12
@@ -1530,7 +1518,7 @@
     {
       "collapsed": false,
       "gridPos": {
-        "y": 29,
+        "y": 31,
         "h": 1,
         "w": 24,
         "x": 0
@@ -1632,7 +1620,7 @@
         ]
       },
       "gridPos": {
-        "y": 30,
+        "y": 32,
         "h": 8,
         "w": 12,
         "x": 0
@@ -1740,7 +1728,7 @@
         "overrides": []
       },
       "gridPos": {
-        "y": 30,
+        "y": 32,
         "h": 8,
         "w": 12,
         "x": 12
@@ -1782,7 +1770,7 @@
       "type": "row",
       "title": "Storage",
       "gridPos": {
-        "y": 38,
+        "y": 40,
         "h": 1,
         "w": 24,
         "x": 0
@@ -1801,7 +1789,7 @@
         "uid": "prometheus"
       },
       "gridPos": {
-        "y": 39,
+        "y": 41,
         "h": 8,
         "w": 8,
         "x": 0
@@ -1868,7 +1856,7 @@
         "uid": "prometheus"
       },
       "gridPos": {
-        "y": 39,
+        "y": 41,
         "h": 8,
         "w": 8,
         "x": 8
@@ -1926,7 +1914,7 @@
         "uid": "prometheus"
       },
       "gridPos": {
-        "y": 39,
+        "y": 41,
         "h": 8,
         "w": 8,
         "x": 16
@@ -1993,7 +1981,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 49
       },
       "collapsed": false,
       "id": 405
@@ -2009,7 +1997,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 48
+        "y": 50
       },
       "targets": [
         {
@@ -2072,7 +2060,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 48
+        "y": 50
       },
       "collapsed": false,
       "id": 406
@@ -2088,7 +2076,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 49
+        "y": 51
       },
       "targets": [
         {
@@ -2163,7 +2151,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 57
+        "y": 59
       },
       "targets": [
         {
@@ -2244,7 +2232,7 @@
         "hide": 0,
         "includeAll": true,
         "label": "Datacenter",
-        "multi": true,
+        "multi": false,
         "name": "datacenter",
         "options": [],
         "query": {
@@ -2291,6 +2279,6 @@
   "timezone": "browser",
   "title": "SQL Server Overview",
   "uid": "sql-overview",
-  "version": 29,
+  "version": 35,
   "weekStart": ""
 }

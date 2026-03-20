@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,7 +42,7 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     }
   ],
   "panels": [
@@ -217,14 +217,7 @@
                 "value": 5
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Failed Logins",
-              "url": "/d/audit-trail?viewPanel=4",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -868,5 +861,5 @@
   "timezone": "browser",
   "title": "Audit Trail",
   "uid": "audit-trail",
-  "version": 11
+  "version": 15
 }

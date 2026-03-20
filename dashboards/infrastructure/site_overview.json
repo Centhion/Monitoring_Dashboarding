@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,7 +42,7 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     },
     {
       "asDropdown": false,
@@ -54,7 +54,7 @@
       "title": "Network",
       "tooltip": "",
       "type": "link",
-      "url": "/d/network-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/network-overview"
     },
     {
       "asDropdown": false,
@@ -66,7 +66,7 @@
       "title": "Physical Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/hardware-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/hardware-overview"
     },
     {
       "asDropdown": false,
@@ -78,17 +78,33 @@
       "title": "Certificates",
       "tooltip": "",
       "type": "link",
-      "url": "/d/cert-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/cert-overview"
     }
   ],
   "panels": [
+    {
+      "id": 23,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "Single-site health summary. Select a datacenter to see all monitored infrastructure at that location: servers, IIS, network devices, physical servers, and certificates.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
     {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "id": 1,
       "title": "Site Health Summary",
@@ -118,7 +134,7 @@
           "links": [
             {
               "title": "View Details",
-              "url": "/d/infra-overview?var-datacenter=${datacenter}",
+              "url": "/d/infra-overview?var-datacenter=$datacenter",
               "targetBlank": false
             }
           ]
@@ -129,7 +145,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 1
+        "y": 3
       },
       "id": 2,
       "options": {
@@ -155,7 +171,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "fleet:servers_reporting:count{environment=~\"$environment\", datacenter=\"$datacenter\"}",
+          "expr": "sum(fleet:servers_reporting:count{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
           "legendFormat": "Servers",
           "range": true,
           "refId": "A"
@@ -199,7 +215,7 @@
           "links": [
             {
               "title": "View Details",
-              "url": "/d/infra-overview?var-datacenter=${datacenter}",
+              "url": "/d/infra-overview?var-datacenter=$datacenter",
               "targetBlank": false
             }
           ]
@@ -210,7 +226,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 1
+        "y": 3
       },
       "id": 3,
       "options": {
@@ -236,7 +252,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "fleet:cpu_utilization:avg{environment=~\"$environment\", datacenter=\"$datacenter\"}",
+          "expr": "avg(fleet:cpu_utilization:avg{environment=~\"$environment\", datacenter=~\"$datacenter\"}) * 100",
           "legendFormat": "Avg CPU",
           "range": true,
           "refId": "A"
@@ -280,7 +296,7 @@
           "links": [
             {
               "title": "View Details",
-              "url": "/d/infra-overview?var-datacenter=${datacenter}",
+              "url": "/d/infra-overview?var-datacenter=$datacenter",
               "targetBlank": false
             }
           ]
@@ -291,7 +307,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 1
+        "y": 3
       },
       "id": 4,
       "options": {
@@ -317,7 +333,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "fleet:memory_utilization:avg{environment=~\"$environment\", datacenter=\"$datacenter\"}",
+          "expr": "avg(fleet:memory_utilization:avg{environment=~\"$environment\", datacenter=~\"$datacenter\"}) * 100",
           "legendFormat": "Avg Memory",
           "range": true,
           "refId": "A"
@@ -361,7 +377,7 @@
           "links": [
             {
               "title": "View Details",
-              "url": "/d/windows-overview?var-datacenter=${datacenter}",
+              "url": "/d/windows-overview?var-datacenter=$datacenter",
               "targetBlank": false
             }
           ]
@@ -372,7 +388,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 1
+        "y": 3
       },
       "id": 5,
       "options": {
@@ -398,7 +414,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "min by (datacenter, environment) (instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
+          "expr": "min (instance:windows_disk_free:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
           "legendFormat": "Worst Disk Free",
           "range": true,
           "refId": "A"
@@ -439,7 +455,7 @@
           "links": [
             {
               "title": "View Details",
-              "url": "/d/windows-overview?var-datacenter=${datacenter}",
+              "url": "/d/windows-overview?var-datacenter=$datacenter",
               "targetBlank": false
             }
           ]
@@ -450,7 +466,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 1
+        "y": 3
       },
       "id": 6,
       "options": {
@@ -476,7 +492,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (datacenter, environment) (instance:windows_services_not_running:count{environment=~\"$environment\", datacenter=~\"$datacenter\"}) or vector(0)",
+          "expr": "sum (instance:windows_services_not_running:count{environment=~\"$environment\", datacenter=~\"$datacenter\"}) or vector(0)",
           "legendFormat": "Services Down",
           "range": true,
           "refId": "A"
@@ -527,7 +543,7 @@
           "links": [
             {
               "title": "View Details",
-              "url": "/d/iis-overview?var-datacenter=${datacenter}",
+              "url": "/d/iis-overview?var-datacenter=$datacenter",
               "targetBlank": false
             }
           ]
@@ -538,7 +554,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 1
+        "y": 3
       },
       "id": 7,
       "options": {
@@ -564,7 +580,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "iis:datacenter_connections:sum{environment=~\"$environment\", datacenter=\"$datacenter\"}",
+          "expr": "sum(iis:datacenter_connections:sum{environment=~\"$environment\", datacenter=~\"$datacenter\"}) or vector(0)",
           "legendFormat": "IIS Connections",
           "range": true,
           "refId": "A"
@@ -579,7 +595,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 7
       },
       "id": 8,
       "title": "Server Health",
@@ -626,7 +642,7 @@
                 "value": [
                   {
                     "title": "Windows Detail: ${__data.fields.hostname}",
-                    "url": "/d/windows-overview/windows-server-overview?var-environment=$environment&var-datacenter=$datacenter&var-hostname=${__data.fields.hostname}&${__url_time_range}"
+                    "url": "/d/windows-overview?var-datacenter=${__data.fields.datacenter:raw}&var-hostname=${__data.fields.hostname:raw}"
                   }
                 ]
               },
@@ -775,7 +791,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "id": 9,
       "options": {
@@ -805,7 +821,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=\"$datacenter\"}",
+          "expr": "instance:windows_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -819,7 +835,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "instance:windows_memory_utilization:ratio{environment=~\"$environment\", datacenter=\"$datacenter\"}",
+          "expr": "instance:windows_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -834,7 +850,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "instance:windows_uptime:seconds{environment=~\"$environment\", datacenter=\"$datacenter\"} / 86400",
+          "expr": "instance:windows_uptime:seconds{environment=~\"$environment\", datacenter=~\"$datacenter\"} / 86400",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -928,7 +944,7 @@
                 "value": [
                   {
                     "title": "Linux Detail: ${__data.fields.hostname}",
-                    "url": "/d/linux-overview/linux-server-overview?var-environment=$environment&var-datacenter=$datacenter&var-hostname=${__data.fields.hostname}&${__url_time_range}"
+                    "url": "/d/linux-overview?var-datacenter=${__data.fields.datacenter:raw}&var-hostname=${__data.fields.hostname:raw}"
                   }
                 ]
               },
@@ -1077,7 +1093,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 18
       },
       "id": 10,
       "options": {
@@ -1107,7 +1123,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=\"$datacenter\"}",
+          "expr": "instance:linux_cpu_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1121,7 +1137,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "instance:linux_memory_utilization:ratio{environment=~\"$environment\", datacenter=\"$datacenter\"}",
+          "expr": "instance:linux_memory_utilization:ratio{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1136,7 +1152,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "instance:linux_uptime:seconds{environment=~\"$environment\", datacenter=\"$datacenter\"} / 86400",
+          "expr": "instance:linux_uptime:seconds{environment=~\"$environment\", datacenter=~\"$datacenter\"} / 86400",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1195,7 +1211,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 28
       },
       "id": 11,
       "title": "IIS Web Services",
@@ -1236,7 +1252,7 @@
           "links": [
             {
               "title": "View Details",
-              "url": "/d/iis-overview?var-datacenter=${datacenter}",
+              "url": "/d/iis-overview?var-datacenter=$datacenter",
               "targetBlank": false
             }
           ]
@@ -1247,7 +1263,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 27
+        "y": 29
       },
       "id": 12,
       "options": {
@@ -1273,7 +1289,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "iis:datacenter_requests:rate5m{environment=~\"$environment\", datacenter=\"$datacenter\"}",
+          "expr": "iis:datacenter_requests:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
           "legendFormat": "Request Rate",
           "range": true,
           "refId": "A"
@@ -1326,7 +1342,7 @@
           "links": [
             {
               "title": "View Details",
-              "url": "/d/iis-overview?var-datacenter=${datacenter}",
+              "url": "/d/iis-overview?var-datacenter=$datacenter",
               "targetBlank": false
             }
           ]
@@ -1337,7 +1353,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 27
+        "y": 29
       },
       "id": 13,
       "options": {
@@ -1363,7 +1379,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "iis:datacenter_error_ratio:5m{environment=~\"$environment\", datacenter=\"$datacenter\"}",
+          "expr": "iis:datacenter_error_ratio:5m{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
           "legendFormat": "5xx Rate",
           "range": true,
           "refId": "A"
@@ -1433,7 +1449,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 27
+        "y": 29
       },
       "id": 14,
       "options": {
@@ -1460,7 +1476,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (hostname) (iis:site_requests:rate5m{environment=~\"$environment\", datacenter=\"$datacenter\"})",
+          "expr": "sum by (hostname) (iis:site_requests:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
           "legendFormat": "{{hostname}}",
           "range": true,
           "refId": "A"
@@ -1475,7 +1491,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 38
+        "y": 40
       },
       "id": 21,
       "title": "Recent Logs",
@@ -1491,7 +1507,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 41
       },
       "id": 22,
       "options": {
@@ -1512,7 +1528,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "{datacenter=\"$datacenter\"} |= ``",
+          "expr": "{datacenter=~\"$datacenter\"} |= ``",
           "queryType": "range",
           "refId": "A"
         }
@@ -1562,7 +1578,7 @@
         "hide": 0,
         "includeAll": true,
         "label": "Site / Datacenter",
-        "multi": true,
+        "multi": false,
         "name": "datacenter",
         "options": [],
         "query": {
@@ -1586,6 +1602,6 @@
   "timezone": "browser",
   "title": "Site Overview",
   "uid": "site-overview",
-  "version": 11,
+  "version": 20,
   "weekStart": ""
 }

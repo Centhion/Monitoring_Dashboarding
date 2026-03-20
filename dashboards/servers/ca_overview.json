@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,7 +42,7 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     },
     {
       "asDropdown": false,
@@ -54,7 +54,7 @@
       "title": "Windows Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/windows-overview"
     },
     {
       "asDropdown": false,
@@ -63,13 +63,29 @@
       "keepTime": true,
       "tags": [],
       "targetBlank": false,
-      "title": "Certificate Overview",
+      "title": "Linux Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/cert-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/linux-overview"
     }
   ],
   "panels": [
+    {
+      "id": 505,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "Active Directory Certificate Services monitoring. Per-template certificate issuance tracking. Failed requests indicate enrollment or template policy issues.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
     {
       "type": "row",
       "title": "Server Health",
@@ -77,7 +93,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "id": 10,
       "collapsed": false
@@ -94,7 +110,7 @@
         "h": 5,
         "w": 4,
         "x": 0,
-        "y": 1
+        "y": 3
       },
       "id": 11,
       "targets": [
@@ -146,7 +162,7 @@
         "h": 5,
         "w": 4,
         "x": 4,
-        "y": 1
+        "y": 3
       },
       "id": 12,
       "targets": [
@@ -198,7 +214,7 @@
         "h": 5,
         "w": 4,
         "x": 8,
-        "y": 1
+        "y": 3
       },
       "id": 13,
       "targets": [
@@ -233,14 +249,7 @@
                 "value": 20
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Disk Details",
-              "url": "/d/ca-overview?viewPanel=13",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       }
@@ -257,7 +266,7 @@
         "h": 5,
         "w": 4,
         "x": 12,
-        "y": 1
+        "y": 3
       },
       "id": 14,
       "targets": [
@@ -306,7 +315,7 @@
         "h": 5,
         "w": 4,
         "x": 16,
-        "y": 1
+        "y": 3
       },
       "id": 15,
       "targets": [
@@ -363,7 +372,7 @@
         "h": 5,
         "w": 4,
         "x": 20,
-        "y": 1
+        "y": 3
       },
       "id": 16,
       "targets": [
@@ -391,14 +400,7 @@
                 "value": 1
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Stopped Services",
-              "url": "/d/ca-overview?viewPanel=502",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -417,7 +419,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "id": 100,
       "collapsed": false
@@ -434,7 +436,7 @@
         "h": 5,
         "w": 6,
         "x": 0,
-        "y": 7
+        "y": 9
       },
       "id": 101,
       "targets": [
@@ -499,7 +501,7 @@
         "h": 5,
         "w": 6,
         "x": 6,
-        "y": 7
+        "y": 9
       },
       "id": 102,
       "targets": [
@@ -564,7 +566,7 @@
         "h": 5,
         "w": 6,
         "x": 12,
-        "y": 7
+        "y": 9
       },
       "id": 103,
       "links": [
@@ -608,14 +610,7 @@
             ]
           },
           "unit": "short",
-          "decimals": 0,
-          "links": [
-            {
-              "title": "View Per-Template Breakdown",
-              "url": "/d/ca-overview?viewPanel=200",
-              "targetBlank": false
-            }
-          ]
+          "decimals": 0
         },
         "overrides": []
       },
@@ -647,7 +642,7 @@
         "h": 5,
         "w": 6,
         "x": 18,
-        "y": 7
+        "y": 9
       },
       "id": 104,
       "targets": [
@@ -688,14 +683,7 @@
             ]
           },
           "unit": "short",
-          "decimals": 0,
-          "links": [
-            {
-              "title": "View Per-Template Breakdown",
-              "url": "/d/ca-overview?viewPanel=200",
-              "targetBlank": false
-            }
-          ]
+          "decimals": 0
         },
         "overrides": []
       },
@@ -722,7 +710,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 14
       },
       "id": 200,
       "collapsed": false
@@ -739,7 +727,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 15
       },
       "id": 201,
       "targets": [
@@ -949,7 +937,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 25
       },
       "id": 300,
       "collapsed": false
@@ -966,7 +954,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 24
+        "y": 26
       },
       "id": 301,
       "targets": [
@@ -1063,7 +1051,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 24
+        "y": 26
       },
       "id": 302,
       "targets": [
@@ -1155,7 +1143,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 34
+        "y": 36
       },
       "id": 500,
       "collapsed": false
@@ -1172,7 +1160,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 35
+        "y": 37
       },
       "id": 501,
       "targets": [
@@ -1316,7 +1304,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 45
       },
       "collapsed": false,
       "id": 504
@@ -1332,7 +1320,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 44
+        "y": 46
       },
       "targets": [
         {
@@ -1399,7 +1387,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 50
+        "y": 52
       },
       "targets": [
         {
@@ -1545,7 +1533,7 @@
         "hide": 0,
         "includeAll": true,
         "label": "Datacenter",
-        "multi": true,
+        "multi": false,
         "name": "datacenter",
         "options": [],
         "query": {
@@ -1592,6 +1580,6 @@
   "timezone": "browser",
   "title": "Certificate Authority Overview",
   "uid": "ca-overview",
-  "version": 20,
+  "version": 26,
   "weekStart": ""
 }

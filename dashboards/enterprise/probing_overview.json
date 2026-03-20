@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,17 +42,33 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     }
   ],
   "panels": [
+    {
+      "id": 16,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "Synthetic probe status for all monitored endpoints. Shows ICMP, TCP, HTTP, and TLS probe success rates and latency. Red indicates probe failure -- check endpoint reachability.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
     {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "id": 1,
       "title": "Probe Summary",
@@ -89,7 +105,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 1
+        "y": 3
       },
       "id": 2,
       "options": {
@@ -150,14 +166,7 @@
                 "value": 3
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Probe Status Grid",
-              "url": "/d/probing-overview?viewPanel=6",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -165,7 +174,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 1
+        "y": 3
       },
       "id": 3,
       "options": {
@@ -236,7 +245,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 1
+        "y": 3
       },
       "id": 4,
       "options": {
@@ -299,7 +308,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 1
+        "y": 3
       },
       "id": 5,
       "options": {
@@ -338,7 +347,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 7
       },
       "id": 6,
       "title": "Probe Status Grid",
@@ -486,7 +495,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "id": 7,
       "options": {
@@ -599,7 +608,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 18
       },
       "id": 8,
       "title": "Per-Site Probe Health",
@@ -742,7 +751,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 17
+        "y": 19
       },
       "id": 9,
       "options": {
@@ -913,7 +922,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 17
+        "y": 19
       },
       "id": 10,
       "options": {
@@ -949,7 +958,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 27
       },
       "id": 11,
       "title": "Latency Analysis",
@@ -1027,7 +1036,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 26
+        "y": 28
       },
       "id": 12,
       "options": {
@@ -1126,7 +1135,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 26
+        "y": 28
       },
       "id": 13,
       "options": {
@@ -1162,7 +1171,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 34
+        "y": 36
       },
       "id": 14,
       "title": "Probe Success History",
@@ -1260,7 +1269,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 35
+        "y": 37
       },
       "id": 15,
       "options": {
@@ -1331,7 +1340,7 @@
         "hide": 0,
         "includeAll": true,
         "label": "Datacenter",
-        "multi": true,
+        "multi": false,
         "name": "datacenter",
         "options": [],
         "query": {
@@ -1396,6 +1405,6 @@
   "timezone": "browser",
   "title": "Probing Overview",
   "uid": "probing-overview",
-  "version": 10,
+  "version": 16,
   "weekStart": ""
 }

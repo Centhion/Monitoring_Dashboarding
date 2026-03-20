@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,7 +42,7 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     },
     {
       "asDropdown": false,
@@ -54,7 +54,7 @@
       "title": "Windows Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/windows-overview"
     },
     {
       "asDropdown": false,
@@ -66,10 +66,26 @@
       "title": "Linux Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/linux-overview"
     }
   ],
   "panels": [
+    {
+      "id": 504,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "DHCP Server monitoring with per-scope visibility. Scope Utilization table shows address exhaustion risk. Red utilization means the scope is nearly full -- expand or reclaim leases.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
     {
       "type": "row",
       "title": "Server Health",
@@ -77,7 +93,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "id": 50,
       "collapsed": false
@@ -93,7 +109,7 @@
         "h": 5,
         "w": 4,
         "x": 0,
-        "y": 1
+        "y": 3
       },
       "id": 51,
       "targets": [
@@ -143,7 +159,7 @@
         "h": 5,
         "w": 4,
         "x": 4,
-        "y": 1
+        "y": 3
       },
       "id": 52,
       "targets": [
@@ -193,7 +209,7 @@
         "h": 5,
         "w": 4,
         "x": 8,
-        "y": 1
+        "y": 3
       },
       "id": 53,
       "targets": [
@@ -227,14 +243,7 @@
                 "value": 20
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Disk Details",
-              "url": "/d/dhcp-overview?viewPanel=53",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       }
@@ -250,7 +259,7 @@
         "h": 5,
         "w": 4,
         "x": 12,
-        "y": 1
+        "y": 3
       },
       "id": 54,
       "targets": [
@@ -297,7 +306,7 @@
         "h": 5,
         "w": 4,
         "x": 16,
-        "y": 1
+        "y": 3
       },
       "id": 55,
       "targets": [
@@ -352,7 +361,7 @@
         "h": 5,
         "w": 4,
         "x": 20,
-        "y": 1
+        "y": 3
       },
       "id": 56,
       "targets": [
@@ -379,14 +388,7 @@
                 "value": 1
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Stopped Services",
-              "url": "/d/dhcp-overview?viewPanel=501",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -404,7 +406,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "id": 100,
       "title": "DHCP Activity",
@@ -440,7 +442,7 @@
         "h": 5,
         "w": 5,
         "x": 0,
-        "y": 7
+        "y": 9
       },
       "id": 1,
       "options": {
@@ -505,7 +507,7 @@
         "h": 5,
         "w": 5,
         "x": 5,
-        "y": 7
+        "y": 9
       },
       "id": 2,
       "options": {
@@ -570,7 +572,7 @@
         "h": 5,
         "w": 5,
         "x": 10,
-        "y": 7
+        "y": 9
       },
       "id": 3,
       "options": {
@@ -635,7 +637,7 @@
         "h": 5,
         "w": 5,
         "x": 15,
-        "y": 7
+        "y": 9
       },
       "id": 4,
       "options": {
@@ -715,7 +717,7 @@
         "h": 5,
         "w": 4,
         "x": 20,
-        "y": 7
+        "y": 9
       },
       "id": 5,
       "options": {
@@ -756,7 +758,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 14
       },
       "id": 300,
       "title": "Scope Utilization",
@@ -808,7 +810,7 @@
                 "value": [
                   {
                     "title": "View scope ${__data.fields.Scope} detail",
-                    "url": "/d/dhcp-overview?var-environment=$environment&var-datacenter=$datacenter&var-hostname=$hostname&viewPanel=32",
+                    "url": "/d/dhcp-overview",
                     "targetBlank": false
                   }
                 ]
@@ -985,7 +987,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 15
       },
       "id": 30,
       "options": {
@@ -1113,7 +1115,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 25
       },
       "id": 400,
       "title": "Scope Detail",
@@ -1181,7 +1183,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 24
+        "y": 26
       },
       "id": 31,
       "options": {
@@ -1278,7 +1280,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 24
+        "y": 26
       },
       "id": 32,
       "options": {
@@ -1343,7 +1345,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 35
       },
       "id": 33,
       "options": {
@@ -1384,7 +1386,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 42
+        "y": 44
       },
       "id": 200,
       "title": "DHCP Message Rates",
@@ -1468,7 +1470,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 45
       },
       "id": 6,
       "options": {
@@ -1554,7 +1556,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 53
+        "y": 55
       },
       "id": 500,
       "title": "Service Health",
@@ -1643,7 +1645,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 54
+        "y": 56
       },
       "id": 11,
       "options": {
@@ -1719,7 +1721,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 62
+        "y": 64
       },
       "collapsed": false,
       "id": 503
@@ -1735,7 +1737,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 63
+        "y": 65
       },
       "targets": [
         {
@@ -1802,7 +1804,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 69
+        "y": 71
       },
       "targets": [
         {
@@ -1947,7 +1949,7 @@
         "hide": 0,
         "includeAll": true,
         "label": "Datacenter",
-        "multi": true,
+        "multi": false,
         "name": "datacenter",
         "options": [],
         "query": {
@@ -1994,6 +1996,6 @@
   "timezone": "browser",
   "title": "DHCP Server Overview",
   "uid": "dhcp-overview",
-  "version": 16,
+  "version": 22,
   "weekStart": ""
 }

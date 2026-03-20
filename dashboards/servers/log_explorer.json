@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,7 +42,7 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     },
     {
       "asDropdown": false,
@@ -54,7 +54,7 @@
       "title": "Windows Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/windows-overview"
     },
     {
       "asDropdown": false,
@@ -66,17 +66,33 @@
       "title": "Linux Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/linux-overview"
     }
   ],
   "panels": [
+    {
+      "id": 15,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "Cross-platform log search. Query Windows Event Logs and Linux journal entries by hostname, severity, and keyword. Use the search variable to filter log content.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
     {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "id": 1,
       "title": "Log Volume",
@@ -174,7 +190,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 1
+        "y": 3
       },
       "id": 2,
       "options": {
@@ -445,7 +461,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 1
+        "y": 3
       },
       "id": 3,
       "options": {
@@ -496,7 +512,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 11
       },
       "id": 4,
       "title": "Windows Event Logs",
@@ -531,14 +547,7 @@
               }
             ]
           },
-          "unit": "short",
-          "links": [
-            {
-              "title": "View Windows Logs",
-              "url": "/d/log-explorer?viewPanel=8",
-              "targetBlank": false
-            }
-          ]
+          "unit": "short"
         },
         "overrides": []
       },
@@ -546,7 +555,7 @@
         "h": 4,
         "w": 8,
         "x": 0,
-        "y": 10
+        "y": 12
       },
       "id": 5,
       "options": {
@@ -609,14 +618,7 @@
               }
             ]
           },
-          "unit": "short",
-          "links": [
-            {
-              "title": "View Windows Logs",
-              "url": "/d/log-explorer?viewPanel=8",
-              "targetBlank": false
-            }
-          ]
+          "unit": "short"
         },
         "overrides": []
       },
@@ -624,7 +626,7 @@
         "h": 4,
         "w": 8,
         "x": 8,
-        "y": 10
+        "y": 12
       },
       "id": 6,
       "options": {
@@ -687,14 +689,7 @@
               }
             ]
           },
-          "unit": "short",
-          "links": [
-            {
-              "title": "View Windows Logs",
-              "url": "/d/log-explorer?viewPanel=8",
-              "targetBlank": false
-            }
-          ]
+          "unit": "short"
         },
         "overrides": []
       },
@@ -702,7 +697,7 @@
         "h": 4,
         "w": 8,
         "x": 16,
-        "y": 10
+        "y": 12
       },
       "id": 7,
       "options": {
@@ -746,7 +741,7 @@
         "h": 16,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 16
       },
       "id": 8,
       "options": {
@@ -781,7 +776,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 12
       },
       "id": 9,
       "title": "Linux Journal Logs",
@@ -816,14 +811,7 @@
               }
             ]
           },
-          "unit": "short",
-          "links": [
-            {
-              "title": "View Linux Logs",
-              "url": "/d/log-explorer?viewPanel=12",
-              "targetBlank": false
-            }
-          ]
+          "unit": "short"
         },
         "overrides": []
       },
@@ -831,7 +819,7 @@
         "h": 4,
         "w": 12,
         "x": 0,
-        "y": 11
+        "y": 13
       },
       "id": 10,
       "options": {
@@ -894,14 +882,7 @@
               }
             ]
           },
-          "unit": "short",
-          "links": [
-            {
-              "title": "View Linux Logs",
-              "url": "/d/log-explorer?viewPanel=12",
-              "targetBlank": false
-            }
-          ]
+          "unit": "short"
         },
         "overrides": []
       },
@@ -909,7 +890,7 @@
         "h": 4,
         "w": 12,
         "x": 12,
-        "y": 11
+        "y": 13
       },
       "id": 11,
       "options": {
@@ -953,7 +934,7 @@
         "h": 16,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 17
       },
       "id": 12,
       "options": {
@@ -988,7 +969,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 13
       },
       "id": 13,
       "title": "Unified Search",
@@ -1004,7 +985,7 @@
         "h": 20,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 14
       },
       "id": 14,
       "options": {
@@ -1077,7 +1058,7 @@
         "hide": 0,
         "includeAll": true,
         "label": "Datacenter",
-        "multi": true,
+        "multi": false,
         "name": "datacenter",
         "options": [],
         "query": {
@@ -1191,6 +1172,6 @@
   "timezone": "browser",
   "title": "Log Explorer",
   "uid": "log-explorer",
-  "version": 10,
+  "version": 16,
   "weekStart": ""
 }

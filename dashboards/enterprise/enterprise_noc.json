@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,17 +42,33 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     }
   ],
   "panels": [
+    {
+      "id": 21,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "Fleet-wide health overview across all sites. Click any site in the grid to drill into Site Overview. Stat panels link to detailed dashboards.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
     {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "id": 1,
       "title": "Enterprise Health Summary",
@@ -93,7 +109,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 1
+        "y": 3
       },
       "id": 2,
       "options": {
@@ -163,7 +179,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 1
+        "y": 3
       },
       "id": 3,
       "options": {
@@ -245,7 +261,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 1
+        "y": 3
       },
       "id": 4,
       "options": {
@@ -327,7 +343,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 1
+        "y": 3
       },
       "id": 5,
       "options": {
@@ -405,7 +421,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 1
+        "y": 3
       },
       "id": 6,
       "options": {
@@ -483,7 +499,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 1
+        "y": 3
       },
       "id": 7,
       "options": {
@@ -524,7 +540,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 7
       },
       "id": 8,
       "title": "Site Health Grid",
@@ -571,7 +587,7 @@
                 "value": [
                   {
                     "title": "Site Overview: ${__data.fields.datacenter}",
-                    "url": "/d/site-overview/site-overview?var-environment=$environment&var-datacenter=${__data.fields.datacenter}&${__url_time_range}"
+                    "url": "/d/site-overview?var-datacenter=${__data.fields.datacenter:raw}"
                   }
                 ]
               },
@@ -821,7 +837,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "id": 9,
       "options": {
@@ -1000,7 +1016,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 18
       },
       "id": 10,
       "title": "IIS Web Services by Site",
@@ -1047,7 +1063,7 @@
                 "value": [
                   {
                     "title": "IIS Detail: ${__data.fields.datacenter}",
-                    "url": "/d/iis-overview/iis-overview?var-environment=$environment&var-datacenter=${__data.fields.datacenter}&${__url_time_range}"
+                    "url": "/d/iis-overview?var-datacenter=${__data.fields.datacenter:raw}"
                   }
                 ]
               },
@@ -1138,7 +1154,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 19
       },
       "id": 11,
       "options": {
@@ -1245,7 +1261,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 30
       },
       "id": 18,
       "title": "Site Trends",
@@ -1319,7 +1335,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 29
+        "y": 31
       },
       "id": 19,
       "options": {
@@ -1422,7 +1438,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 29
+        "y": 31
       },
       "id": 20,
       "options": {
@@ -1500,6 +1516,6 @@
   "timezone": "browser",
   "title": "Enterprise NOC",
   "uid": "enterprise-noc",
-  "version": 11,
+  "version": 17,
   "weekStart": ""
 }

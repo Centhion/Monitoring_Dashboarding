@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,7 +42,7 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     },
     {
       "asDropdown": false,
@@ -54,7 +54,7 @@
       "title": "Windows Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/windows-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/windows-overview"
     },
     {
       "asDropdown": false,
@@ -66,17 +66,33 @@
       "title": "Linux Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/linux-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/linux-overview"
     }
   ],
   "panels": [
+    {
+      "id": 701,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "Linux server health and performance. Filter by datacenter and hostname. Shows CPU, memory, disk, network, load average, and systemd unit status.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
     {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "id": 100,
       "title": "Overview",
@@ -122,7 +138,7 @@
         "h": 5,
         "w": 6,
         "x": 0,
-        "y": 1
+        "y": 3
       },
       "id": 1,
       "options": {
@@ -198,7 +214,7 @@
         "h": 5,
         "w": 6,
         "x": 6,
-        "y": 1
+        "y": 3
       },
       "id": 2,
       "options": {
@@ -268,7 +284,7 @@
         "h": 5,
         "w": 6,
         "x": 12,
-        "y": 1
+        "y": 3
       },
       "id": 3,
       "options": {
@@ -342,7 +358,7 @@
         "h": 5,
         "w": 6,
         "x": 18,
-        "y": 1
+        "y": 3
       },
       "id": 4,
       "options": {
@@ -408,14 +424,7 @@
               }
             ]
           },
-          "unit": "none",
-          "links": [
-            {
-              "title": "View Failed Systemd Units",
-              "url": "/d/linux-overview?viewPanel=50",
-              "targetBlank": false
-            }
-          ]
+          "unit": "none"
         },
         "overrides": []
       },
@@ -423,7 +432,7 @@
         "h": 5,
         "w": 6,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "id": 5,
       "options": {
@@ -465,7 +474,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "id": 200,
       "title": "CPU and Load",
@@ -543,7 +552,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 7
+        "y": 9
       },
       "id": 10,
       "options": {
@@ -703,7 +712,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 7
+        "y": 9
       },
       "id": 11,
       "options": {
@@ -846,7 +855,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 7
+        "y": 9
       },
       "id": 12,
       "options": {
@@ -909,7 +918,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 17
       },
       "id": 300,
       "title": "Memory",
@@ -987,7 +996,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 16
+        "y": 18
       },
       "id": 20,
       "options": {
@@ -1146,7 +1155,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 16
+        "y": 18
       },
       "id": 21,
       "options": {
@@ -1276,7 +1285,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 16
+        "y": 18
       },
       "id": 22,
       "options": {
@@ -1317,7 +1326,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 26
       },
       "id": 400,
       "title": "Disk",
@@ -1399,7 +1408,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 25
+        "y": 27
       },
       "id": 30,
       "options": {
@@ -1505,7 +1514,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 25
+        "y": 27
       },
       "id": 31,
       "options": {
@@ -1616,7 +1625,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 25
+        "y": 27
       },
       "id": 32,
       "options": {
@@ -1668,7 +1677,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 35
       },
       "id": 500,
       "title": "Network",
@@ -1737,7 +1746,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 34
+        "y": 36
       },
       "id": 40,
       "options": {
@@ -1847,7 +1856,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 34
+        "y": 36
       },
       "id": 41,
       "options": {
@@ -1899,7 +1908,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 42
+        "y": 44
       },
       "id": 600,
       "title": "Systemd Services",
@@ -1989,7 +1998,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 45
       },
       "id": 50,
       "options": {
@@ -2071,7 +2080,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 51
+        "y": 53
       },
       "id": 700,
       "title": "Capacity Forecasting",
@@ -2131,7 +2140,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 52
+        "y": 54
       },
       "id": 51,
       "options": {
@@ -2257,7 +2266,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 62
+        "y": 64
       },
       "id": 52,
       "options": {
@@ -2335,7 +2344,7 @@
         "hide": 0,
         "includeAll": true,
         "label": "Datacenter",
-        "multi": true,
+        "multi": false,
         "name": "datacenter",
         "options": [],
         "query": {
@@ -2407,6 +2416,6 @@
   "timezone": "browser",
   "title": "Linux Server Overview",
   "uid": "linux-overview",
-  "version": 10,
+  "version": 16,
   "weekStart": ""
 }

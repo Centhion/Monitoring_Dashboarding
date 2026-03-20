@@ -30,7 +30,7 @@
       "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc?var-environment=$environment"
+      "url": "/d/enterprise-noc"
     },
     {
       "asDropdown": false,
@@ -42,7 +42,7 @@
       "title": "Site Overview",
       "tooltip": "",
       "type": "link",
-      "url": "/d/site-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/site-overview"
     },
     {
       "asDropdown": false,
@@ -54,7 +54,7 @@
       "title": "Network",
       "tooltip": "",
       "type": "link",
-      "url": "/d/network-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/network-overview"
     },
     {
       "asDropdown": false,
@@ -66,7 +66,7 @@
       "title": "Physical Servers",
       "tooltip": "",
       "type": "link",
-      "url": "/d/hardware-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/hardware-overview"
     },
     {
       "asDropdown": false,
@@ -78,17 +78,33 @@
       "title": "Certificates",
       "tooltip": "",
       "type": "link",
-      "url": "/d/cert-overview?var-environment=$environment&var-datacenter=$datacenter"
+      "url": "/d/cert-overview"
     }
   ],
   "panels": [
+    {
+      "id": 503,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "Network device monitoring via SNMP. Interface status, traffic utilization, error rates, and device inventory. Filter by device to see individual switch/firewall interfaces.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
     {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "id": 100,
       "title": "Network Health Summary",
@@ -116,14 +132,7 @@
                 "value": null
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Device Inventory",
-              "url": "/d/network-overview?viewPanel=7",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -131,7 +140,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 1
+        "y": 3
       },
       "id": 1,
       "options": {
@@ -156,7 +165,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(site:snmp_devices:count{datacenter=~\"$datacenter\", environment=~\"$environment\"})",
+          "expr": "sum(site:snmp_devices:count{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\"})",
           "legendFormat": "",
           "range": true,
           "refId": "A"
@@ -190,14 +199,7 @@
                 "value": 1
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Device Inventory",
-              "url": "/d/network-overview?viewPanel=7",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -205,7 +207,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 1
+        "y": 3
       },
       "id": 2,
       "options": {
@@ -230,7 +232,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(site:snmp_devices_down:count{datacenter=~\"$datacenter\", environment=~\"$environment\"}) or vector(0)",
+          "expr": "sum(site:snmp_devices_down:count{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\"}) or vector(0)",
           "legendFormat": "",
           "range": true,
           "refId": "A"
@@ -268,14 +270,7 @@
                 "value": 5
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Interface Status Table",
-              "url": "/d/network-overview?viewPanel=102",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -283,7 +278,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 1
+        "y": 3
       },
       "id": 3,
       "options": {
@@ -308,7 +303,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(site:interfaces_down:count{datacenter=~\"$datacenter\", environment=~\"$environment\"}) or vector(0)",
+          "expr": "sum(site:interfaces_down:count{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\"}) or vector(0)",
           "legendFormat": "",
           "range": true,
           "refId": "A"
@@ -354,7 +349,7 @@
         "h": 4,
         "w": 4,
         "x": 12,
-        "y": 1
+        "y": 3
       },
       "id": 4,
       "options": {
@@ -379,7 +374,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(site:interfaces_high_util:count{datacenter=~\"$datacenter\", environment=~\"$environment\"}) or vector(0)",
+          "expr": "sum(site:interfaces_high_util:count{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\"}) or vector(0)",
           "legendFormat": "",
           "range": true,
           "refId": "A"
@@ -417,14 +412,7 @@
                 "value": 5
               }
             ]
-          },
-          "links": [
-            {
-              "title": "View Interface Status Table",
-              "url": "/d/network-overview?viewPanel=102",
-              "targetBlank": false
-            }
-          ]
+          }
         },
         "overrides": []
       },
@@ -432,7 +420,7 @@
         "h": 4,
         "w": 4,
         "x": 16,
-        "y": 1
+        "y": 3
       },
       "id": 5,
       "options": {
@@ -457,7 +445,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(site:interfaces_with_errors:count{datacenter=~\"$datacenter\", environment=~\"$environment\"}) or vector(0)",
+          "expr": "sum(site:interfaces_with_errors:count{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\"}) or vector(0)",
           "legendFormat": "",
           "range": true,
           "refId": "A"
@@ -499,7 +487,7 @@
         "h": 4,
         "w": 4,
         "x": 20,
-        "y": 1
+        "y": 3
       },
       "id": 6,
       "options": {
@@ -539,7 +527,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 7
       },
       "id": 101,
       "title": "Device Inventory",
@@ -694,7 +682,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 8
       },
       "id": 7,
       "options": {
@@ -724,7 +712,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "up{job=\"snmp\", datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"}",
+          "expr": "up{job=\"snmp\", datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "",
@@ -738,7 +726,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sysUpTime{job=\"snmp\", datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"} / 100",
+          "expr": "sysUpTime{job=\"snmp\", datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"} / 100",
           "format": "table",
           "instant": true,
           "legendFormat": "",
@@ -781,7 +769,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 16
       },
       "id": 102,
       "title": "Interface Status",
@@ -1002,7 +990,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 17
       },
       "id": 8,
       "options": {
@@ -1032,7 +1020,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "ifOperStatus{job=\"snmp\", datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"}",
+          "expr": "ifOperStatus{job=\"snmp\", datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "",
@@ -1046,7 +1034,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "ifSpeed{job=\"snmp\", datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"}",
+          "expr": "ifSpeed{job=\"snmp\", datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "",
@@ -1060,7 +1048,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "interface:traffic_in:rate5m{datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"}",
+          "expr": "interface:traffic_in:rate5m{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "",
@@ -1074,7 +1062,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "interface:traffic_out:rate5m{datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"}",
+          "expr": "interface:traffic_out:rate5m{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "",
@@ -1088,7 +1076,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "interface:errors_in:rate5m{datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"}",
+          "expr": "interface:errors_in:rate5m{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "",
@@ -1102,7 +1090,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "interface:errors_out:rate5m{datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"}",
+          "expr": "interface:errors_out:rate5m{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "",
@@ -1152,7 +1140,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 27
       },
       "id": 103,
       "title": "Traffic Overview",
@@ -1210,7 +1198,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 26
+        "y": 28
       },
       "id": 9,
       "options": {
@@ -1297,7 +1285,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 26
+        "y": 28
       },
       "id": 10,
       "options": {
@@ -1338,7 +1326,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 34
+        "y": 36
       },
       "id": 104,
       "title": "Interface Utilization",
@@ -1415,7 +1403,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 35
+        "y": 37
       },
       "id": 11,
       "options": {
@@ -1441,7 +1429,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "topk(10, interface:utilization_in:ratio{datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"})",
+          "expr": "topk(10, interface:utilization_in:ratio{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"})",
           "legendFormat": "{{ device_name }} - {{ ifName }}",
           "range": true,
           "refId": "A"
@@ -1521,7 +1509,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 35
+        "y": 37
       },
       "id": 12,
       "options": {
@@ -1547,7 +1535,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "topk(10, interface:utilization_out:ratio{datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"})",
+          "expr": "topk(10, interface:utilization_out:ratio{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"})",
           "legendFormat": "{{ device_name }} - {{ ifName }}",
           "range": true,
           "refId": "A"
@@ -1562,7 +1550,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 45
       },
       "id": 105,
       "title": "Errors and Discards",
@@ -1620,7 +1608,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 44
+        "y": 46
       },
       "id": 13,
       "options": {
@@ -1646,7 +1634,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "topk(10, interface:errors_in:rate5m{datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"} > 0)",
+          "expr": "topk(10, interface:errors_in:rate5m{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"} > 0)",
           "legendFormat": "{{ device_name }} {{ ifName }} IN",
           "range": true,
           "refId": "A"
@@ -1657,7 +1645,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "topk(10, interface:errors_out:rate5m{datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"} > 0)",
+          "expr": "topk(10, interface:errors_out:rate5m{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"} > 0)",
           "legendFormat": "{{ device_name }} {{ ifName }} OUT",
           "range": true,
           "refId": "B"
@@ -1718,7 +1706,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 44
+        "y": 46
       },
       "id": 14,
       "options": {
@@ -1744,7 +1732,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "topk(10, interface:discards_in:rate5m{datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"} > 0)",
+          "expr": "topk(10, interface:discards_in:rate5m{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"} > 0)",
           "legendFormat": "{{ device_name }} {{ ifName }} IN",
           "range": true,
           "refId": "A"
@@ -1755,7 +1743,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "topk(10, interface:discards_out:rate5m{datacenter=~\"$datacenter\", environment=~\"$environment\", device_type=~\"$device_type\"} > 0)",
+          "expr": "topk(10, interface:discards_out:rate5m{datacenter=~\"$datacenter\", device_name=~\"$device_name\", environment=~\"$environment\", device_type=~\"$device_type\"} > 0)",
           "legendFormat": "{{ device_name }} {{ ifName }} OUT",
           "range": true,
           "refId": "B"
@@ -1770,7 +1758,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 52
+        "y": 54
       },
       "id": 500,
       "title": "SNMP Trap Log",
@@ -1786,7 +1774,7 @@
         "h": 8,
         "w": 16,
         "x": 0,
-        "y": 53
+        "y": 55
       },
       "id": 15,
       "options": {
@@ -1856,7 +1844,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 53
+        "y": 55
       },
       "id": 16,
       "options": {
@@ -1889,6 +1877,174 @@
       ],
       "title": "Trap Volume by Type",
       "type": "timeseries"
+    },
+    {
+      "id": 501,
+      "type": "row",
+      "title": "Error Interface Detail",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 63
+      }
+    },
+    {
+      "id": 502,
+      "type": "table",
+      "title": "Interfaces with Errors",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 64
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "interface:errors_in:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", device_name=~\"$device_name\"} > 0",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "interface:errors_out:rate5m{environment=~\"$environment\", datacenter=~\"$datacenter\", device_name=~\"$device_name\"} > 0",
+          "refId": "B",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "__name__": true,
+              "__name__ 1": true,
+              "__name__ 2": true,
+              "instance": true,
+              "environment": true,
+              "job": true
+            },
+            "renameByName": {
+              "device_name": "Device",
+              "ifName": "Interface",
+              "ifAlias": "Description",
+              "datacenter": "Site",
+              "device_type": "Type",
+              "vendor": "Vendor",
+              "Value #A": "Errors In/sec",
+              "Value #B": "Errors Out/sec"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Errors In/sec"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "pps"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.01
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Errors Out/sec"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "pps"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.01
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "color-background"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Errors In/sec",
+            "desc": true
+          }
+        ]
+      }
     }
   ],
   "refresh": "1m",
@@ -1933,7 +2089,7 @@
         "hide": 0,
         "includeAll": true,
         "label": "Site",
-        "multi": true,
+        "multi": false,
         "name": "datacenter",
         "options": [],
         "query": {
@@ -1971,6 +2127,24 @@
         "sort": 1,
         "type": "query",
         "allValue": ".*"
+      },
+      {
+        "name": "device_name",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": {
+          "query": "label_values(up{job=\"snmp\", environment=~\"$environment\", datacenter=~\"$datacenter\", device_type=~\"$device_type\"}, device_name)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "sort": 1,
+        "label": "Device"
       }
     ]
   },
@@ -1982,5 +2156,5 @@
   "timezone": "",
   "title": "Network Infrastructure",
   "uid": "network-overview",
-  "version": 20
+  "version": 28
 }
