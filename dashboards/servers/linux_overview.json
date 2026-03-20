@@ -2033,6 +2033,27 @@
               ]
             }
           }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "environment": true,
+              "datacenter": true,
+              "role": true,
+              "os": true,
+              "job": true
+            },
+            "renameByName": {
+              "hostname": "Server",
+              "name": "Unit",
+              "state": "State",
+              "Value": "Count"
+            }
+          }
         }
       ],
       "type": "table"
@@ -2381,6 +2402,6 @@
   "timezone": "browser",
   "title": "Linux Server Overview",
   "uid": "linux-overview",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }

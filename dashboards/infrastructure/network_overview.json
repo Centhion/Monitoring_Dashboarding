@@ -1888,7 +1888,8 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(up{job=\"snmp\"}, environment)"
+          "query": "label_values(up{job=\"snmp\"}, environment)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -1911,7 +1912,8 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(up{job=\"snmp\", environment=~\"$environment\"}, datacenter)"
+          "query": "label_values(up{job=\"snmp\", environment=~\"$environment\"}, datacenter)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -1934,7 +1936,8 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(up{job=\"snmp\", datacenter=~\"$datacenter\"}, device_type)"
+          "query": "label_values(up{job=\"snmp\", datacenter=~\"$datacenter\"}, device_type)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -1953,5 +1956,5 @@
   "timezone": "",
   "title": "Network Infrastructure",
   "uid": "network-overview",
-  "version": 7
+  "version": 8
 }

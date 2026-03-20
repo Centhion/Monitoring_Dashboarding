@@ -633,12 +633,21 @@ def generate_network_device_metrics(device: SimulatedNetworkDevice, timestamp_ms
         metrics.append(("ifHCInOctets", if_labels, device.in_octets_counters[i]))
         metrics.append(("ifHCOutOctets", if_labels, device.out_octets_counters[i]))
         metrics.append(("ifSpeed", if_labels, 1e9))  # 1 Gbps
-        # Most interfaces have zero errors; only ~5% have occasional errors
-        has_errors = random.random() < 0.05
-        metrics.append(("ifInErrors", if_labels, float(random.randint(1, 5) if has_errors else 0)))
-        metrics.append(("ifOutErrors", if_labels, float(random.randint(1, 3) if has_errors else 0)))
-        metrics.append(("ifInDiscards", if_labels, float(random.randint(1, 5) if has_errors else 0)))
-        metrics.append(("ifOutDiscards", if_labels, float(1 if has_errors else 0)))
+        # Error counters must be monotonically increasing (they are SNMP counters)
+        # Most interfaces accumulate zero new errors; ~2% get a small increment per tick
+        err_key = f"err_{device.device_name}_{i}"
+        disc_key = f"disc_{device.device_name}_{i}"
+        if err_key not in device.__dict__:
+            device.__dict__[err_key] = 0.0
+            device.__dict__[disc_key] = 0.0
+        if random.random() < 0.02:
+            device.__dict__[err_key] += random.randint(1, 3)
+        if random.random() < 0.03:
+            device.__dict__[disc_key] += random.randint(1, 2)
+        metrics.append(("ifInErrors", if_labels, device.__dict__[err_key]))
+        metrics.append(("ifOutErrors", if_labels, device.__dict__[err_key] * 0.5))
+        metrics.append(("ifInDiscards", if_labels, device.__dict__[disc_key]))
+        metrics.append(("ifOutDiscards", if_labels, device.__dict__[disc_key] * 0.3))
         metrics.append(("ifOperStatus", if_labels, 1.0))  # up
         metrics.append(("ifAdminStatus", if_labels, 1.0))  # up
 

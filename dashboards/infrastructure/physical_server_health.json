@@ -1246,7 +1246,8 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(redfish_up{job=\"redfish\"}, environment)"
+          "query": "label_values(redfish_up{job=\"redfish\"}, environment)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -1269,7 +1270,8 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(redfish_up{job=\"redfish\", environment=~\"$environment\"}, datacenter)"
+          "query": "label_values(redfish_up{job=\"redfish\", environment=~\"$environment\"}, datacenter)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -1292,7 +1294,8 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(redfish_up{job=\"redfish\", datacenter=~\"$datacenter\"}, vendor)"
+          "query": "label_values(redfish_up{job=\"redfish\", datacenter=~\"$datacenter\"}, vendor)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -1315,7 +1318,8 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(redfish_up{job=\"redfish\", datacenter=~\"$datacenter\", vendor=~\"$vendor\"}, instance)"
+          "query": "label_values(redfish_up{job=\"redfish\", datacenter=~\"$datacenter\", vendor=~\"$vendor\"}, instance)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -1334,5 +1338,5 @@
   "timezone": "",
   "title": "Physical Server Health",
   "uid": "hardware-overview",
-  "version": 4
+  "version": 5
 }

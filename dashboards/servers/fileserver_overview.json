@@ -896,81 +896,39 @@
           "description": "FSRM quota status per path. Expand this row only when FSRM quota metrics are being collected from the target file servers.",
           "fieldConfig": {
             "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
               "custom": {
                 "align": "auto",
                 "cellOptions": {
                   "type": "auto"
                 },
                 "inspect": false
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 80
-                  },
-                  {
-                    "color": "red",
-                    "value": 95
-                  }
-                ]
               }
             },
             "overrides": [
               {
                 "matcher": {
                   "id": "byName",
-                  "options": "Path"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 300
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Usage"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "decbytes"
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Hard Limit"
-                },
-                "properties": [
-                  {
-                    "id": "unit",
-                    "value": "decbytes"
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "% Used"
+                  "options": "Usage %"
                 },
                 "properties": [
                   {
                     "id": "unit",
                     "value": "percent"
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "gradient",
+                      "type": "gauge"
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
                   },
                   {
                     "id": "thresholds",
@@ -990,13 +948,6 @@
                           "value": 95
                         }
                       ]
-                    }
-                  },
-                  {
-                    "id": "custom.cellOptions",
-                    "value": {
-                      "mode": "gradient",
-                      "type": "gauge"
                     }
                   }
                 ]
@@ -1036,77 +987,36 @@
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "fsrm_quota_usage_bytes{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
-              "format": "table",
-              "instant": true,
-              "legendFormat": "",
-              "refId": "A"
-            },
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
-              "expr": "fsrm_quota_hard_limit_bytes{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
-              "format": "table",
-              "instant": true,
-              "legendFormat": "",
-              "refId": "B"
-            },
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "prometheus"
-              },
               "expr": "fsrm_quota_percent_used{environment=~\"$environment\", datacenter=~\"$datacenter\", hostname=~\"$hostname\"}",
-              "format": "table",
-              "instant": true,
               "legendFormat": "",
-              "refId": "C"
+              "refId": "A",
+              "format": "table",
+              "instant": true
             }
           ],
           "transformations": [
-            {
-              "id": "seriesToColumns",
-              "options": {
-                "byField": "path"
-              }
-            },
             {
               "id": "organize",
               "options": {
                 "excludeByName": {
                   "Time": true,
-                  "Time 1": true,
-                  "Time 2": true,
-                  "Time 3": true,
                   "__name__": true,
-                  "__name__ 1": true,
-                  "__name__ 2": true,
-                  "__name__ 3": true,
-                  "datacenter": true,
-                  "datacenter 1": true,
-                  "datacenter 2": true,
-                  "datacenter 3": true,
-                  "environment": true,
-                  "environment 1": true,
-                  "environment 2": true,
-                  "environment 3": true,
                   "instance": true,
-                  "instance 1": true,
-                  "instance 2": true,
-                  "instance 3": true,
-                  "job": true,
-                  "job 1": true,
-                  "job 2": true,
-                  "job 3": true
+                  "environment": true,
+                  "datacenter": true,
+                  "role": true,
+                  "os": true,
+                  "job": true
                 },
                 "renameByName": {
-                  "hostname": "Host",
-                  "path": "Path",
-                  "Value #A": "Usage",
-                  "Value #B": "Hard Limit",
-                  "Value #C": "% Used"
+                  "hostname": "Server",
+                  "path": "Quota Path",
+                  "Value": "Usage %"
+                },
+                "indexByName": {
+                  "hostname": 0,
+                  "path": 1,
+                  "Value": 2
                 }
               }
             }
@@ -1139,7 +1049,8 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(up{job=\"windows_fileserver\"}, environment)"
+          "query": "label_values(up{job=\"windows_fileserver\"}, environment)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -1162,7 +1073,8 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(up{job=\"windows_fileserver\", environment=~\"$environment\"}, datacenter)"
+          "query": "label_values(up{job=\"windows_fileserver\", environment=~\"$environment\"}, datacenter)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -1185,7 +1097,8 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(up{job=\"windows_fileserver\", environment=~\"$environment\", datacenter=~\"$datacenter\"}, hostname)"
+          "query": "label_values(up{job=\"windows_fileserver\", environment=~\"$environment\", datacenter=~\"$datacenter\"}, hostname)",
+          "refId": "StandardVariableQuery"
         },
         "refresh": 1,
         "regex": "",
@@ -1204,6 +1117,6 @@
   "timezone": "",
   "title": "File Server Overview",
   "uid": "fileserver-overview",
-  "version": 6,
+  "version": 8,
   "weekStart": ""
 }
