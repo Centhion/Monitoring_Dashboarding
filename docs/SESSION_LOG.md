@@ -122,3 +122,62 @@ Chronological record of work sessions for context continuity.
 - This is the private/internal repo. Public template at /Users/et/Development/monitoring-stack
 
 ---
+
+## Session: 2026-03-20
+
+### Completed
+
+- **Renamed poc_setup.py to stack_manage.py**: The "PoC" name was misleading for a production-ready tool. Updated all references across README, QUICKSTART, SESSION_LOG, PROJECT_PLAN, deploy_configure.py, site_config.example.yml.
+
+- **Fixed linux_load_normalized recording rule**: Production bug where `node_load1 / count(node_cpu_seconds_total)` failed due to `os` label mismatch. Added `on()` clause to explicitly match on shared labels. Would have broken with real agents too.
+
+- **Built-in snappy compression fallback**: Demo data generator no longer requires `python-snappy` package. Implements minimal snappy block format (literal-only encoding) in pure Python. System Python works out of the box -- no venv or pip install needed.
+
+- **Deploy wrapper UX fixes**:
+  - Removed network segment prompt (unused documentation field, confused users)
+  - Removed environment from site prompts (environment belongs on agent via ALLOY_ENV, not on the site definition)
+  - Fixed prompt() function bug where optional fields with blank default looped as required
+
+- **Comprehensive instance audit**: Ran full review against fresh instance with user's real site data. 54/54 raw metrics present, 52/58 recording rules computing (6 correctly empty for healthy state), all SLA metrics working (126 series, 100% availability), all dashboard panels with data.
+
+- **Documentation updates**: README, QUICKSTART, ARCHITECTURE updated with new dashboard structure (3 folders, 19 dashboards), deployment wrapper workflow, python-snappy dependency, deploy_configure.py and demo_data_generator.py in scripts list.
+
+- **requirements.txt**: Added python-snappy>=0.7 (optional but recommended for better compression performance).
+
+### In Progress
+
+- **User testing deployment workflow**: User is running through the deploy_configure.py -> stack_manage.py -> --demo-data workflow on local machine to practice before work deployment. Stack is running with user's site data.
+
+### Blockers
+
+- None for current work.
+- Lansweeper 7D.3-7D.4 still blocked on API credentials.
+
+### Decisions
+
+- **stack_manage.py** (not poc_setup.py): Production-appropriate name since the stack is no longer a PoC.
+- **No network segment in prompts**: It was unused documentation. IPs appear automatically from agent metrics and SNMP polling.
+- **No environment on sites**: Sites are physical locations. Environment (prod/uat/dev) belongs on the server via ALLOY_ENV. A single site can have both prod and UAT servers.
+- **Built-in snappy over pip dependency**: Demo should work with zero pip installs on any machine with Python 3.10+. The fallback produces valid (unoptimized) snappy output.
+- **Demo data with real site names**: Use real Alterra site codes in the demo. Data is tagged `environment=demo` so it's clearly synthetic. Less confusing during stakeholder presentations than fake names.
+- **Demo data runs indefinitely**: Generator pushes every 30s until killed. No Docker container needed -- just a background process. If it dies, restart with `python3 scripts/stack_manage.py --demo-data`.
+
+### Next Session
+
+1. **User visual review feedback**: User is testing the full workflow. May report layout/readability issues on dashboards that automated audit can't catch.
+2. **Work machine deployment**: User plans to deploy at work after practicing locally. Same 4-step workflow with real site codes.
+3. **Stakeholder demo preparation**: May need additional polish based on user's review findings.
+4. **Lansweeper 7D.3-7D.4**: Asset inventory dashboard and webhook sync (when API credentials available).
+
+### Context
+
+- Stack is running on user's machine at localhost:3000 with demo data flowing
+- System Python works -- no venv needed. Snappy fallback handles compression.
+- Workflow: `python3 scripts/deploy_configure.py` -> `python3 scripts/stack_manage.py --demo-data`
+- To reset: `python3 scripts/stack_manage.py --reset`
+- User's org is Alterra Mountain Company (resort/hospitality). Sites are physical resort locations with on-site datacenters.
+- macOS requires `python3` not `python`
+- 3 commits this continuation: 642ed59, ac640cb, and handoff
+- Total across both sessions (3/19-3/20): 8 commits
+
+---
