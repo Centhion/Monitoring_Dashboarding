@@ -323,3 +323,57 @@ Chronological record of work sessions for context continuity.
 - 5 commits this session: 1d107c1, abe6910, 87fa483, e880bd3, af13719
 
 ---
+
+## Session: 2026-03-20 (session 4)
+
+### Completed
+
+- **Phase 12B click-to-filter**: All 16 wiring tasks complete. 47 clickable stat panels linked to detail panels. Uncollapsed detail rows (viewPanel doesn't work with collapsed row children in Grafana 11.5).
+
+- **Datacenter drill-down fix (root cause)**: `multi=False` on datacenter variable across all 17 dashboards. Grafana wraps multi-select URL values in braces (`{sno}` instead of `sno`), breaking all cross-dashboard drill-downs. Single-select fixes this.
+
+- **Cross-dashboard linking fixed**: Site Overview passes `$datacenter` to target dashboards. NOC table cell links use `:raw` format modifier. Removed `var-environment` from all cross-dashboard links (caused "All" literal string issues). Full flow works: NOC -> click site -> Site Overview (filtered) -> click stat -> role dashboard (filtered to same site).
+
+- **Same-dashboard click links removed**: 53 useless links that pointed to `/d/same-dashboard` removed. Grafana 11.5 doesn't support scroll-to-panel or viewPanel for most panel types. Detail tables are visible on the page -- users scroll naturally.
+
+- **Dashboard descriptions**: Text panel added to all 18 dashboards (Audit Trail already had one) explaining purpose, how to use filters, and what colors mean.
+
+- **Network dashboard device filter**: Added `device_name` variable for per-device drill-down. Added "Interfaces with Errors" detail table showing only interfaces with non-zero error rates.
+
+- **Site Overview datacenter filter fix**: Changed `datacenter="$datacenter"` (exact match) to `datacenter=~"$datacenter"` (regex match) on queries that showed "No data" when "All" was selected.
+
+- **Expanded demo data committed**: DC (16 new metrics), DHCP (24 per-scope), CA (25 per-template), SLA downtime simulation, audit trail Loki logs.
+
+### In Progress
+
+- **Certificate Overview dashboard rebuild**: Probe Status History is unreadable (raw labels as Y-axis). Expiry Timeline is spaghetti chart. Both need complete rebuild. User wants whole cert dashboard reworked.
+- **Ongoing visual review**: User finding issues as they click through dashboards.
+
+### Blockers
+
+- None technical. Grafana 11.5 limitation: no scroll-to-panel, no viewPanel for non-VizPanel types. Worked around by making detail tables always visible.
+
+### Decisions
+
+- **Datacenter single-select**: `multi=False` on all dashboards. Prevents `{value}` brace-wrapping in URL drill-downs. Users select one datacenter at a time.
+- **No same-dashboard click links**: Grafana 11.5 can't scroll to a panel or open it in focus mode reliably. Detail tables are always visible -- users scroll. Cross-dashboard links work fine.
+- **No var-environment in cross-dashboard links**: Causes "All" literal string issues. Target dashboards load with their own Environment="All" default which works correctly.
+- **Table cell links use ${__data.fields.field:raw}**: Prevents Grafana from wrapping values.
+- **Cert dashboard needs full rebuild**: Replace status-history (unreadable) with table. Replace spaghetti time series with sorted bar chart or table for expiry.
+
+### Next Session
+
+1. **Rebuild Certificate Overview dashboard**: Replace Probe Status History with clean table, replace Expiry Timeline with sorted bar/table visualization
+2. **Continue visual review**: User may find more issues
+3. **Demo prep**: Finalize for stakeholder presentation
+
+### Context
+
+- Stack running with 7 Alterra sites, demo data generator in background
+- Datacenter is single-select on all dashboards (critical for drill-down)
+- Cross-dashboard links: no var-environment, only var-datacenter where needed
+- Same-dashboard clickable stats removed (no useful behavior in Grafana 11.5)
+- NOC -> Site Overview -> role dashboard drill-down flow verified working
+- Commits this session: 1d107c1, abe6910, 87fa483, e880bd3, af13719, 3afa9a0, 5d22c10
+
+---
