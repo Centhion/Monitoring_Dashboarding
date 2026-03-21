@@ -37,6 +37,7 @@
 | Phase 11: Dashboard Production Readiness | Completed | 19 dashboards in 3 folders, 6 role dashboards, functional tags, 82 bugs fixed, deep audit passed |
 | Phase 12: Dashboard UX Polish | Completed | Click-to-filter drill-downs, expanded role metrics, color standardization, demo data improvements |
 | Phase 13: Alert Strategy | Pending | Alert fatigue reduction, threshold tuning, notification design -- critical for platform adoption |
+| Phase 13B: Operator Documentation | Pending | Sysadmin-focused docs for 10-year supportability -- KB/Wiki ready |
 | Phase 14: Production Rollout | Pending | Pilot site deployment, security hardening, fleet rollout, operations handoff |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
@@ -1827,6 +1828,64 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 - Mass-outage events generate 1 alert, not 50
 - Team can silence alerts for maintenance without engineer help
 - Teams webhook delivers formatted, readable notifications
+
+---
+
+## Phase 13B: Operator Documentation
+
+**Goal**: Create sysadmin-focused documentation that enables a team of 10 to operate, troubleshoot, and maintain this platform for 10+ years without the original builder. Written for Wiki/KB format -- no code knowledge required.
+
+**Status**: Pending
+
+**Audience**: Sysadmins who know Windows/Linux servers but have never used Grafana, Prometheus, or Alloy. They need to know what to do, not how it works internally.
+
+### Documentation Deliverables
+
+**Operations Guide** (day-to-day tasks):
+- [ ] 1. "Adding a New Server to Monitoring" -- step-by-step with screenshots: install Alloy, set env vars, verify in Grafana -- Medium
+- [ ] 2. "Adding a New Site/Datacenter" -- run deploy_configure.py, verify NOC shows new site -- Simple
+- [ ] 3. "Silencing Alerts for Maintenance" -- three methods: Grafana UI, maintenance_window.py script, recurring mute timings -- Simple
+- [ ] 4. "Responding to an Alert" -- Teams notification arrives, click link, navigate dashboard, identify problem, follow runbook -- Medium
+- [ ] 5. "Checking Platform Health" -- how to verify Grafana/Prometheus/Loki are running, what to do if one is down -- Simple
+- [ ] 6. "Restarting the Monitoring Stack" -- stack_manage.py commands, when to use --reset vs --stop -- Simple
+- [ ] 7. "Removing a Server from Monitoring" -- uninstall Alloy, data ages out automatically -- Simple
+- [ ] 8. "Changing Alert Thresholds" -- reference THRESHOLD_GUIDE.md, edit dashboard JSON or alert rule YAML, restart -- Simple
+
+**Alert Reference** (per-alert documentation):
+- [ ] 9. Complete alert catalog -- every alert rule with: name, severity, what it means, what to check, how to fix, when to escalate, false positive guidance -- Complex
+- [ ] 10. Alert severity definitions -- what Critical/Warning/Info mean for this team specifically, expected response times -- Simple
+
+**Dashboard Guide** (how to use each dashboard):
+- [ ] 11. "Navigating the Dashboards" -- NOC -> Site Overview -> role dashboard flow with screenshots, what each folder contains -- Medium
+- [ ] 12. "Understanding Dashboard Panels" -- what the colors mean, what the stat boxes show, how to filter by site/host/role -- Medium
+- [ ] 13. Per-dashboard reference pages -- one page per dashboard explaining what it shows and when to use it -- Complex
+
+**Architecture Overview** (for engineers/escalation):
+- [ ] 14. "How the Monitoring Stack Works" -- simplified data flow diagram, what each component does, where configs live -- Medium
+- [ ] 15. "Alloy Agent Reference" -- what roles exist, what each role monitors, how labels work -- Medium
+- [ ] 16. "Troubleshooting Guide" -- common problems (no data, alert not firing, dashboard empty), diagnostic steps -- Medium
+
+**Administration Guide** (platform maintenance):
+- [ ] 17. "Backup and Recovery" -- what to back up (git repo, Grafana DB), how to restore from scratch -- Simple
+- [ ] 18. "Upgrading Components" -- how to update Grafana/Prometheus/Loki versions safely -- Medium
+- [ ] 19. "Capacity Planning" -- disk usage projections, when to expand, what to monitor -- Medium
+- [ ] 20. "User Management" -- creating local accounts, LDAP integration, RBAC folder permissions -- Simple
+
+### Format Requirements
+
+- Written in Markdown for easy Wiki/KB import
+- No code blocks unless showing a command to run
+- Screenshots for all Grafana navigation tasks
+- Each doc is standalone (can be read without reading other docs)
+- Glossary of terms (PromQL, Alloy, datacenter label, recording rule) for sysadmins unfamiliar with the stack
+
+### Success Criteria
+
+- A new sysadmin can add a server to monitoring without asking the platform builder
+- A sysadmin can respond to an alert end-to-end using only the documentation
+- A sysadmin can silence alerts for maintenance without engineer help
+- An engineer unfamiliar with this project can understand the architecture and troubleshoot issues
+- All documentation is in docs/ directory, ready for Wiki import
 
 ---
 
