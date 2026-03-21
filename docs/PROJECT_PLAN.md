@@ -36,6 +36,8 @@
 | Phase 10C: Integration and Polish | Completed | Wrapper + stack_manage.py integration, example config, QUICKSTART update |
 | Phase 11: Dashboard Production Readiness | Completed | 19 dashboards in 3 folders, 6 role dashboards, functional tags, 82 bugs fixed, deep audit passed |
 | Phase 12: Dashboard UX Polish | Completed | Click-to-filter drill-downs, expanded role metrics, color standardization, demo data improvements |
+| Phase 13: Alert Strategy | Pending | Alert fatigue reduction, threshold tuning, notification design -- critical for platform adoption |
+| Phase 14: Production Rollout | Pending | Pilot site deployment, security hardening, fleet rollout, operations handoff |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
 
@@ -1780,6 +1782,136 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 - No "No data" panels on any dashboard with demo data running
 
 ---
+
+## Phase 13: Alert Strategy
+
+**Goal**: Design and implement an alerting approach that eliminates SCOM-style alert fatigue. This is the #1 factor for platform adoption. If the team gets flooded with noise, they'll reject the platform.
+
+**Status**: Pending
+
+**Context**: Current SCOM environment generates excessive alert noise. The team has no on-call rotation. Alerts go to per-site email DLs during business hours. The platform must be quieter and more actionable than SCOM from day one.
+
+### 13A: Alert Audit and Baseline
+
+- [ ] 1. Inventory all 167 existing alert rules -- categorize as: critical (must act now), warning (investigate soon), informational (awareness only) -- Medium
+- [ ] 2. Review each alert threshold against real-world baselines -- are the defaults appropriate for 1,500+ host fleet? Document expected fire rate per rule -- Complex
+- [ ] 3. Identify SCOM alerts to replicate -- which SCOM alerts does the team actually act on today? These must exist in the new platform. Which do they ignore? Those should not exist -- Medium
+- [ ] 4. Define alert severity contract -- what does Critical mean? (wake someone up / immediate action). What does Warning mean? (investigate within 4 hours). What does Info mean? (FYI, no action needed) -- Simple
+
+### 13B: Alert Noise Reduction
+
+- [ ] 5. Review and tune inhibition rules -- mass-outage suppression (SitePartialOutage, RolePartialOutage) working correctly? Test with simulated outage -- Medium
+- [ ] 6. Review group_by settings -- are alerts grouped effectively? Should `[alertname, datacenter]` be the standard (one notification per alert type per site) vs `[alertname, hostname, datacenter]` (one per host)? -- Medium
+- [ ] 7. Review repeat_interval -- Critical at 1h, Warning at 4h, Info at 12h. Are these right for the team's workflow? -- Simple
+- [ ] 8. Review group_wait -- 15s for critical, 30s for warning. Should warning be longer to catch more related alerts? -- Simple
+- [ ] 9. Define maintenance window procedures -- who creates silences? For what scenarios? Document the process for sysadmins -- Simple
+- [ ] 10. Test alert delivery end-to-end -- configure real Teams webhook, send test alerts, verify formatting, verify routing to correct site DL -- Medium
+
+### 13C: Alert Documentation
+
+- [ ] 11. Review and update ALERT_RUNBOOKS.md -- each alert rule needs: what it means, why it fires, what to check, how to fix it, when to escalate -- Complex
+- [ ] 12. Create sysadmin-facing alert response guide -- simplified version of runbooks for the 8 sysadmins who didn't build this -- Medium
+- [ ] 13. Document threshold change process -- how does a sysadmin request a threshold change? Who approves? How is it deployed? -- Simple
+
+### 13D: Alert Validation with Real Data
+
+- [ ] 14. Deploy to pilot site and monitor alert volume for 1 week -- count alerts per day, identify noisy rules, tune -- Complex
+- [ ] 15. Compare alert volume to SCOM -- are we generating fewer, more actionable alerts? -- Simple
+- [ ] 16. Get team feedback on alert quality after 2 weeks -- are they acting on alerts or ignoring them? -- Simple
+
+### Success Criteria
+
+- Alert volume is measurably lower than SCOM for equivalent infrastructure
+- Every alert that fires has a clear runbook entry and is actionable
+- No alert fires more than once for the same ongoing issue (dedup works)
+- Mass-outage events generate 1 alert, not 50
+- Team can silence alerts for maintenance without engineer help
+- Teams webhook delivers formatted, readable notifications
+
+---
+
+## Phase 14: Production Rollout
+
+**Goal**: Deploy the monitoring platform to production infrastructure, starting with a pilot site, then rolling to all sites. Hand off operations to the sysadmin team.
+
+**Status**: Pending
+
+**Deployment target**: Dedicated Docker host in centralized Denver datacenter. Docker Compose, not Kubernetes (walk before run).
+
+**Team**: 8 sysadmins + 2 engineers. Sysadmins will operate day-to-day. Engineers handle escalations and platform changes.
+
+**Budget**: $0 licensing. Replacing SquaredUp ($26K/year) and potentially SCOM.
+
+### 14A: Pilot Site (2-4 weeks)
+
+- [ ] 1. Provision dedicated Docker host in Denver DC -- Medium
+- [ ] 2. Run deploy_configure.py with real site codes, real SMTP, real Teams webhook -- Simple
+- [ ] 3. Deploy stack_manage.py on production host -- Simple
+- [ ] 4. Select pilot site (smallest or most engaged site team) -- Simple
+- [ ] 5. Deploy Alloy agents to 10-20 servers at pilot site (mix of DC, SQL, IIS, File Server, generic) -- Medium
+- [ ] 6. Deploy site gateway for SNMP, Redfish, cert probing at pilot site -- Medium
+- [ ] 7. Monitor for 1 week -- tune thresholds, fix false positives -- Medium
+- [ ] 8. Get pilot site team feedback -- Simple
+
+### 14B: Security Hardening (1-2 weeks)
+
+- [ ] 9. TLS on Grafana (reverse proxy with cert) -- Medium
+- [ ] 10. LDAP/AD integration (replace local demo accounts) -- Medium
+- [ ] 11. RBAC folder permissions per site -- Simple (scripts exist)
+- [ ] 12. Network access restrictions (Prometheus/Loki/Alertmanager not exposed externally) -- Simple
+- [ ] 13. Secrets management for SMTP password, LDAP bind password, Redfish credentials -- Medium
+
+### 14C: Fleet Rollout (2-4 weeks per site)
+
+- [ ] 14. Deploy Alloy to all servers at pilot site -- Medium
+- [ ] 15. Onboard second site -- repeat agent deployment + gateway -- Medium
+- [ ] 16. Roll remaining sites (SCCM/Ansible for bulk Alloy deployment) -- Complex
+- [ ] 17. Decommission SquaredUp dashboards as Grafana replaces them -- Simple
+- [ ] 18. Evaluate SCOM replacement timeline -- when can SCOM agents be removed? -- Complex
+
+### 14D: Operations Handoff (ongoing)
+
+- [ ] 19. Create sysadmin operations runbook (one-pager): add server, silence alert, check stack health, restart services -- Medium
+- [ ] 20. External healthcheck on monitoring stack (cron + curl to Grafana/Prometheus health endpoints, alert via separate channel if down) -- Medium
+- [ ] 21. Grafana DB backup (daily cron, retain 7 days) -- Simple
+- [ ] 22. Capacity planning document -- storage projections at full fleet, when to expand disk -- Medium
+- [ ] 23. Training session for sysadmin team (recorded walkthrough of NOC -> drill-down flow, common maintenance tasks) -- Medium
+- [ ] 24. Define change management process -- config changes go through git PR, validate, deploy -- Simple
+
+### 14E: Platform Evolution (future)
+
+- [ ] 25. Kubernetes migration when NKP is ready (HA, self-healing, rolling upgrades) -- Complex
+- [ ] 26. Mimir for long-term metrics retention (object storage backend) -- Complex
+- [ ] 27. Lansweeper integration for automated inventory -- Medium (Phase 7D)
+- [ ] 28. CI/CD pipeline for config validation on push -- Medium
+- [ ] 29. Load testing at full fleet scale (1,500 agents) -- Medium
+
+### Human Actions Required
+
+- [ ] Provision dedicated Docker host in Denver DC
+- [ ] Create Teams webhook for monitoring channel
+- [ ] Configure real SMTP relay access
+- [ ] Select pilot site and identify 10-20 test servers
+- [ ] Create LDAP service account for Grafana
+- [ ] Create AD security groups per site (SG-Monitoring-<site>)
+- [ ] Identify sysadmin team leads per site for alert ownership
+- [ ] Schedule training session after pilot validation
+- [ ] Approve SquaredUp decommission timeline
+
+### Risks
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Alert fatigue from day one | Team rejects platform | Phase 13 alert tuning before rollout; start conservative |
+| Docker host single point of failure | Monitoring goes down | auto-restart policy; external healthcheck; K8s migration later |
+| Knowledge concentrated in one person | Bus factor = 1 | Documentation, recorded training, operations runbook |
+| SCOM/SquaredUp decommission resistance | Parallel running costs | Prove value at pilot, decommission gradually per site |
+| 1,500 agents overwhelming single Prometheus | Performance issues | Capacity planning; Mimir migration path exists |
+| Sysadmins unfamiliar with Grafana/PromQL | Slow adoption | Dashboards are click-and-drill, no PromQL needed for operations |
+
+---
+
+## Human Actions Checklist
 
 ## Human Actions Checklist
 
