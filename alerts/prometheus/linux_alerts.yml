@@ -1,199 +1,157 @@
-# =============================================================================
-# Linux Server Alert Rules
-# =============================================================================
-# Prometheus alerting rules for Linux server health monitoring.
-# These rules cover the baseline metrics collected by Alloy linux/base.alloy
-# and apply to ALL Linux servers regardless of role.
-# =============================================================================
-
 groups:
-  - name: linux_server_alerts
-    rules:
-      # -----------------------------------------------------------------
-      # CPU Alerts
-      # -----------------------------------------------------------------
-      - alert: LinuxCpuHighWarning
-        expr: instance:linux_cpu_utilization:ratio > 0.85
-        for: 10m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: linux
-        annotations:
-          summary: "High CPU usage on {{ $labels.hostname }}"
-          description: "CPU utilization has been above 85% for 10 minutes. Current value: {{ $value | humanizePercentage }}."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#linuxcpuhighwarning"
+- name: linux_server_alerts
+  rules:
+  - alert: LinuxCpuHighWarning
+    expr: instance:linux_cpu_utilization:ratio > 0.90
+    for: 30m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: linux
+    annotations:
+      summary: High CPU usage on {{ $labels.hostname }}
+      description: 'CPU utilization has been above 85% for 10 minutes. Current value: {{ $value | humanizePercentage }}.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#linuxcpuhighwarning
+  - alert: LinuxCpuHighCritical
+    expr: instance:linux_cpu_utilization:ratio > 0.95
+    for: 5m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: linux
+    annotations:
+      summary: Critical CPU usage on {{ $labels.hostname }}
+      description: 'CPU utilization has been above 95% for 5 minutes. Current value: {{ $value | humanizePercentage }}.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#linuxcpuhighcritical
+  - alert: LinuxMemoryHighWarning
+    expr: instance:linux_memory_utilization:ratio > 0.85
+    for: 15m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: linux
+    annotations:
+      summary: High memory usage on {{ $labels.hostname }}
+      description: 'Memory utilization has been above 85% for 10 minutes. Current value: {{ $value | humanizePercentage }}.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#linuxmemoryhighwarning
+  - alert: LinuxMemoryHighCritical
+    expr: instance:linux_memory_utilization:ratio > 0.95
+    for: 5m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: linux
+    annotations:
+      summary: Critical memory usage on {{ $labels.hostname }}
+      description: 'Memory utilization has been above 95% for 5 minutes. OOM killer may activate. Current value: {{ $value
+        | humanizePercentage }}.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#linuxmemoryhighcritical
+  - alert: LinuxDiskSpaceLowWarning
+    expr: instance:linux_disk_free:ratio < 0.20
+    for: 30m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: linux
+    annotations:
+      summary: Low disk space on {{ $labels.hostname }} mount {{ $labels.mountpoint }}
+      description: 'Filesystem at {{ $labels.mountpoint }} has less than 20% free space. Current free: {{ $value | humanizePercentage
+        }}.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#linuxdiskspacelowwarning
+  - alert: LinuxDiskSpaceLowCritical
+    expr: instance:linux_disk_free:ratio < 0.10
+    for: 5m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: linux
+    annotations:
+      summary: Critical disk space on {{ $labels.hostname }} mount {{ $labels.mountpoint }}
+      description: 'Filesystem at {{ $labels.mountpoint }} has less than 10% free space. Risk of service failure. Current
+        free: {{ $value | humanizePercentage }}.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#linuxdiskspacelowcritical
+  - alert: LinuxDiskIoHigh
+    expr: instance:linux_disk_io_utilization:ratio > 0.90
+    for: 30m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: linux
+    annotations:
+      summary: High disk I/O on {{ $labels.hostname }} device {{ $labels.device }}
+      description: Disk {{ $labels.device }} has been >90% busy for 15 minutes. I/O bottleneck likely.
+      runbook_url: docs/ALERT_RUNBOOKS.md#linuxdiskiohigh
+  - alert: LinuxLoadHigh
+    expr: instance:linux_load_normalized:ratio > 2
+    for: 30m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: linux
+    annotations:
+      summary: High load average on {{ $labels.hostname }}
+      description: Normalized load average (per CPU) has been above 2.0 for 15 minutes. System is overloaded.
+      runbook_url: docs/ALERT_RUNBOOKS.md#linuxloadhigh
+  - alert: LinuxSystemdUnitFailed
+    expr: node_systemd_unit_state{state="failed"} == 1
+    for: 15m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: linux
+    annotations:
+      summary: Systemd unit {{ $labels.name }} failed on {{ $labels.hostname }}
+      description: Unit {{ $labels.name }} has been in failed state for 5 minutes. Run 'systemctl status {{ $labels.name }}'
+        for details.
+      runbook_url: docs/ALERT_RUNBOOKS.md#linuxsystemdunitfailed
+  - alert: LinuxServerDown
+    expr: up{job="linux_base"} == 0
+    for: 5m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: linux
+    annotations:
+      summary: Linux server {{ $labels.hostname }} is unreachable
+      description: Alloy agent on {{ $labels.hostname }} has not reported metrics for 3 minutes. Server may be down or network
+        connectivity lost.
+      runbook_url: docs/ALERT_RUNBOOKS.md#linuxserverdown
+  - alert: LinuxServerReboot
+    expr: instance:linux_uptime:seconds < 600
+    for: 1m
+    labels:
+      severity: info
+      team: infrastructure
+      os: linux
+    annotations:
+      summary: Linux server {{ $labels.hostname }} was recently rebooted
+      description: Server uptime is less than 10 minutes, indicating a recent reboot.
+      runbook_url: docs/ALERT_RUNBOOKS.md#linuxserverreboot
+  - alert: LinuxTimeDriftWarning
+    expr: abs(node_timex_offset_seconds) > 0.5
+    for: 10m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: linux
+    annotations:
+      summary: Time drift detected on {{ $labels.hostname }}
+      description: 'System clock offset exceeds 0.5 seconds. Current offset: {{ $value }}s.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#linuxtimedriftwarning
+  - alert: LinuxSwapUsageHigh
+    expr: '(node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes)
 
-      - alert: LinuxCpuHighCritical
-        expr: instance:linux_cpu_utilization:ratio > 0.95
-        for: 5m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: linux
-        annotations:
-          summary: "Critical CPU usage on {{ $labels.hostname }}"
-          description: "CPU utilization has been above 95% for 5 minutes. Current value: {{ $value | humanizePercentage }}."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#linuxcpuhighcritical"
+      /
 
-      # -----------------------------------------------------------------
-      # Memory Alerts
-      # -----------------------------------------------------------------
-      - alert: LinuxMemoryHighWarning
-        expr: instance:linux_memory_utilization:ratio > 0.85
-        for: 10m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: linux
-        annotations:
-          summary: "High memory usage on {{ $labels.hostname }}"
-          description: "Memory utilization has been above 85% for 10 minutes. Current value: {{ $value | humanizePercentage }}."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#linuxmemoryhighwarning"
+      node_memory_SwapTotal_bytes > 0.50
 
-      - alert: LinuxMemoryHighCritical
-        expr: instance:linux_memory_utilization:ratio > 0.95
-        for: 5m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: linux
-        annotations:
-          summary: "Critical memory usage on {{ $labels.hostname }}"
-          description: "Memory utilization has been above 95% for 5 minutes. OOM killer may activate. Current value: {{ $value | humanizePercentage }}."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#linuxmemoryhighcritical"
-
-      # -----------------------------------------------------------------
-      # Disk Space Alerts
-      # -----------------------------------------------------------------
-      - alert: LinuxDiskSpaceLowWarning
-        expr: instance:linux_disk_free:ratio < 0.20
-        for: 15m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: linux
-        annotations:
-          summary: "Low disk space on {{ $labels.hostname }} mount {{ $labels.mountpoint }}"
-          description: "Filesystem at {{ $labels.mountpoint }} has less than 20% free space. Current free: {{ $value | humanizePercentage }}."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#linuxdiskspacelowwarning"
-
-      - alert: LinuxDiskSpaceLowCritical
-        expr: instance:linux_disk_free:ratio < 0.10
-        for: 5m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: linux
-        annotations:
-          summary: "Critical disk space on {{ $labels.hostname }} mount {{ $labels.mountpoint }}"
-          description: "Filesystem at {{ $labels.mountpoint }} has less than 10% free space. Risk of service failure. Current free: {{ $value | humanizePercentage }}."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#linuxdiskspacelowcritical"
-
-      # -----------------------------------------------------------------
-      # Disk I/O Alerts
-      # -----------------------------------------------------------------
-      - alert: LinuxDiskIoHigh
-        expr: instance:linux_disk_io_utilization:ratio > 0.90
-        for: 15m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: linux
-        annotations:
-          summary: "High disk I/O on {{ $labels.hostname }} device {{ $labels.device }}"
-          description: "Disk {{ $labels.device }} has been >90% busy for 15 minutes. I/O bottleneck likely."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#linuxdiskiohigh"
-
-      # -----------------------------------------------------------------
-      # Load Average
-      # -----------------------------------------------------------------
-      - alert: LinuxLoadHigh
-        expr: instance:linux_load_normalized:ratio > 2
-        for: 15m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: linux
-        annotations:
-          summary: "High load average on {{ $labels.hostname }}"
-          description: "Normalized load average (per CPU) has been above 2.0 for 15 minutes. System is overloaded."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#linuxloadhigh"
-
-      # -----------------------------------------------------------------
-      # Systemd Service Alerts
-      # -----------------------------------------------------------------
-      - alert: LinuxSystemdUnitFailed
-        expr: node_systemd_unit_state{state="failed"} == 1
-        for: 5m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: linux
-        annotations:
-          summary: "Systemd unit {{ $labels.name }} failed on {{ $labels.hostname }}"
-          description: "Unit {{ $labels.name }} has been in failed state for 5 minutes. Run 'systemctl status {{ $labels.name }}' for details."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#linuxsystemdunitfailed"
-
-      # -----------------------------------------------------------------
-      # Server Unreachable
-      # -----------------------------------------------------------------
-      - alert: LinuxServerDown
-        expr: up{job="linux_base"} == 0
-        for: 3m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: linux
-        annotations:
-          summary: "Linux server {{ $labels.hostname }} is unreachable"
-          description: "Alloy agent on {{ $labels.hostname }} has not reported metrics for 3 minutes. Server may be down or network connectivity lost."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#linuxserverdown"
-
-      # -----------------------------------------------------------------
-      # Server Reboot Detection
-      # -----------------------------------------------------------------
-      - alert: LinuxServerReboot
-        expr: instance:linux_uptime:seconds < 600
-        for: 1m
-        labels:
-          severity: info
-          team: infrastructure
-          os: linux
-        annotations:
-          summary: "Linux server {{ $labels.hostname }} was recently rebooted"
-          description: "Server uptime is less than 10 minutes, indicating a recent reboot."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#linuxserverreboot"
-
-      # -----------------------------------------------------------------
-      # NTP / Time Sync
-      # -----------------------------------------------------------------
-      - alert: LinuxTimeDriftWarning
-        expr: abs(node_timex_offset_seconds) > 0.5
-        for: 10m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: linux
-        annotations:
-          summary: "Time drift detected on {{ $labels.hostname }}"
-          description: "System clock offset exceeds 0.5 seconds. Current offset: {{ $value }}s."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#linuxtimedriftwarning"
-
-      # -----------------------------------------------------------------
-      # Swap Usage
-      # -----------------------------------------------------------------
-      - alert: LinuxSwapUsageHigh
-        expr: |
-          (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes)
-          /
-          node_memory_SwapTotal_bytes > 0.50
-        for: 15m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: linux
-        annotations:
-          summary: "High swap usage on {{ $labels.hostname }}"
-          description: "Swap usage has been above 50% for 15 minutes. System is likely memory-constrained."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#linuxswapusagehigh"
+      '
+    for: 30m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: linux
+    annotations:
+      summary: High swap usage on {{ $labels.hostname }}
+      description: Swap usage has been above 50% for 15 minutes. System is likely memory-constrained.
+      runbook_url: docs/ALERT_RUNBOOKS.md#linuxswapusagehigh

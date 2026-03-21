@@ -1,159 +1,119 @@
-# =============================================================================
-# Windows Server Alert Rules
-# =============================================================================
-# Prometheus alerting rules for Windows server health monitoring.
-# These rules cover the baseline metrics collected by Alloy windows/base.alloy
-# and apply to ALL Windows servers regardless of role.
-#
-# Severity levels:
-#   critical -- immediate attention required, potential outage
-#   warning  -- degraded performance, investigate within business hours
-#   info     -- informational, no action required but useful for awareness
-#
-# All rules include required labels (severity, team) and annotations
-# (summary, description, runbook_url) per the alert-rule-auditor spec.
-# =============================================================================
-
 groups:
-  - name: windows_server_alerts
-    rules:
-      # -----------------------------------------------------------------
-      # CPU Alerts
-      # -----------------------------------------------------------------
-      - alert: WindowsCpuHighWarning
-        expr: instance:windows_cpu_utilization:ratio > 0.85
-        for: 10m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: windows
-        annotations:
-          summary: "High CPU usage on {{ $labels.hostname }}"
-          description: "CPU utilization has been above 85% for 10 minutes. Current value: {{ $value | humanizePercentage }}."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#windowscpuhighwarning"
-
-      - alert: WindowsCpuHighCritical
-        expr: instance:windows_cpu_utilization:ratio > 0.95
-        for: 5m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: windows
-        annotations:
-          summary: "Critical CPU usage on {{ $labels.hostname }}"
-          description: "CPU utilization has been above 95% for 5 minutes. Server may be unresponsive. Current value: {{ $value | humanizePercentage }}."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#windowscpuhighcritical"
-
-      # -----------------------------------------------------------------
-      # Memory Alerts
-      # -----------------------------------------------------------------
-      - alert: WindowsMemoryHighWarning
-        expr: instance:windows_memory_utilization:ratio > 0.85
-        for: 10m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: windows
-        annotations:
-          summary: "High memory usage on {{ $labels.hostname }}"
-          description: "Memory utilization has been above 85% for 10 minutes. Current value: {{ $value | humanizePercentage }}."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#windowsmemoryhighwarning"
-
-      - alert: WindowsMemoryHighCritical
-        expr: instance:windows_memory_utilization:ratio > 0.95
-        for: 5m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: windows
-        annotations:
-          summary: "Critical memory usage on {{ $labels.hostname }}"
-          description: "Memory utilization has been above 95% for 5 minutes. OOM risk. Current value: {{ $value | humanizePercentage }}."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#windowsmemoryhighcritical"
-
-      # -----------------------------------------------------------------
-      # Disk Space Alerts
-      # -----------------------------------------------------------------
-      - alert: WindowsDiskSpaceLowWarning
-        expr: instance:windows_disk_free:ratio < 0.20
-        for: 15m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: windows
-        annotations:
-          summary: "Low disk space on {{ $labels.hostname }} volume {{ $labels.volume }}"
-          description: "Volume {{ $labels.volume }} has less than 20% free space. Current free: {{ $value | humanizePercentage }}."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#windowsdiskspacelowwarning"
-
-      - alert: WindowsDiskSpaceLowCritical
-        expr: instance:windows_disk_free:ratio < 0.10
-        for: 5m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: windows
-        annotations:
-          summary: "Critical disk space on {{ $labels.hostname }} volume {{ $labels.volume }}"
-          description: "Volume {{ $labels.volume }} has less than 10% free space. Risk of service failure. Current free: {{ $value | humanizePercentage }}."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#windowsdiskspacelowcritical"
-
-      # -----------------------------------------------------------------
-      # Windows Service Alerts
-      # -----------------------------------------------------------------
-      - alert: WindowsServiceDown
-        expr: windows_service_state{state="running"} == 0
-        for: 5m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: windows
-        annotations:
-          summary: "Windows service {{ $labels.name }} not running on {{ $labels.hostname }}"
-          description: "Service {{ $labels.name }} has not been in running state for 5 minutes."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#windowsservicedown"
-
-      # -----------------------------------------------------------------
-      # Server Uptime / Reboot Detection
-      # -----------------------------------------------------------------
-      - alert: WindowsServerReboot
-        expr: instance:windows_uptime:seconds < 600
-        for: 1m
-        labels:
-          severity: info
-          team: infrastructure
-          os: windows
-        annotations:
-          summary: "Windows server {{ $labels.hostname }} was recently rebooted"
-          description: "Server uptime is less than 10 minutes, indicating a recent reboot."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#windowsserverreboot"
-
-      # -----------------------------------------------------------------
-      # Server Unreachable
-      # -----------------------------------------------------------------
-      - alert: WindowsServerDown
-        expr: up{job="windows_base"} == 0
-        for: 3m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: windows
-        annotations:
-          summary: "Windows server {{ $labels.hostname }} is unreachable"
-          description: "Alloy agent on {{ $labels.hostname }} has not reported metrics for 3 minutes. Server may be down or network connectivity lost."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#windowsserverdown"
-
-      # -----------------------------------------------------------------
-      # NTP / Time Sync
-      # -----------------------------------------------------------------
-      - alert: WindowsTimeDriftWarning
-        expr: abs(windows_time_computed_time_offset_seconds) > 1
-        for: 10m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: windows
-        annotations:
-          summary: "Time drift detected on {{ $labels.hostname }}"
-          description: "System clock is offset by more than 1 second from NTP source. Current offset: {{ $value }}s. Kerberos authentication may fail if drift exceeds 5 minutes."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#windowstimedriftwarning"
+- name: windows_server_alerts
+  rules:
+  - alert: WindowsCpuHighWarning
+    expr: instance:windows_cpu_utilization:ratio > 0.90
+    for: 30m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: windows
+    annotations:
+      summary: High CPU usage on {{ $labels.hostname }}
+      description: 'CPU utilization has been above 85% for 10 minutes. Current value: {{ $value | humanizePercentage }}.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#windowscpuhighwarning
+  - alert: WindowsCpuHighCritical
+    expr: instance:windows_cpu_utilization:ratio > 0.95
+    for: 5m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: windows
+    annotations:
+      summary: Critical CPU usage on {{ $labels.hostname }}
+      description: 'CPU utilization has been above 95% for 5 minutes. Server may be unresponsive. Current value: {{ $value
+        | humanizePercentage }}.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#windowscpuhighcritical
+  - alert: WindowsMemoryHighWarning
+    expr: instance:windows_memory_utilization:ratio > 0.85
+    for: 15m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: windows
+    annotations:
+      summary: High memory usage on {{ $labels.hostname }}
+      description: 'Memory utilization has been above 85% for 10 minutes. Current value: {{ $value | humanizePercentage }}.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#windowsmemoryhighwarning
+  - alert: WindowsMemoryHighCritical
+    expr: instance:windows_memory_utilization:ratio > 0.95
+    for: 5m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: windows
+    annotations:
+      summary: Critical memory usage on {{ $labels.hostname }}
+      description: 'Memory utilization has been above 95% for 5 minutes. OOM risk. Current value: {{ $value | humanizePercentage
+        }}.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#windowsmemoryhighcritical
+  - alert: WindowsDiskSpaceLowWarning
+    expr: instance:windows_disk_free:ratio < 0.20
+    for: 30m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: windows
+    annotations:
+      summary: Low disk space on {{ $labels.hostname }} volume {{ $labels.volume }}
+      description: 'Volume {{ $labels.volume }} has less than 20% free space. Current free: {{ $value | humanizePercentage
+        }}.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#windowsdiskspacelowwarning
+  - alert: WindowsDiskSpaceLowCritical
+    expr: instance:windows_disk_free:ratio < 0.10
+    for: 5m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: windows
+    annotations:
+      summary: Critical disk space on {{ $labels.hostname }} volume {{ $labels.volume }}
+      description: 'Volume {{ $labels.volume }} has less than 10% free space. Risk of service failure. Current free: {{ $value
+        | humanizePercentage }}.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#windowsdiskspacelowcritical
+  - alert: WindowsServiceDown
+    expr: windows_service_state{state="running"} == 0
+    for: 10m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: windows
+    annotations:
+      summary: Windows service {{ $labels.name }} not running on {{ $labels.hostname }}
+      description: Service {{ $labels.name }} has not been in running state for 5 minutes.
+      runbook_url: docs/ALERT_RUNBOOKS.md#windowsservicedown
+  - alert: WindowsServerReboot
+    expr: instance:windows_uptime:seconds < 600
+    for: 1m
+    labels:
+      severity: info
+      team: infrastructure
+      os: windows
+    annotations:
+      summary: Windows server {{ $labels.hostname }} was recently rebooted
+      description: Server uptime is less than 10 minutes, indicating a recent reboot.
+      runbook_url: docs/ALERT_RUNBOOKS.md#windowsserverreboot
+  - alert: WindowsServerDown
+    expr: up{job="windows_base"} == 0
+    for: 5m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: windows
+    annotations:
+      summary: Windows server {{ $labels.hostname }} is unreachable
+      description: Alloy agent on {{ $labels.hostname }} has not reported metrics for 3 minutes. Server may be down or network
+        connectivity lost.
+      runbook_url: docs/ALERT_RUNBOOKS.md#windowsserverdown
+  - alert: WindowsTimeDriftWarning
+    expr: abs(windows_time_computed_time_offset_seconds) > 1
+    for: 15m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: windows
+    annotations:
+      summary: Time drift detected on {{ $labels.hostname }}
+      description: 'System clock is offset by more than 1 second from NTP source. Current offset: {{ $value }}s. Kerberos
+        authentication may fail if drift exceeds 5 minutes.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#windowstimedriftwarning

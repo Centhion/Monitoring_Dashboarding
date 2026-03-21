@@ -1,87 +1,53 @@
-# =============================================================================
-# Mass-Outage Alert Rules (Phase 9D)
-# =============================================================================
-# Fires when a significant percentage of hosts at a site or within a role
-# go down simultaneously, indicating a shared infrastructure failure
-# (switch failure, power event, WAN outage) rather than individual host
-# issues.
-#
-# These alerts work with Alertmanager inhibition rules to suppress the
-# flood of per-host alerts during a mass outage. When SitePartialOutage
-# fires, individual host-down alerts for that site are inhibited so the
-# operations team sees one actionable alert instead of dozens.
-#
-# Thresholds:
-#   30%+ hosts down = partial outage (warning) -- investigate shared dependency
-#   70%+ hosts down = major outage (critical) -- site-level infrastructure failure
-# =============================================================================
-
 groups:
-  - name: outage_alerts
-    rules:
-      # -----------------------------------------------------------------
-      # Site Partial Outage
-      # 30%+ of hosts at a site are down simultaneously.
-      # -----------------------------------------------------------------
-      - alert: SitePartialOutage
-        expr: |
-          site:hosts_up_ratio:current < 0.7
-          and site:hosts_total:count > 3
-        for: 3m
-        labels:
-          severity: warning
-          team: infrastructure
-          outage_scope: site
-        annotations:
-          summary: "Partial outage at {{ $labels.datacenter }}: {{ $value | printf \"%.0f\" }}% of hosts up"
-          description: >-
-            Only {{ $value | printf "%.0f" }}% of hosts at {{ $labels.datacenter }}
-            are currently reporting metrics. {{ printf "%.0f" (index $labels "site:hosts_newly_down:count") }}
-            hosts have gone silent. This pattern indicates a shared
-            infrastructure failure (switch, power, WAN). Investigate
-            network connectivity and power status at the site.
-          runbook_url: "docs/ALERT_RUNBOOKS.md#sitepartialoutage"
+- name: outage_alerts
+  rules:
+  - alert: SitePartialOutage
+    expr: 'site:hosts_up_ratio:current < 0.7
 
-      # -----------------------------------------------------------------
-      # Site Major Outage
-      # 70%+ of hosts at a site are down simultaneously.
-      # -----------------------------------------------------------------
-      - alert: SiteMajorOutage
-        expr: |
-          site:hosts_up_ratio:current < 0.3
-          and site:hosts_total:count > 3
-        for: 3m
-        labels:
-          severity: critical
-          team: infrastructure
-          outage_scope: site
-        annotations:
-          summary: "Major outage at {{ $labels.datacenter }}: {{ $value | printf \"%.0f\" }}% of hosts up"
-          description: >-
-            Only {{ $value | printf "%.0f" }}% of hosts at {{ $labels.datacenter }}
-            are currently reporting metrics. This is a major site-level
-            infrastructure failure. Escalate immediately. Check: power
-            distribution, core switching, WAN link, and UPS status.
-          runbook_url: "docs/ALERT_RUNBOOKS.md#sitemajoroutage"
+      and site:hosts_total:count > 3
 
-      # -----------------------------------------------------------------
-      # Role Partial Outage
-      # 30%+ of hosts in a specific role are down at a site.
-      # -----------------------------------------------------------------
-      - alert: RolePartialOutage
-        expr: |
-          role:hosts_up_ratio:current < 0.7
-          and role:hosts_total:count > 2
-        for: 5m
-        labels:
-          severity: warning
-          team: infrastructure
-          outage_scope: role
-        annotations:
-          summary: "Partial outage for {{ $labels.role }} at {{ $labels.datacenter }}"
-          description: >-
-            Only {{ $value | printf "%.0f" }}% of {{ $labels.role }} hosts at
-            {{ $labels.datacenter }} are reporting metrics. This may indicate
-            a role-specific dependency failure (shared storage, network
-            segment, application dependency).
-          runbook_url: "docs/ALERT_RUNBOOKS.md#rolepartialoutage"
+      '
+    for: 2m
+    labels:
+      severity: warning
+      team: infrastructure
+      outage_scope: site
+    annotations:
+      summary: 'Partial outage at {{ $labels.datacenter }}: {{ $value | printf "%.0f" }}% of hosts up'
+      description: Only {{ $value | printf "%.0f" }}% of hosts at {{ $labels.datacenter }} are currently reporting metrics.
+        {{ printf "%.0f" (index $labels "site:hosts_newly_down:count") }} hosts have gone silent. This pattern indicates a
+        shared infrastructure failure (switch, power, WAN). Investigate network connectivity and power status at the site.
+      runbook_url: docs/ALERT_RUNBOOKS.md#sitepartialoutage
+  - alert: SiteMajorOutage
+    expr: 'site:hosts_up_ratio:current < 0.3
+
+      and site:hosts_total:count > 3
+
+      '
+    for: 3m
+    labels:
+      severity: critical
+      team: infrastructure
+      outage_scope: site
+    annotations:
+      summary: 'Major outage at {{ $labels.datacenter }}: {{ $value | printf "%.0f" }}% of hosts up'
+      description: 'Only {{ $value | printf "%.0f" }}% of hosts at {{ $labels.datacenter }} are currently reporting metrics.
+        This is a major site-level infrastructure failure. Escalate immediately. Check: power distribution, core switching,
+        WAN link, and UPS status.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#sitemajoroutage
+  - alert: RolePartialOutage
+    expr: 'role:hosts_up_ratio:current < 0.7
+
+      and role:hosts_total:count > 2
+
+      '
+    for: 5m
+    labels:
+      severity: warning
+      team: infrastructure
+      outage_scope: role
+    annotations:
+      summary: Partial outage for {{ $labels.role }} at {{ $labels.datacenter }}
+      description: Only {{ $value | printf "%.0f" }}% of {{ $labels.role }} hosts at {{ $labels.datacenter }} are reporting
+        metrics. This may indicate a role-specific dependency failure (shared storage, network segment, application dependency).
+      runbook_url: docs/ALERT_RUNBOOKS.md#rolepartialoutage

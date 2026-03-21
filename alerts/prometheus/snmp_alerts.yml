@@ -1,184 +1,108 @@
-# =============================================================================
-# SNMP Network Device Alert Rules (Phase 7A)
-# =============================================================================
-# Proactive alerting for network infrastructure monitored via SNMP.
-# These rules evaluate metrics produced by Alloy's embedded snmp_exporter
-# running in the site gateway (site_gateway.alloy).
-#
-# Alert categories:
-#   Device health    -- unreachable devices, unexpected reboots
-#   Interface health -- link down, high utilization, error rates
-#
-# Dependencies:
-#   - job="snmp" targets from site_gateway.alloy
-#   - Recording rules from snmp_recording_rules.yml (interface rates)
-#   - Standard SNMP metrics: ifOperStatus, ifAdminStatus, sysUpTime, up
-# =============================================================================
-
 groups:
-  - name: snmp_device_alerts
-    rules:
-      # -----------------------------------------------------------------------
-      # SNMP device unreachable (critical)
-      # -----------------------------------------------------------------------
-      # The Alloy scrape target is configured but the device is not responding
-      # to SNMP polls. Could indicate device down, network path failure, or
-      # SNMP misconfiguration (wrong community/credentials).
-      # -----------------------------------------------------------------------
-      - alert: SNMPDeviceUnreachable
-        expr: |
-          up{job="snmp"} == 0
-        for: 5m
-        labels:
-          severity: critical
-          category: network
-        annotations:
-          summary: >-
-            SNMP device {{ $labels.device_name }} ({{ $labels.instance }})
-            is unreachable
-          description: >-
-            No SNMP response from {{ $labels.device_name }}
-            ({{ $labels.device_type }}, {{ $labels.vendor }})
-            in {{ $labels.datacenter }} for 5 minutes.
-            Verify device power, network connectivity, and SNMP configuration.
-          runbook_url: "https://wiki.example.com/runbooks/snmp-device-down"
-          dashboard_url: "/d/network-overview/network-infrastructure?var-datacenter={{ $labels.datacenter }}"
+- name: snmp_device_alerts
+  rules:
+  - alert: SNMPDeviceUnreachable
+    expr: 'up{job="snmp"} == 0
 
-      # -----------------------------------------------------------------------
-      # Network device reboot detected (warning)
-      # -----------------------------------------------------------------------
-      # sysUpTime reset indicates the device rebooted. In a production network,
-      # unplanned reboots warrant investigation even if the device is back up.
-      # The 5m threshold catches reboots without alerting on the very first
-      # scrape of a newly-added device.
-      # -----------------------------------------------------------------------
-      - alert: SNMPDeviceReboot
-        expr: |
-          resets(sysUpTime{job="snmp"}[10m]) > 0
-        for: 1m
-        labels:
-          severity: warning
-          category: network
-        annotations:
-          summary: >-
-            Network device {{ $labels.device_name }} ({{ $labels.instance }})
-            has rebooted
-          description: >-
-            sysUpTime reset detected on {{ $labels.device_name }}
-            ({{ $labels.device_type }}, {{ $labels.vendor }})
-            in {{ $labels.datacenter }}.
-            Investigate whether this was a planned or unplanned reboot.
-          runbook_url: "https://wiki.example.com/runbooks/network-device-reboot"
-          dashboard_url: "/d/network-overview/network-infrastructure?var-datacenter={{ $labels.datacenter }}"
+      '
+    for: 5m
+    labels:
+      severity: critical
+      category: network
+    annotations:
+      summary: SNMP device {{ $labels.device_name }} ({{ $labels.instance }}) is unreachable
+      description: No SNMP response from {{ $labels.device_name }} ({{ $labels.device_type }}, {{ $labels.vendor }}) in {{
+        $labels.datacenter }} for 5 minutes. Verify device power, network connectivity, and SNMP configuration.
+      runbook_url: https://wiki.example.com/runbooks/snmp-device-down
+      dashboard_url: /d/network-overview/network-infrastructure?var-datacenter={{ $labels.datacenter }}
+  - alert: SNMPDeviceReboot
+    expr: 'resets(sysUpTime{job="snmp"}[10m]) > 0
 
-  - name: snmp_interface_alerts
-    rules:
-      # -----------------------------------------------------------------------
-      # Interface down (admin up, oper down) -- warning
-      # -----------------------------------------------------------------------
-      # An interface that should be up (admin enabled) is operationally down.
-      # This typically indicates a cable pull, SFP failure, or far-end issue.
-      # Only fires for admin-up interfaces to avoid alerting on intentionally
-      # disabled ports.
-      # -----------------------------------------------------------------------
-      - alert: SNMPInterfaceDown
-        expr: |
-          ifOperStatus{job="snmp"} == 2
-          and
-          ifAdminStatus{job="snmp"} == 1
-        for: 5m
-        labels:
-          severity: warning
-          category: network
-        annotations:
-          summary: >-
-            Interface {{ $labels.ifDescr }} on {{ $labels.device_name }}
-            ({{ $labels.instance }}) is down
-          description: >-
-            Interface {{ $labels.ifDescr }} (index {{ $labels.ifIndex }})
-            on {{ $labels.device_name }} in {{ $labels.datacenter }} is
-            operationally down but administratively enabled.
-            Check physical connectivity, SFP module, and far-end device.
-          runbook_url: "https://wiki.example.com/runbooks/interface-down"
-          dashboard_url: "/d/network-overview/network-infrastructure?var-datacenter={{ $labels.datacenter }}"
+      '
+    for: 1m
+    labels:
+      severity: warning
+      category: network
+    annotations:
+      summary: Network device {{ $labels.device_name }} ({{ $labels.instance }}) has rebooted
+      description: sysUpTime reset detected on {{ $labels.device_name }} ({{ $labels.device_type }}, {{ $labels.vendor }})
+        in {{ $labels.datacenter }}. Investigate whether this was a planned or unplanned reboot.
+      runbook_url: https://wiki.example.com/runbooks/network-device-reboot
+      dashboard_url: /d/network-overview/network-infrastructure?var-datacenter={{ $labels.datacenter }}
+- name: snmp_interface_alerts
+  rules:
+  - alert: SNMPInterfaceDown
+    expr: 'ifOperStatus{job="snmp"} == 2
 
-      # -----------------------------------------------------------------------
-      # Interface high utilization (>85%) -- warning
-      # -----------------------------------------------------------------------
-      # Sustained high utilization on any interface may cause packet drops,
-      # increased latency, and degraded user experience. Particularly
-      # important on uplink/trunk ports between switches.
-      # -----------------------------------------------------------------------
-      - alert: SNMPInterfaceHighUtilization
-        expr: |
-          interface:utilization_in:ratio{job="snmp"} > 0.85
-          or
-          interface:utilization_out:ratio{job="snmp"} > 0.85
-        for: 15m
-        labels:
-          severity: warning
-          category: network
-        annotations:
-          summary: >-
-            Interface {{ $labels.ifDescr }} on {{ $labels.device_name }}
-            ({{ $labels.instance }}) exceeds 85% utilization
-          description: >-
-            Interface {{ $labels.ifDescr }} on {{ $labels.device_name }}
-            in {{ $labels.datacenter }} has sustained utilization above 85%
-            for 15 minutes. Current: {{ $value | humanizePercentage }}.
-            Consider upgrading link speed or redistributing traffic.
-          runbook_url: "https://wiki.example.com/runbooks/interface-high-util"
-          dashboard_url: "/d/network-overview/network-infrastructure?var-datacenter={{ $labels.datacenter }}"
+      and
 
-      # -----------------------------------------------------------------------
-      # Interface critical utilization (>95%) -- critical
-      # -----------------------------------------------------------------------
-      # Near-saturation link that is likely dropping traffic.
-      # -----------------------------------------------------------------------
-      - alert: SNMPInterfaceSaturated
-        expr: |
-          interface:utilization_in:ratio{job="snmp"} > 0.95
-          or
-          interface:utilization_out:ratio{job="snmp"} > 0.95
-        for: 5m
-        labels:
-          severity: critical
-          category: network
-        annotations:
-          summary: >-
-            URGENT: Interface {{ $labels.ifDescr }} on {{ $labels.device_name }}
-            ({{ $labels.instance }}) is saturated (>95%)
-          description: >-
-            Interface {{ $labels.ifDescr }} on {{ $labels.device_name }}
-            in {{ $labels.datacenter }} is at {{ $value | humanizePercentage }}
-            utilization. Traffic is likely being dropped.
-            Immediate action required to prevent service impact.
-          runbook_url: "https://wiki.example.com/runbooks/interface-saturated"
-          dashboard_url: "/d/network-overview/network-infrastructure?var-datacenter={{ $labels.datacenter }}"
+      ifAdminStatus{job="snmp"} == 1
 
-      # -----------------------------------------------------------------------
-      # Interface errors (warning)
-      # -----------------------------------------------------------------------
-      # Sustained non-zero error rate indicates physical layer issues
-      # (bad cable, duplex mismatch, failing SFP) or congestion-related drops.
-      # -----------------------------------------------------------------------
-      - alert: SNMPInterfaceErrors
-        expr: |
-          (interface:errors_in:rate5m{job="snmp"} > 1)
-          or
-          (interface:errors_out:rate5m{job="snmp"} > 1)
-        for: 10m
-        labels:
-          severity: warning
-          category: network
-        annotations:
-          summary: >-
-            Interface {{ $labels.ifDescr }} on {{ $labels.device_name }}
-            ({{ $labels.instance }}) is experiencing errors
-          description: >-
-            Interface {{ $labels.ifDescr }} on {{ $labels.device_name }}
-            in {{ $labels.datacenter }} has a sustained error rate above
-            1 error/sec for 10 minutes.
-            Check cable integrity, SFP modules, and duplex settings.
-          runbook_url: "https://wiki.example.com/runbooks/interface-errors"
-          dashboard_url: "/d/network-overview/network-infrastructure?var-datacenter={{ $labels.datacenter }}"
+      '
+    for: 5m
+    labels:
+      severity: warning
+      category: network
+    annotations:
+      summary: Interface {{ $labels.ifDescr }} on {{ $labels.device_name }} ({{ $labels.instance }}) is down
+      description: Interface {{ $labels.ifDescr }} (index {{ $labels.ifIndex }}) on {{ $labels.device_name }} in {{ $labels.datacenter
+        }} is operationally down but administratively enabled. Check physical connectivity, SFP module, and far-end device.
+      runbook_url: https://wiki.example.com/runbooks/interface-down
+      dashboard_url: /d/network-overview/network-infrastructure?var-datacenter={{ $labels.datacenter }}
+  - alert: SNMPInterfaceHighUtilization
+    expr: 'interface:utilization_in:ratio{job="snmp"} > 0.85
+
+      or
+
+      interface:utilization_out:ratio{job="snmp"} > 0.85
+
+      '
+    for: 30m
+    labels:
+      severity: warning
+      category: network
+    annotations:
+      summary: Interface {{ $labels.ifDescr }} on {{ $labels.device_name }} ({{ $labels.instance }}) exceeds 85% utilization
+      description: 'Interface {{ $labels.ifDescr }} on {{ $labels.device_name }} in {{ $labels.datacenter }} has sustained
+        utilization above 85% for 15 minutes. Current: {{ $value | humanizePercentage }}. Consider upgrading link speed or
+        redistributing traffic.'
+      runbook_url: https://wiki.example.com/runbooks/interface-high-util
+      dashboard_url: /d/network-overview/network-infrastructure?var-datacenter={{ $labels.datacenter }}
+  - alert: SNMPInterfaceSaturated
+    expr: 'interface:utilization_in:ratio{job="snmp"} > 0.95
+
+      or
+
+      interface:utilization_out:ratio{job="snmp"} > 0.95
+
+      '
+    for: 5m
+    labels:
+      severity: critical
+      category: network
+    annotations:
+      summary: 'URGENT: Interface {{ $labels.ifDescr }} on {{ $labels.device_name }} ({{ $labels.instance }}) is saturated
+        (>95%)'
+      description: Interface {{ $labels.ifDescr }} on {{ $labels.device_name }} in {{ $labels.datacenter }} is at {{ $value
+        | humanizePercentage }} utilization. Traffic is likely being dropped. Immediate action required to prevent service
+        impact.
+      runbook_url: https://wiki.example.com/runbooks/interface-saturated
+      dashboard_url: /d/network-overview/network-infrastructure?var-datacenter={{ $labels.datacenter }}
+  - alert: SNMPInterfaceErrors
+    expr: '(interface:errors_in:rate5m{job="snmp"} > 1)
+
+      or
+
+      (interface:errors_out:rate5m{job="snmp"} > 1)
+
+      '
+    for: 15m
+    labels:
+      severity: warning
+      category: network
+    annotations:
+      summary: Interface {{ $labels.ifDescr }} on {{ $labels.device_name }} ({{ $labels.instance }}) is experiencing errors
+      description: Interface {{ $labels.ifDescr }} on {{ $labels.device_name }} in {{ $labels.datacenter }} has a sustained
+        error rate above 1 error/sec for 10 minutes. Check cable integrity, SFP modules, and duplex settings.
+      runbook_url: https://wiki.example.com/runbooks/interface-errors
+      dashboard_url: /d/network-overview/network-infrastructure?var-datacenter={{ $labels.datacenter }}

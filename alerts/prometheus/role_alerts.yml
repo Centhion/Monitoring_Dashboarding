@@ -1,245 +1,207 @@
-# =============================================================================
-# Role-Specific Alert Rules
-# =============================================================================
-# Alerting rules for server roles defined in the Alloy role configs.
-# These rules fire only on servers with the matching role label and
-# depend on role-specific metrics from the corresponding Alloy exporter.
-# =============================================================================
-
 groups:
-  # ---------------------------------------------------------------------------
-  # Domain Controller Alerts
-  # Metrics from: configs/alloy/windows/role_dc.alloy
-  # ---------------------------------------------------------------------------
-  - name: domain_controller_alerts
-    rules:
-      - alert: AdReplicationFailure
-        expr: |
-          increase(windows_ad_replication_sync_requests_failures_total[15m]) > 0
-        for: 10m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: windows
-          role: dc
-        annotations:
-          summary: "AD replication failure on {{ $labels.hostname }}"
-          description: "Active Directory replication has experienced {{ $value }} sync failures in the last 15 minutes. Directory inconsistency risk."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#adreplicationfailure"
+- name: domain_controller_alerts
+  rules:
+  - alert: AdReplicationFailure
+    expr: 'increase(windows_ad_replication_sync_requests_failures_total[15m]) > 0
 
-      - alert: AdLdapSearchSlow
-        expr: |
-          rate(windows_ad_ldap_searches_total[5m]) == 0
-          and
-          up{job="windows_dc"} == 1
-        for: 10m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: windows
-          role: dc
-        annotations:
-          summary: "LDAP searches stopped on {{ $labels.hostname }}"
-          description: "Domain controller {{ $labels.hostname }} has not processed any LDAP searches for 10 minutes despite being up. NTDS service may be hung."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#adldapsearchslow"
+      '
+    for: 10m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: windows
+      role: dc
+    annotations:
+      summary: AD replication failure on {{ $labels.hostname }}
+      description: Active Directory replication has experienced {{ $value }} sync failures in the last 15 minutes. Directory
+        inconsistency risk.
+      runbook_url: docs/ALERT_RUNBOOKS.md#adreplicationfailure
+  - alert: AdLdapSearchSlow
+    expr: 'rate(windows_ad_ldap_searches_total[5m]) == 0
 
-      - alert: DnsQueryFailureRateHigh
-        expr: |
-          rate(windows_dns_query_failures_total[5m])
-          /
-          rate(windows_dns_queries_total[5m]) > 0.05
-        for: 10m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: windows
-          role: dc
-        annotations:
-          summary: "DNS query failure rate high on {{ $labels.hostname }}"
-          description: "More than 5% of DNS queries are failing on {{ $labels.hostname }}. Name resolution may be degraded."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#dnsqueryfailureratehigh"
+      and
 
-      - alert: AdCriticalServiceDown
-        expr: |
-          windows_service_state{
-            name=~"NTDS|DNS|Netlogon|KDC|ADWS",
-            state="running"
-          } == 0
-        for: 3m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: windows
-          role: dc
-        annotations:
-          summary: "AD critical service {{ $labels.name }} down on {{ $labels.hostname }}"
-          description: "Service {{ $labels.name }} is not running on domain controller {{ $labels.hostname }}. AD authentication and directory services are affected."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#adcriticalservicedown"
+      up{job="windows_dc"} == 1
 
-  # ---------------------------------------------------------------------------
-  # SQL Server Alerts
-  # Metrics from: configs/alloy/windows/role_sql.alloy
-  # ---------------------------------------------------------------------------
-  - name: sql_server_alerts
-    rules:
-      - alert: SqlBufferCacheHitRatioLow
-        expr: windows_mssql_bufman_buffer_cache_hit_ratio < 0.90
-        for: 15m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: windows
-          role: sql
-        annotations:
-          summary: "SQL buffer cache hit ratio low on {{ $labels.hostname }}"
-          description: "Buffer cache hit ratio is {{ $value | humanizePercentage }}, below the 90% threshold. SQL Server is reading too much from disk. Consider adding memory."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#sqlbuffercachehitratiolow"
+      '
+    for: 10m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: windows
+      role: dc
+    annotations:
+      summary: LDAP searches stopped on {{ $labels.hostname }}
+      description: Domain controller {{ $labels.hostname }} has not processed any LDAP searches for 10 minutes despite being
+        up. NTDS service may be hung.
+      runbook_url: docs/ALERT_RUNBOOKS.md#adldapsearchslow
+  - alert: DnsQueryFailureRateHigh
+    expr: 'rate(windows_dns_query_failures_total[5m])
 
-      - alert: SqlPageLifeExpectancyLow
-        expr: windows_mssql_bufman_page_life_expectancy_seconds < 300
-        for: 10m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: windows
-          role: sql
-        annotations:
-          summary: "SQL page life expectancy low on {{ $labels.hostname }}"
-          description: "PLE is {{ $value }}s (threshold: 300s). Data pages are being flushed from cache too quickly. Memory pressure likely."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#sqlpagelifeexpectancylow"
+      /
 
-      - alert: SqlDeadlocksDetected
-        expr: rate(windows_mssql_locks_deadlocks_total[5m]) > 0
-        for: 5m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: windows
-          role: sql
-        annotations:
-          summary: "SQL deadlocks detected on {{ $labels.hostname }}"
-          description: "Deadlocks are occurring at {{ $value }}/sec. Application queries may be failing."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#sqldeadlocksdetected"
+      rate(windows_dns_queries_total[5m]) > 0.05
 
-      - alert: SqlCriticalServiceDown
-        expr: |
-          windows_service_state{
-            name=~"MSSQLSERVER|MSSQL\\$.*|SQLSERVERAGENT|SQLAgent\\$.*",
-            state="running"
-          } == 0
-        for: 3m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: windows
-          role: sql
-        annotations:
-          summary: "SQL service {{ $labels.name }} down on {{ $labels.hostname }}"
-          description: "SQL Server service {{ $labels.name }} is not running. Database is unavailable."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#sqlcriticalservicedown"
+      '
+    for: 10m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: windows
+      role: dc
+    annotations:
+      summary: DNS query failure rate high on {{ $labels.hostname }}
+      description: More than 5% of DNS queries are failing on {{ $labels.hostname }}. Name resolution may be degraded.
+      runbook_url: docs/ALERT_RUNBOOKS.md#dnsqueryfailureratehigh
+  - alert: AdCriticalServiceDown
+    expr: "windows_service_state{\n  name=~\"NTDS|DNS|Netlogon|KDC|ADWS\",\n  state=\"running\"\n} == 0\n"
+    for: 3m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: windows
+      role: dc
+    annotations:
+      summary: AD critical service {{ $labels.name }} down on {{ $labels.hostname }}
+      description: Service {{ $labels.name }} is not running on domain controller {{ $labels.hostname }}. AD authentication
+        and directory services are affected.
+      runbook_url: docs/ALERT_RUNBOOKS.md#adcriticalservicedown
+- name: sql_server_alerts
+  rules:
+  - alert: SqlBufferCacheHitRatioLow
+    expr: windows_mssql_bufman_buffer_cache_hit_ratio < 0.90
+    for: 15m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: windows
+      role: sql
+    annotations:
+      summary: SQL buffer cache hit ratio low on {{ $labels.hostname }}
+      description: Buffer cache hit ratio is {{ $value | humanizePercentage }}, below the 90% threshold. SQL Server is reading
+        too much from disk. Consider adding memory.
+      runbook_url: docs/ALERT_RUNBOOKS.md#sqlbuffercachehitratiolow
+  - alert: SqlPageLifeExpectancyLow
+    expr: windows_mssql_bufman_page_life_expectancy_seconds < 300
+    for: 10m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: windows
+      role: sql
+    annotations:
+      summary: SQL page life expectancy low on {{ $labels.hostname }}
+      description: 'PLE is {{ $value }}s (threshold: 300s). Data pages are being flushed from cache too quickly. Memory pressure
+        likely.'
+      runbook_url: docs/ALERT_RUNBOOKS.md#sqlpagelifeexpectancylow
+  - alert: SqlDeadlocksDetected
+    expr: rate(windows_mssql_locks_deadlocks_total[5m]) > 0
+    for: 5m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: windows
+      role: sql
+    annotations:
+      summary: SQL deadlocks detected on {{ $labels.hostname }}
+      description: Deadlocks are occurring at {{ $value }}/sec. Application queries may be failing.
+      runbook_url: docs/ALERT_RUNBOOKS.md#sqldeadlocksdetected
+  - alert: SqlCriticalServiceDown
+    expr: "windows_service_state{\n  name=~\"MSSQLSERVER|MSSQL\\\\$.*|SQLSERVERAGENT|SQLAgent\\\\$.*\",\n  state=\"running\"\
+      \n} == 0\n"
+    for: 3m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: windows
+      role: sql
+    annotations:
+      summary: SQL service {{ $labels.name }} down on {{ $labels.hostname }}
+      description: SQL Server service {{ $labels.name }} is not running. Database is unavailable.
+      runbook_url: docs/ALERT_RUNBOOKS.md#sqlcriticalservicedown
+- name: iis_server_alerts
+  rules:
+  - alert: IisHighErrorRate
+    expr: "sum by (instance, hostname, environment, datacenter) (\n  rate(windows_iis_requests_total{status_code=~\"5..\"\
+      }[5m])\n)\n/\nsum by (instance, hostname, environment, datacenter) (\n  rate(windows_iis_requests_total[5m])\n) > 0.05\n"
+    for: 10m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: windows
+      role: iis
+    annotations:
+      summary: High 5xx error rate on IIS {{ $labels.hostname }}
+      description: More than 5% of HTTP requests are returning 5xx errors. Application may be failing.
+      runbook_url: docs/ALERT_RUNBOOKS.md#iishigherrorrate
+  - alert: IisAppPoolDown
+    expr: 'windows_service_state{name=~"W3SVC|WAS", state="running"} == 0
 
-  # ---------------------------------------------------------------------------
-  # IIS Web Server Alerts
-  # Metrics from: configs/alloy/windows/role_iis.alloy
-  # ---------------------------------------------------------------------------
-  - name: iis_server_alerts
-    rules:
-      - alert: IisHighErrorRate
-        expr: |
-          sum by (instance, hostname, environment, datacenter) (
-            rate(windows_iis_requests_total{status_code=~"5.."}[5m])
-          )
-          /
-          sum by (instance, hostname, environment, datacenter) (
-            rate(windows_iis_requests_total[5m])
-          ) > 0.05
-        for: 10m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: windows
-          role: iis
-        annotations:
-          summary: "High 5xx error rate on IIS {{ $labels.hostname }}"
-          description: "More than 5% of HTTP requests are returning 5xx errors. Application may be failing."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#iishigherrorrate"
+      '
+    for: 3m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: windows
+      role: iis
+    annotations:
+      summary: IIS service {{ $labels.name }} down on {{ $labels.hostname }}
+      description: IIS core service {{ $labels.name }} is not running. Web sites are unavailable.
+      runbook_url: docs/ALERT_RUNBOOKS.md#iisapppooldown
+  - alert: IisHighConnectionCount
+    expr: windows_iis_current_connections > 1000
+    for: 10m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: windows
+      role: iis
+    annotations:
+      summary: High connection count on IIS {{ $labels.hostname }}
+      description: IIS has {{ $value }} active connections, sustained for 10 minutes. May indicate traffic spike or connection
+        leak.
+      runbook_url: docs/ALERT_RUNBOOKS.md#iishighconnectioncount
+- name: file_server_alerts
+  rules:
+  - alert: FileServerDiskIoHigh
+    expr: 'rate(windows_physical_disk_idle_seconds_total[5m]) < 0.10
 
-      - alert: IisAppPoolDown
-        expr: |
-          windows_service_state{name=~"W3SVC|WAS", state="running"} == 0
-        for: 3m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: windows
-          role: iis
-        annotations:
-          summary: "IIS service {{ $labels.name }} down on {{ $labels.hostname }}"
-          description: "IIS core service {{ $labels.name }} is not running. Web sites are unavailable."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#iisapppooldown"
+      '
+    for: 30m
+    labels:
+      severity: warning
+      team: infrastructure
+      os: windows
+      role: fileserver
+    annotations:
+      summary: High disk I/O on file server {{ $labels.hostname }} disk {{ $labels.volume }}
+      description: Physical disk {{ $labels.volume }} has been more than 90% busy for 15 minutes. File share performance degraded.
+      runbook_url: docs/ALERT_RUNBOOKS.md#fileserverdiskiohigh
+  - alert: FileServerServiceDown
+    expr: 'windows_service_state{name=~"LanmanServer|DFSR", state="running"} == 0
 
-      - alert: IisHighConnectionCount
-        expr: windows_iis_current_connections > 1000
-        for: 10m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: windows
-          role: iis
-        annotations:
-          summary: "High connection count on IIS {{ $labels.hostname }}"
-          description: "IIS has {{ $value }} active connections, sustained for 10 minutes. May indicate traffic spike or connection leak."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#iishighconnectioncount"
-
-  # ---------------------------------------------------------------------------
-  # File Server Alerts
-  # Metrics from: configs/alloy/windows/role_fileserver.alloy
-  # ---------------------------------------------------------------------------
-  - name: file_server_alerts
-    rules:
-      - alert: FileServerDiskIoHigh
-        expr: |
-          rate(windows_physical_disk_idle_seconds_total[5m]) < 0.10
-        for: 15m
-        labels:
-          severity: warning
-          team: infrastructure
-          os: windows
-          role: fileserver
-        annotations:
-          summary: "High disk I/O on file server {{ $labels.hostname }} disk {{ $labels.volume }}"
-          description: "Physical disk {{ $labels.volume }} has been more than 90% busy for 15 minutes. File share performance degraded."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#fileserverdiskiohigh"
-
-      - alert: FileServerServiceDown
-        expr: |
-          windows_service_state{name=~"LanmanServer|DFSR", state="running"} == 0
-        for: 3m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: windows
-          role: fileserver
-        annotations:
-          summary: "File server service {{ $labels.name }} down on {{ $labels.hostname }}"
-          description: "Service {{ $labels.name }} is not running. File shares may be inaccessible."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#fileserverservicedown"
-
-  # ---------------------------------------------------------------------------
-  # Docker Host Alerts
-  # Metrics from: configs/alloy/linux/role_docker.alloy
-  # ---------------------------------------------------------------------------
-  - name: docker_host_alerts
-    rules:
-      - alert: DockerDaemonDown
-        expr: up{job="docker_daemon"} == 0
-        for: 3m
-        labels:
-          severity: critical
-          team: infrastructure
-          os: linux
-          role: docker
-        annotations:
-          summary: "Docker daemon unreachable on {{ $labels.hostname }}"
-          description: "Docker metrics endpoint is not responding. Container workloads may be affected."
-          runbook_url: "docs/ALERT_RUNBOOKS.md#dockerdaemondown"
+      '
+    for: 3m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: windows
+      role: fileserver
+    annotations:
+      summary: File server service {{ $labels.name }} down on {{ $labels.hostname }}
+      description: Service {{ $labels.name }} is not running. File shares may be inaccessible.
+      runbook_url: docs/ALERT_RUNBOOKS.md#fileserverservicedown
+- name: docker_host_alerts
+  rules:
+  - alert: DockerDaemonDown
+    expr: up{job="docker_daemon"} == 0
+    for: 3m
+    labels:
+      severity: critical
+      team: infrastructure
+      os: linux
+      role: docker
+    annotations:
+      summary: Docker daemon unreachable on {{ $labels.hostname }}
+      description: Docker metrics endpoint is not responding. Container workloads may be affected.
+      runbook_url: docs/ALERT_RUNBOOKS.md#dockerdaemondown

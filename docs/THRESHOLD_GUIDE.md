@@ -1,6 +1,15 @@
 # Alert and Dashboard Threshold Guide
 
-Default thresholds applied across all dashboards. Review and adjust these values with your operations team based on your environment's baseline performance. After changing thresholds, update the corresponding dashboard JSON files or alert rule YAML files.
+Default thresholds applied across all dashboards and alert rules. Tuned to minimize alert fatigue while catching genuine issues.
+
+**Design principles:**
+- **Conservative thresholds**: Warning alerts fire at 90% (not 85%) to avoid noise during normal operations (patching, backups, AV scans)
+- **Extended for durations**: Warning alerts require the condition to persist 15-30 minutes before firing. Brief spikes are normal and self-resolve.
+- **Self-resolving**: All alerts automatically resolve when the condition clears. Resolved notifications are sent to Teams/email.
+- **Mass-outage suppression**: When multiple servers fail at a site, one outage alert fires instead of dozens of individual alerts.
+- **Severity contract**: Critical = act now. Warning = investigate within 4 hours. Info = awareness only, no email.
+
+Review and adjust these values with your operations team based on your environment's baseline performance.
 
 ---
 
@@ -16,10 +25,10 @@ Default thresholds applied across all dashboards. Review and adjust these values
 
 These apply to all server dashboards (Windows, Linux, and role-specific).
 
-| Metric | Green | Yellow | Red | Unit | Notes |
-|--------|-------|--------|-----|------|-------|
-| CPU Utilization | < 75% | 75-90% | > 90% | percent | Sustained high CPU indicates capacity issue |
-| Memory Utilization | < 80% | 80-95% | > 95% | percent | High memory can cause swapping/paging |
+| Metric | Warning Alert | Critical Alert | For Duration | Notes |
+|--------|--------------|----------------|-------------|-------|
+| CPU Utilization | > 90% (was 85%) | > 95% | Warning: 30m, Critical: 5m | Raised from 85% to reduce noise during patching/backups |
+| Memory Utilization | > 90% (was 80%) | > 95% | Warning: 15m, Critical: 5m | Raised from 80% -- SQL/IIS servers normally run 80%+ |
 | Disk Free (worst volume) | > 20% | 10-20% | < 10% | percent | Red = immediate action needed |
 | Disk I/O Utilization | < 80% | 80-95% | > 95% | percent | Sustained high I/O = storage bottleneck |
 | Network Throughput | informational | -- | -- | Bps | No threshold (varies by server role) |
