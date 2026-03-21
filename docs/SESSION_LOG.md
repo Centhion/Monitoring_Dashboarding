@@ -410,3 +410,44 @@ Chronological record of work sessions for context continuity.
 - Commit: b0057cc
 
 ---
+
+## Session: 2026-03-20 (session 6 - final)
+
+### Completed
+
+- **Certificate Overview finalized**: Fixed duplicate series (empty-string labels vs absent labels), added hostname!="" filter to exclude recording rule outputs. User approved.
+
+- **Phase 13 (Alert Strategy) planned**: 16 tasks covering alert audit, noise reduction, documentation, and validation with real data. Alert fatigue is the #1 adoption risk.
+
+- **Phase 13B (Operator Documentation) planned**: 20 deliverables across 5 categories -- operations guide, alert reference, dashboard guide, architecture overview, administration guide. Written for sysadmins, Wiki/KB ready, 10-year supportability.
+
+- **Phase 14 (Production Rollout) planned**: 29 tasks -- pilot site, security hardening, fleet rollout, operations handoff, platform evolution. Docker Compose on dedicated Denver DC host.
+
+- **Deployment context documented to memory**: Zero budget, SquaredUp replacement ($26K savings), team of 10 inheriting platform, no on-call yet, Docker before Kubernetes.
+
+### Decisions
+
+- **Alert fatigue is the hill**: If the platform generates noise like SCOM, team rejects it. Conservative thresholds, proper dedup, and clear runbooks from day one.
+- **Documentation for operators, not builders**: Current docs are engineer-focused. Need sysadmin-facing docs that assume no Grafana/Prometheus knowledge.
+- **10-year supportability**: Platform must be maintainable by people who didn't build it. Documentation, training, and bulletproof operations are non-negotiable.
+- **Traefik for production**: Docker host has Traefik reverse proxy. Grafana exposed via DNS, backend services stay internal on Docker network.
+- **Azure DevOps CI/CD**: Existing pipeline can integrate validate_all.py. Not priority for demo but planned for Phase 14E.
+
+### Next Session
+
+1. Phase 13A: audit the 167 alert rules, categorize actionable vs noise
+2. Phase 13B: start writing operator documentation
+3. Dashboard visual review continues
+4. Prepare for deployment to Denver DC Docker host
+
+### Context
+
+- Docker host in Denver DC has Traefik -- Grafana needs Traefik labels, not port mapping
+- Alloy agents from remote sites need Prometheus remote_write and Loki push accessible (Traefik or direct ports)
+- SquaredUp costs $26K/year -- this platform replaces it at $0
+- SCOM alert fatigue is the problem the team wants solved -- alert quality is the success metric
+- Team: 8 sysadmins + 2 engineers. Sysadmins operate, engineers escalate.
+- No on-call rotation yet. Business hours email DLs per site initially.
+- Commits: 9291b6a, dc33b3a, be8ff79, b0057cc
+
+---
