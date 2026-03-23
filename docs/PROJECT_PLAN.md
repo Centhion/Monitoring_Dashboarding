@@ -39,6 +39,7 @@
 | Phase 13: Alert Strategy | Pending | Alert fatigue reduction, threshold tuning, notification design -- critical for platform adoption |
 | Phase 13B: Operator Documentation | Pending | Sysadmin-focused docs for 10-year supportability -- KB/Wiki ready |
 | Phase 14: Production Rollout | Pending | Pilot site deployment, security hardening, fleet rollout, operations handoff |
+| Phase 15: SCOM Data Warehouse Integration | Pending | Grafana SQL datasource to SCOM DW for immediate SquaredUp replacement without new agents |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
 
@@ -1967,6 +1968,98 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 | SCOM/SquaredUp decommission resistance | Parallel running costs | Prove value at pilot, decommission gradually per site |
 | 1,500 agents overwhelming single Prometheus | Performance issues | Capacity planning; Mimir migration path exists |
 | Sysadmins unfamiliar with Grafana/PromQL | Slow adoption | Dashboards are click-and-drill, no PromQL needed for operations |
+
+---
+
+## Phase 15: SCOM Data Warehouse Integration
+
+**Goal**: Replace SquaredUp immediately by connecting Grafana to the existing SCOM Data Warehouse SQL database. No new agents required. Team sees the same SCOM-collected data in Grafana dashboards instead of SquaredUp.
+
+**Status**: Pending
+
+**Context**: SquaredUp costs $26K/year and reads from the SCOM Data Warehouse to render dashboards. Grafana can do exactly the same thing via the Microsoft SQL Server datasource. This eliminates SquaredUp while keeping SCOM agents and alerting intact. Alloy agent deployment (Phase 14) happens later as a separate migration.
+
+**SCOM DW Schema Reference**:
+- Performance data: `Perf.vPerfRaw` (10 days), `Perf.vPerfHourly` (400 days), `Perf.vPerfDaily` (400 days)
+- Health state: `State.vStateHourly`, `State.vStateDaily`
+- Alerts: `Alert.vAlert`, `Alert.vAlertDetail`
+- Entity lookup: `vManagedEntity` (server names), `vPerformanceRuleInstance` (counter names)
+- All timestamps UTC. Grafana handles timezone conversion.
+
+### 15A: Datasource and Infrastructure
+
+- [ ] 1. Create SQL Server datasource provisioning config (`configs/grafana/datasources/scom_dw.yml`) -- Simple
+  - Connection to OperationsManagerDW database
+  - Read-only service account with db_datareader
+  - Connection string with server, port, database, auth
+- [ ] 2. Add SCOM DW datasource to docker-compose.yml environment (connection string as env var) -- Simple
+- [ ] 3. Create "SCOM Monitoring" dashboard provisioning folder -- Simple
+- [ ] 4. Test connectivity from Grafana to SCOM DW -- Simple
+
+### 15B: Core Dashboards (SCOM Data)
+
+- [ ] 5. SCOM Server Overview dashboard -- Medium
+  - Template variables: server name (from vManagedEntity), time range
+  - CPU utilization (Processor / % Processor Time)
+  - Memory utilization (Memory / % Committed Bytes In Use + Available MBytes)
+  - Disk free space (LogicalDisk / % Free Space per drive)
+  - Disk latency (LogicalDisk / Avg. Disk sec/Read, sec/Write)
+  - Network throughput (Network Interface / Bytes Total/sec)
+  - All queries against Perf.vPerfHourly joined with vPerformanceRuleInstance and vManagedEntity
+- [ ] 6. SCOM Fleet Overview dashboard -- Medium
+  - Top servers by CPU, memory, disk utilization
+  - Server count, health state summary
+  - Queries against Perf.vPerfDaily for fleet-wide aggregation
+- [ ] 7. SCOM Alert Dashboard -- Medium
+  - Active alerts from Alert.vAlert (ResolutionState != 255)
+  - Alert history timeline
+  - Alert count by severity, by server
+  - Template variables for severity filter, server filter
+- [ ] 8. SCOM Health State dashboard -- Medium
+  - Current health state per server from State.vStateHourly
+  - Health state changes over time
+  - Servers in critical/warning state
+
+### 15C: Role-Specific Dashboards (SCOM Data)
+
+- [ ] 9. SCOM SQL Server dashboard -- Medium
+  - SQL-specific counters from SCOM SQL MP (buffer cache, batch requests, etc.)
+  - Requires SQL Server Management Pack installed in SCOM
+- [ ] 10. SCOM IIS dashboard -- Medium
+  - IIS counters from SCOM IIS MP
+- [ ] 11. SCOM AD/DC dashboard -- Medium
+  - AD-specific counters from SCOM AD MP
+
+### 15D: Migration Path
+
+- [ ] 12. Side-by-side comparison guide -- document how SCOM dashboard data maps to Alloy dashboard data -- Simple
+- [ ] 13. Decommission plan for SquaredUp -- timeline, user migration, license cancellation -- Simple
+
+### Human Actions Required
+
+- [ ] Provide SCOM Data Warehouse SQL Server hostname, port, database name
+- [ ] Create read-only SQL login with db_datareader on OperationsManagerDW
+- [ ] Verify network path from Docker host (Denver DC) to SCOM DW SQL Server
+- [ ] Identify which SCOM Management Packs are installed (determines available counters)
+- [ ] Provide SquaredUp dashboard inventory (what dashboards does the team use today?)
+
+### Risks
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| SCOM DW query performance | Slow dashboards | Use Hourly/Daily views, filter by DateTime first, avoid Raw for >24h ranges |
+| Raw data only 10 days | Short history at high resolution | Use Hourly (400 days) for most dashboards, Raw only for recent drill-down |
+| SCOM DW on different network segment | Connectivity failure | Verify firewall rules before deployment |
+| Different counter names than Alloy | Confusion during transition | Document counter name mapping (SCOM vs Prometheus) |
+| SCOM schema changes on upgrade | Dashboard breakage | Views are stable across SCOM 2016/2019/2022 |
+
+### Success Criteria
+
+- Grafana shows the same server performance data that SquaredUp shows
+- Team can find any server's CPU/memory/disk/network in Grafana
+- Active SCOM alerts visible in Grafana
+- SquaredUp can be decommissioned without loss of visibility
+- No new agents deployed -- purely reading existing SCOM data
 
 ---
 
