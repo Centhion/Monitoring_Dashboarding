@@ -1,0 +1,625 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Current and historical health state of all SCOM-monitored servers. Green = Healthy, Yellow = Warning, Red = Critical. Data from SCOM health monitors, not performance rules.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "SCOM Fleet Overview",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/scom-fleet-overview"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "SCOM Alerts",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/scom-alerts"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "SCOM Server Overview",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/scom-server-overview"
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "Current and historical health state of all SCOM-monitored servers. Green = Healthy, Yellow = Warning, Red = Critical. Data from SCOM health monitors, not performance rules.",
+        "mode": "markdown"
+      }
+    },
+    {
+      "id": 2,
+      "type": "row",
+      "title": "Health Summary",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "panels": []
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Healthy Servers",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Healthy\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Windows.Computer%'\nAND sh.NewHealthState = 1\nAND sh.DateTime >= DATEADD(hour, -1, GETUTCDATE())",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Warning Servers",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Warning\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Windows.Computer%'\nAND sh.NewHealthState = 2\nAND sh.DateTime >= DATEADD(hour, -1, GETUTCDATE())",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Critical Servers",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Critical\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Windows.Computer%'\nAND sh.NewHealthState = 3\nAND sh.DateTime >= DATEADD(hour, -1, GETUTCDATE())",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "In Maintenance Mode",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 3
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Maintenance\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Windows.Computer%'\nAND sh.InMaintenanceMode = 1\nAND sh.DateTime >= DATEADD(hour, -1, GETUTCDATE())",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "row",
+      "title": "Server Health Table",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "panels": []
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Server Health State",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Health"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Healthy": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "Healthy"
+                      },
+                      "Warning": {
+                        "color": "yellow",
+                        "index": 1,
+                        "text": "Warning"
+                      },
+                      "Critical": {
+                        "color": "red",
+                        "index": 2,
+                        "text": "Critical"
+                      },
+                      "Unknown": {
+                        "color": "semi-dark-purple",
+                        "index": 3,
+                        "text": "Unknown"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Server"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Server Overview",
+                    "url": "/d/scom-server-overview?var-server=${__data.fields.Server:raw}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": ["sum"],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "Health",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  me.Path AS \"Server\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"Health\",\n  CASE sh.InMaintenanceMode WHEN 1 THEN 'Yes' ELSE 'No' END AS \"Maintenance\",\n  sh.DateTime AS \"Last Updated\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Windows.Computer%'\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nORDER BY sh.NewHealthState DESC, me.Path",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "row",
+      "title": "Health State Changes",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "panels": []
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Health State Changes Over Time",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Server Count",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            },
+            "drawStyle": "line"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Healthy"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Warning"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Critical"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  sh.DateTime AS time,\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' END AS metric,\n  COUNT(DISTINCT me.Path) AS value\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Windows.Computer%'\nAND $__timeFilter(sh.DateTime)\nGROUP BY sh.DateTime, sh.NewHealthState\nORDER BY sh.DateTime",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["scom", "health", "availability"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "SCOM Health State",
+  "uid": "scom-health-state",
+  "version": 1
+}

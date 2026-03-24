@@ -1,0 +1,722 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "SCOM alert history and active alerts from the Data Warehouse. Filter by severity to focus on critical issues. Active alerts have resolution state != Closed (255).",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "SCOM Fleet Overview",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/scom-fleet-overview"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "SCOM Server Overview",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/scom-server-overview"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Enterprise NOC",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/enterprise-noc"
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "SCOM alert history and active alerts from the Data Warehouse. Filter by severity to focus on critical issues. Active alerts have resolution state != Closed (255).",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
+    {
+      "id": 2,
+      "type": "row",
+      "title": "Alert Summary",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Active Critical",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "rawSql": "SELECT COUNT(*) AS \"Critical\" FROM Alert.vAlert WHERE ResolutionState <> 255 AND Severity = 2",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Active Warning",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "rawSql": "SELECT COUNT(*) AS \"Warning\" FROM Alert.vAlert WHERE ResolutionState <> 255 AND Severity = 1",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Active Informational",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "rawSql": "SELECT COUNT(*) AS \"Info\" FROM Alert.vAlert WHERE ResolutionState <> 255 AND Severity = 0",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Alerts Raised (24h)",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 3
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "rawSql": "SELECT COUNT(*) AS \"Last 24h\" FROM Alert.vAlert WHERE RaisedDateTime >= DATEADD(hour, -24, GETUTCDATE())",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "row",
+      "title": "Active Alerts",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      }
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Active Alerts",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Severity"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Critical": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "Critical"
+                      },
+                      "Warning": {
+                        "color": "yellow",
+                        "index": 1,
+                        "text": "Warning"
+                      },
+                      "Info": {
+                        "color": "blue",
+                        "index": 2,
+                        "text": "Info"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": ["sum"],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "Severity",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "rawSql": "SELECT\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.Path AS \"Server\",\n  a.AlertDescription AS \"Description\",\n  a.RaisedDateTime AS \"Raised\",\n  CASE a.ResolutionState WHEN 0 THEN 'New' WHEN 247 THEN 'Acknowledged' WHEN 248 THEN 'Assigned' WHEN 249 THEN 'Investigating' WHEN 254 THEN 'Resolved' ELSE CAST(a.ResolutionState AS VARCHAR) END AS \"State\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255\nAND ($severity = 'All' OR\n     ($severity = 'Critical' AND a.Severity = 2) OR\n     ($severity = 'Warning' AND a.Severity = 1) OR\n     ($severity = 'Informational' AND a.Severity = 0))\nORDER BY a.Severity DESC, a.RaisedDateTime DESC",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "row",
+      "title": "Alert Trend",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Alert Trend",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "lineInterpolation": "linear",
+            "barAlignment": 0,
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "never",
+            "pointSize": 5,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Critical"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Warning"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Info"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "rawSql": "SELECT\n  DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0) AS time,\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS metric,\n  COUNT(*) AS value\nFROM Alert.vAlert a\nWHERE $__timeFilter(a.RaisedDateTime)\nGROUP BY DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0), a.Severity\nORDER BY time",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "row",
+      "title": "Recently Resolved",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      }
+    },
+    {
+      "id": 12,
+      "type": "table",
+      "title": "Recently Resolved",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Severity"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Critical": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "Critical"
+                      },
+                      "Warning": {
+                        "color": "yellow",
+                        "index": 1,
+                        "text": "Warning"
+                      },
+                      "Info": {
+                        "color": "blue",
+                        "index": 2,
+                        "text": "Info"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": ["sum"],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "Resolved",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "rawSql": "SELECT TOP 50\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.Path AS \"Server\",\n  a.RaisedDateTime AS \"Raised\",\n  a.ResolvedDateTime AS \"Resolved\",\n  DATEDIFF(minute, a.RaisedDateTime, a.ResolvedDateTime) AS \"Duration (min)\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState = 255\nAND a.ResolvedDateTime >= DATEADD(day, -7, GETUTCDATE())\nORDER BY a.ResolvedDateTime DESC",
+          "format": "table"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["scom", "alerts", "operations"],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "All"
+        },
+        "description": "Filter alerts by severity level",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Severity",
+        "multi": false,
+        "name": "severity",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "All"
+          },
+          {
+            "selected": false,
+            "text": "Critical",
+            "value": "Critical"
+          },
+          {
+            "selected": false,
+            "text": "Warning",
+            "value": "Warning"
+          },
+          {
+            "selected": false,
+            "text": "Informational",
+            "value": "Informational"
+          }
+        ],
+        "query": "All,Critical,Warning,Informational",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "SCOM Alerts",
+  "uid": "scom-alerts",
+  "version": 1
+}

@@ -1,0 +1,980 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Server performance data from SCOM Data Warehouse. Shows CPU, memory, disk, and network metrics collected by SCOM agents. Select a server to drill into specific host performance.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "SCOM Fleet Overview",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/scom-fleet-overview"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "SCOM Alerts",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/scom-alerts"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Enterprise NOC",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/enterprise-noc"
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "Server performance data from SCOM Data Warehouse. Shows CPU, memory, disk, and network metrics collected by SCOM agents. Select a server to drill into specific host performance.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "id": 2,
+      "title": "Server Health",
+      "type": "row"
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "CPU Utilization",
+      "description": "Latest average CPU utilization from SCOM performance data.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND me.Path LIKE '$server'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Memory Available",
+      "description": "Latest available memory in MB from SCOM performance data.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1024
+              },
+              {
+                "color": "green",
+                "value": 4096
+              }
+            ]
+          },
+          "unit": "decmbytes",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Available MB\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Memory' AND pri.CounterName = 'Available MBytes'\nAND me.Path LIKE '$server'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Worst Disk Free",
+      "description": "Lowest disk free space percentage across all logical disks.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "green",
+                "value": 20
+              }
+            ]
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Free %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = '% Free Space'\nAND me.Path LIKE '$server'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.AverageValue ASC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Processor Queue",
+      "description": "Latest processor queue length indicating CPU saturation.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 15
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Queue Length\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'System' AND pri.CounterName = 'Processor Queue Length'\nAND me.Path LIKE '$server'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "id": 7,
+      "title": "Performance Trends",
+      "type": "row"
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "CPU & Memory Over Time",
+      "description": "CPU utilization and committed memory percentage trends from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE (\n  (pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total')\n  OR (pri.ObjectName = 'Memory' AND pri.CounterName = '% Committed Bytes In Use')\n)\nAND me.Path LIKE '$server'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Disk Free Space Over Time",
+      "description": "Free space percentage per logical disk over time from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "min"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "asc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = '% Free Space'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND me.Path LIKE '$server'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 10,
+      "title": "Disk I/O",
+      "type": "row"
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Disk Latency",
+      "description": "Read and write latency per logical disk in milliseconds from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ms",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName + ' ' + pri.CounterName AS metric,\n  ph.AverageValue * 1000 AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk'\nAND pri.CounterName IN ('Avg. Disk sec/Read', 'Avg. Disk sec/Write')\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND me.Path LIKE '$server'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Disk Throughput",
+      "description": "Disk bytes per second per logical disk from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "Bps",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = 'Disk Bytes/sec'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND me.Path LIKE '$server'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 25
+      },
+      "id": 13,
+      "title": "Network",
+      "type": "row"
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Network Throughput",
+      "description": "Network bytes total per second per interface from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "Bps",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Network Interface' AND pri.CounterName = 'Bytes Total/sec'\nAND me.Path LIKE '$server'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": [
+    "scom",
+    "servers",
+    "windows"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "definition": "SELECT DISTINCT me.Path AS __text, me.Path AS __value FROM vManagedEntity me INNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId WHERE met.ManagedEntityTypeSystemName LIKE '%Windows.Computer%' ORDER BY me.Path",
+        "hide": 0,
+        "includeAll": true,
+        "allValue": "%",
+        "label": "Server",
+        "multi": false,
+        "name": "server",
+        "options": [],
+        "query": "SELECT DISTINCT me.Path AS __text, me.Path AS __value FROM vManagedEntity me INNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId WHERE met.ManagedEntityTypeSystemName LIKE '%Windows.Computer%' ORDER BY me.Path",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "SCOM Server Overview",
+  "uid": "scom-server-overview",
+  "version": 1
+}

@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "SLA availability reporting by host, role, and site. Shows uptime percentages across 1h, 1d, 7d, and 30d windows with configurable SLA threshold indicators.",
+  "description": "Uptime and availability reporting across all infrastructure. SLA thresholds: 99.9% (43min downtime/month), 99.5% (216min), 99.0% (432min). Filter by site to view specific location. Hosts below SLA target are highlighted in red.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -47,7 +47,7 @@
   ],
   "panels": [
     {
-      "id": 18,
+      "id": 1,
       "type": "text",
       "title": "",
       "gridPos": {
@@ -57,7 +57,7 @@
         "y": 0
       },
       "options": {
-        "content": "Uptime and availability reporting per host, role, and site. SLA thresholds: 99.9% (green), 99.0% (yellow), below 99.0% (red). Filter by site to view specific location availability.",
+        "content": "Uptime and availability reporting across all infrastructure. SLA thresholds: 99.9% (43min downtime/month), 99.5% (216min), 99.0% (432min). Filter by site to view specific location. Hosts below SLA target are highlighted in red.",
         "mode": "markdown"
       },
       "transparent": true
@@ -70,8 +70,8 @@
         "x": 0,
         "y": 2
       },
-      "id": 1,
-      "title": "SLA Summary",
+      "id": 2,
+      "title": "Fleet Summary",
       "type": "row"
     },
     {
@@ -79,13 +79,12 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Average availability across all sites over the last 30 days.",
+      "description": "Average availability across all monitored sites over the last 30 days.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 3,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -95,12 +94,8 @@
                 "value": null
               },
               {
-                "color": "orange",
-                "value": 0.99
-              },
-              {
                 "color": "yellow",
-                "value": 0.995
+                "value": 0.99
               },
               {
                 "color": "green",
@@ -114,11 +109,11 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
+        "w": 4,
         "x": 0,
         "y": 3
       },
-      "id": 2,
+      "id": 3,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -134,7 +129,6 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -142,9 +136,9 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avg(sla:site_availability:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
+          "expr": "avg(sla:site_availability:30d{datacenter=~\"$datacenter\"})",
           "legendFormat": "Fleet Availability",
-          "range": true,
+          "instant": true,
           "refId": "A"
         }
       ],
@@ -156,7 +150,69 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Total number of hosts across all roles that are below the 99.9% SLA threshold over the last 30 days.",
+      "description": "Total number of hosts with active availability monitoring.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 3
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "count(sla:host_availability:1h{datacenter=~\"$datacenter\"})",
+          "legendFormat": "Total Hosts",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Total Hosts Monitored",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Count of hosts whose 30-day availability is below the 99.9% SLA target.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -185,11 +241,11 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 6,
+        "w": 4,
+        "x": 8,
         "y": 3
       },
-      "id": 3,
+      "id": 5,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -205,7 +261,6 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -213,13 +268,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(sla:role_hosts_below_sla:count{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
-          "legendFormat": "Hosts Below SLA",
-          "range": true,
+          "expr": "count(sla:host_availability:30d{datacenter=~\"$datacenter\"} < 0.999)",
+          "legendFormat": "Below SLA",
+          "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Hosts Below SLA",
+      "title": "Hosts Below 99.9% SLA",
       "type": "stat"
     },
     {
@@ -227,13 +282,12 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Lowest site-level availability over the last 30 days. Highlights the worst-performing datacenter.",
+      "description": "The single lowest 30-day host availability across the filtered fleet.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
-          "decimals": 3,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -243,12 +297,8 @@
                 "value": null
               },
               {
-                "color": "orange",
-                "value": 0.99
-              },
-              {
                 "color": "yellow",
-                "value": 0.995
+                "value": 0.99
               },
               {
                 "color": "green",
@@ -262,11 +312,11 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
+        "w": 4,
         "x": 12,
         "y": 3
       },
-      "id": 4,
+      "id": 6,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -282,7 +332,6 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -290,13 +339,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "min(sla:site_availability:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
-          "legendFormat": "Worst Site",
-          "range": true,
+          "expr": "min(sla:host_availability:30d{datacenter=~\"$datacenter\"})",
+          "legendFormat": "Worst Host",
+          "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Worst Site (30d)",
+      "title": "Worst Host (30d)",
       "type": "stat"
     },
     {
@@ -304,7 +353,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Total estimated downtime in minutes across all hosts and sites over the last 30 days.",
+      "description": "Total downtime in minutes across all sites over the last 30 days.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -334,11 +383,11 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 18,
+        "w": 4,
+        "x": 16,
         "y": 3
       },
-      "id": 5,
+      "id": 7,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -354,7 +403,6 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -362,13 +410,79 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(sla:site_downtime_minutes:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"})",
+          "expr": "sum(sla:site_downtime_minutes:30d{datacenter=~\"$datacenter\"})",
           "legendFormat": "Total Downtime",
-          "range": true,
+          "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Total Downtime Minutes (30d)",
+      "title": "Total Downtime (30d)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Number of sites whose 30-day availability falls below the 99.9% target.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 3
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "count(sla:site_availability:30d{datacenter=~\"$datacenter\"} < 0.999) or vector(0)",
+          "legendFormat": "Sites Below Target",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Sites Below Target",
       "type": "stat"
     },
     {
@@ -377,9 +491,9 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 8
       },
-      "id": 6,
+      "id": 9,
       "title": "Per-Site Availability",
       "type": "row"
     },
@@ -388,7 +502,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "30-day rolling availability percentage for each datacenter. Color-coded against SLA thresholds.",
+      "description": "30-day availability and downtime by site. Sorted worst-first to surface problem locations.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -397,59 +511,42 @@
           "custom": {
             "align": "auto",
             "cellOptions": {
-              "type": "color-text"
+              "type": "auto"
             },
             "inspect": false
           },
-          "decimals": 4,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 0.99
-              },
-              {
-                "color": "yellow",
-                "value": 0.995
-              },
-              {
                 "color": "green",
-                "value": 0.999
+                "value": null
               }
             ]
-          },
-          "unit": "percentunit"
+          }
         },
         "overrides": [
           {
             "matcher": {
               "id": "byName",
-              "options": "datacenter"
+              "options": "Value #A"
             },
             "properties": [
               {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "auto"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value"
-            },
-            "properties": [
+                "id": "displayName",
+                "value": "Availability"
+              },
               {
                 "id": "unit",
                 "value": "percentunit"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
               },
               {
                 "id": "thresholds",
@@ -472,212 +569,56 @@
                 }
               },
               {
-                "id": "custom.cellOptions",
+                "id": "color",
                 "value": {
-                  "mode": "basic",
-                  "type": "color-background"
+                  "mode": "thresholds"
                 }
+              },
+              {
+                "id": "min",
+                "value": 0.95
+              },
+              {
+                "id": "max",
+                "value": 1
               }
             ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 16,
-        "x": 0,
-        "y": 8
-      },
-      "id": 7,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true,
-        "sortBy": [
+          },
           {
-            "desc": false,
-            "displayName": "Value"
+            "matcher": {
+              "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Downtime (min)"
+              },
+              {
+                "id": "unit",
+                "value": "m"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "datacenter"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Site"
+              }
+            ]
           }
         ]
       },
-      "pluginVersion": "10.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "sla:site_availability:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "{{datacenter}}",
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "title": "Site Availability (30d)",
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "__name__": true,
-              "job": true
-            },
-            "indexByName": {
-              "datacenter": 0,
-              "Value": 1
-            },
-            "renameByName": {}
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "Total estimated downtime in minutes per site over the last 30 days.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 44
-              },
-              {
-                "color": "red",
-                "value": 432
-              }
-            ]
-          },
-          "unit": "m"
-        },
-        "overrides": []
-      },
       "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 8
-      },
-      "id": 8,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sla:site_downtime_minutes:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
-          "legendFormat": "{{datacenter}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Site Downtime (30d)",
-      "type": "stat"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
+        "h": 10,
+        "w": 12,
         "x": 0,
-        "y": 16
-      },
-      "id": 9,
-      "title": "Per-Role Availability",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "Average 30-day availability per role within each datacenter.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "color-text"
-            },
-            "inspect": false
-          },
-          "decimals": 4,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 0.99
-              },
-              {
-                "color": "yellow",
-                "value": 0.995
-              },
-              {
-                "color": "green",
-                "value": 0.999
-              }
-            ]
-          },
-          "unit": "percentunit"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 17
+        "y": 9
       },
       "id": 10,
       "options": {
@@ -694,11 +635,10 @@
         "sortBy": [
           {
             "desc": false,
-            "displayName": "Value"
+            "displayName": "Availability"
           }
         ]
       },
-      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -707,29 +647,43 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sla:role_availability:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
+          "expr": "sla:site_availability:30d{datacenter=~\"$datacenter\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
-          "range": false,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sla:site_downtime_minutes:30d{datacenter=~\"$datacenter\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "refId": "B"
         }
       ],
-      "title": "Role Availability (30d)",
+      "title": "Site Availability Table",
       "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
               "__name__": true,
-              "job": true
+              "environment": true,
+              "job": true,
+              "instance": true
             },
-            "indexByName": {
-              "datacenter": 0,
-              "role": 1,
-              "Value": 2
-            },
+            "indexByName": {},
             "renameByName": {}
           }
         }
@@ -741,21 +695,47 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Minimum 30-day availability across all hosts in each role. Highlights the worst-performing host per role.",
+      "description": "30-day site availability over time. Threshold lines mark 99.9% and 99.0% SLA boundaries.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           },
           "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "color-text"
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "inspect": false
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
           },
-          "decimals": 4,
           "mappings": [],
+          "min": 0.95,
+          "max": 1,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -764,12 +744,8 @@
                 "value": null
               },
               {
-                "color": "orange",
+                "color": "red",
                 "value": 0.99
-              },
-              {
-                "color": "yellow",
-                "value": 0.995
               },
               {
                 "color": "green",
@@ -782,12 +758,163 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 17
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 9
       },
       "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "min"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sla:site_availability:30d{datacenter=~\"$datacenter\"}",
+          "legendFormat": "{{ datacenter }}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Site Availability Trend",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "id": 12,
+      "title": "Per-Role Availability",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "30-day availability broken down by infrastructure role within each site.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Availability"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 0.99
+                    },
+                    {
+                      "color": "green",
+                      "value": 0.999
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "min",
+                "value": 0.95
+              },
+              {
+                "id": "max",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "datacenter"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Site"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 14,
+        "x": 0,
+        "y": 20
+      },
+      "id": 13,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -802,11 +929,10 @@
         "sortBy": [
           {
             "desc": false,
-            "displayName": "Value"
+            "displayName": "Availability"
           }
         ]
       },
-      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -815,15 +941,14 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sla:role_availability_min:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
+          "expr": "sla:role_availability:30d{datacenter=~\"$datacenter\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
-          "range": false,
           "refId": "A"
         }
       ],
-      "title": "Role Worst Host (30d)",
+      "title": "Role Availability Table",
       "transformations": [
         {
           "id": "organize",
@@ -831,13 +956,11 @@
             "excludeByName": {
               "Time": true,
               "__name__": true,
-              "job": true
+              "environment": true,
+              "job": true,
+              "instance": true
             },
-            "indexByName": {
-              "datacenter": 0,
-              "role": 1,
-              "Value": 2
-            },
+            "indexByName": {},
             "renameByName": {}
           }
         }
@@ -849,7 +972,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Number of hosts below the 99.9% SLA threshold, broken down by datacenter and role.",
+      "description": "Count of hosts below the 99.9% SLA target, grouped by site and role.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -869,7 +992,7 @@
               },
               {
                 "color": "red",
-                "value": 5
+                "value": 3
               }
             ]
           }
@@ -877,16 +1000,18 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 17
+        "h": 10,
+        "w": 10,
+        "x": 14,
+        "y": 20
       },
-      "id": 12,
+      "id": 14,
       "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "auto",
+        "displayMode": "horizontal",
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -894,11 +1019,10 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto"
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
       },
-      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -906,14 +1030,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sla:role_hosts_below_sla:count{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
-          "legendFormat": "{{datacenter}} - {{role}}",
-          "range": true,
+          "expr": "sort_desc(sla:role_hosts_below_sla:count{datacenter=~\"$datacenter\"})",
+          "legendFormat": "{{ datacenter }} - {{ role }}",
+          "instant": true,
           "refId": "A"
         }
       ],
       "title": "Hosts Below SLA by Role",
-      "type": "gauge"
+      "type": "bargauge"
     },
     {
       "collapsed": false,
@@ -921,10 +1045,10 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 30
       },
-      "id": 13,
-      "title": "Per-Host Availability",
+      "id": 15,
+      "title": "Per-Host Detail",
       "type": "row"
     },
     {
@@ -932,7 +1056,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "30-day availability for each individual host, filtered by datacenter. Sorted ascending to surface the worst performers first.",
+      "description": "Individual host availability for the last 30 days and current 1-hour window. Sorted worst-first so operators can immediately identify hosts needing attention.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -941,40 +1065,140 @@
           "custom": {
             "align": "auto",
             "cellOptions": {
-              "type": "color-text"
+              "type": "auto"
             },
             "inspect": false
           },
-          "decimals": 4,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 0.995
-              },
-              {
                 "color": "green",
-                "value": 0.999
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "30d Availability"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 0.99
+                    },
+                    {
+                      "color": "green",
+                      "value": 0.999
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "min",
+                "value": 0.95
+              },
+              {
+                "id": "max",
+                "value": 1
               }
             ]
           },
-          "unit": "percentunit"
-        },
-        "overrides": []
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Current 1h"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "hostname"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Hostname"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "datacenter"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Site"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "role"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Role"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 10,
-        "w": 12,
+        "h": 12,
+        "w": 24,
         "x": 0,
-        "y": 26
+        "y": 31
       },
-      "id": 14,
+      "id": 16,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -989,11 +1213,10 @@
         "sortBy": [
           {
             "desc": false,
-            "displayName": "Value"
+            "displayName": "30d Availability"
           }
         ]
       },
-      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -1006,25 +1229,40 @@
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
-          "range": false,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sla:host_availability:1h{datacenter=~\"$datacenter\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "refId": "B"
         }
       ],
-      "title": "Host Availability",
+      "title": "Host Availability Table",
       "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
               "__name__": true,
-              "job": true
+              "environment": true,
+              "instance": true,
+              "job": true,
+              "os": true
             },
-            "indexByName": {
-              "instance": 0,
-              "datacenter": 1,
-              "Value": 2
-            },
+            "indexByName": {},
             "renameByName": {}
           }
         }
@@ -1032,11 +1270,23 @@
       "type": "table"
     },
     {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "id": 17,
+      "title": "Availability Trends",
+      "type": "row"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Hourly availability trend per host for fine-grained troubleshooting. Filtered by datacenter.",
+      "description": "Per-site average 1-hour availability trend. Aggregated by datacenter to avoid series overload from individual hosts.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1058,31 +1308,39 @@
               "viz": false
             },
             "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": true,
             "stacking": {
               "group": "A",
               "mode": "none"
             },
             "thresholdsStyle": {
-              "mode": "off"
+              "mode": "dashed"
             }
           },
           "mappings": [],
+          "min": 0.90,
           "max": 1,
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "red",
+                "value": 0.99
+              },
+              {
+                "color": "green",
+                "value": 0.999
               }
             ]
           },
@@ -1091,234 +1349,28 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 12,
-        "y": 26
-      },
-      "id": 15,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "10.4.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sla:host_availability:1h{datacenter=~\"$datacenter\"}",
-          "legendFormat": "{{instance}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Host Availability Trend (1h)",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 36
-      },
-      "id": 16,
-      "title": "SLA Thresholds",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "description": "30-day site availability trend with SLA threshold reference lines at 99.9%, 99.5%, and 99.0%.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "max": 1,
-          "min": 0.98,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "percentunit"
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "99.9% SLA"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "green",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "dash": [
-                    10,
-                    10
-                  ],
-                  "fill": "dash"
-                }
-              },
-              {
-                "id": "custom.fillOpacity",
-                "value": 0
-              },
-              {
-                "id": "custom.lineWidth",
-                "value": 2
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "99.5% SLA"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "yellow",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "dash": [
-                    10,
-                    10
-                  ],
-                  "fill": "dash"
-                }
-              },
-              {
-                "id": "custom.fillOpacity",
-                "value": 0
-              },
-              {
-                "id": "custom.lineWidth",
-                "value": 2
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "99.0% SLA"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
-              },
-              {
-                "id": "custom.lineStyle",
-                "value": {
-                  "dash": [
-                    10,
-                    10
-                  ],
-                  "fill": "dash"
-                }
-              },
-              {
-                "id": "custom.fillOpacity",
-                "value": 0
-              },
-              {
-                "id": "custom.lineWidth",
-                "value": 2
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 37
+        "y": 44
       },
-      "id": 17,
+      "id": 18,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "mean"
+          ],
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         }
       },
-      "pluginVersion": "10.4.0",
       "targets": [
         {
           "datasource": {
@@ -1326,46 +1378,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sla:site_availability:30d{environment=~\"$environment\", datacenter=~\"$datacenter\"}",
-          "legendFormat": "{{datacenter}}",
+          "expr": "avg by (datacenter) (sla:host_availability:1h{datacenter=~\"$datacenter\"})",
+          "legendFormat": "{{ datacenter }}",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "0.999",
-          "legendFormat": "99.9% SLA",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "0.995",
-          "legendFormat": "99.5% SLA",
-          "range": true,
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "0.99",
-          "legendFormat": "99.0% SLA",
-          "range": true,
-          "refId": "D"
         }
       ],
-      "title": "Site Availability Trend",
+      "title": "1-Hour Availability Trend",
       "type": "timeseries"
     }
   ],
@@ -1382,7 +1401,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(up{job=~\"windows_base|linux_base\"}, environment)",
+        "definition": "label_values(sla:host_availability:1h, environment)",
         "hide": 0,
         "includeAll": true,
         "label": "Environment",
@@ -1390,7 +1409,7 @@
         "name": "environment",
         "options": [],
         "query": {
-          "query": "label_values(up{job=~\"windows_base|linux_base\"}, environment)",
+          "query": "label_values(sla:host_availability:1h, environment)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -1405,8 +1424,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(up{job=~\"windows_base|linux_base\"}, datacenter)",
-        "description": "Filter by datacenter or site location.",
+        "definition": "label_values(sla:host_availability:1h{environment=~\"$environment\"}, datacenter)",
         "hide": 0,
         "includeAll": true,
         "label": "Datacenter",
@@ -1414,7 +1432,7 @@
         "name": "datacenter",
         "options": [],
         "query": {
-          "query": "label_values(up{job=~\"windows_base|linux_base\"}, datacenter)",
+          "query": "label_values(sla:host_availability:1h{environment=~\"$environment\"}, datacenter)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
@@ -1434,6 +1452,6 @@
   "timezone": "browser",
   "title": "SLA Availability",
   "uid": "sla-availability",
-  "version": 25,
+  "version": 1,
   "weekStart": ""
 }

@@ -1,0 +1,46 @@
+# =============================================================================
+# SCOM Data Warehouse Datasource
+# =============================================================================
+# Connects Grafana to the SCOM Data Warehouse SQL Server database for
+# reading performance data, health state, and alerts collected by SCOM agents.
+#
+# This is a read-only connection. Grafana runs SELECT queries only.
+# No impact on SCOM operations.
+#
+# Prerequisites:
+#   - SQL Server login with db_datareader on OperationsManagerDW
+#   - Network path from Grafana host to SCOM DW SQL Server
+#
+# Replace these values before deployment:
+#   SCOM_DW_HOST     -- SQL Server hostname or IP
+#   SCOM_DW_PORT     -- SQL Server port (default 1433)
+#   SCOM_DW_USER     -- Read-only SQL login username
+#   SCOM_DW_PASSWORD -- SQL login password
+# =============================================================================
+
+apiVersion: 1
+
+datasources:
+  - name: SCOM Data Warehouse
+    type: mssql
+    access: proxy
+    orgId: 1
+    uid: scom-dw
+    url: "${SCOM_DW_HOST:-scom-dw.example.com}:${SCOM_DW_PORT:-1433}"
+    database: "${SCOM_DW_DATABASE:-OperationsManagerDW}"
+    user: "${SCOM_DW_USER:-svc-grafana-readonly}"
+    isDefault: false
+    editable: false
+
+    secureJsonData:
+      password: "${SCOM_DW_PASSWORD:-changeme}"
+
+    jsonData:
+      # Max open connections to the database
+      maxOpenConns: 10
+      # Connection timeout in seconds
+      connMaxLifetime: 14400
+      # Encrypt connection (recommended for production)
+      encrypt: "false"
+      # Trust server certificate (set to false in production with proper certs)
+      tlsSkipVerify: true

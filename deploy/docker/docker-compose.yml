@@ -162,16 +162,18 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Datasource provisioning (Prometheus + Loki)
+      # Datasource provisioning (Prometheus + Loki + SCOM DW)
       - ../../configs/grafana/datasources/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ../../configs/grafana/datasources/scom_dw.yml:/etc/grafana/provisioning/datasources/scom_dw.yml:ro
       # Dashboard provisioning config (points to dashboard directories)
       - ../../configs/grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
       # Notification/contact point provisioning
       - ../../configs/grafana/notifiers/notifiers.yml:/etc/grafana/provisioning/notifiers/notifiers.yml:ro
-      # Dashboard JSON files -- 3 folders matching provisioning config
+      # Dashboard JSON files -- 4 folders matching provisioning config
       - ../../dashboards/enterprise:/var/lib/grafana/dashboards/enterprise:ro
       - ../../dashboards/servers:/var/lib/grafana/dashboards/servers:ro
       - ../../dashboards/infrastructure:/var/lib/grafana/dashboards/infrastructure:ro
+      - ../../dashboards/scom:/var/lib/grafana/dashboards/scom:ro
       # Persistent Grafana database (users, preferences, annotations)
       - grafana_data:/var/lib/grafana
     environment:

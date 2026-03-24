@@ -53,3 +53,17 @@ providers:
       path: /var/lib/grafana/dashboards/infrastructure
       foldersFromFilesStructure: false
     folder: "Infrastructure"
+
+  # ---------------------------------------------------------------------------
+  # SCOM -- Dashboards reading from SCOM Data Warehouse (SQL Server datasource)
+  # ---------------------------------------------------------------------------
+  - name: "SCOM"
+    orgId: 1
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards/scom
+      foldersFromFilesStructure: false
+    folder: "SCOM Monitoring"
