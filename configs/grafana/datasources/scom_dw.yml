@@ -26,14 +26,14 @@ datasources:
     access: proxy
     orgId: 1
     uid: scom-dw
-    url: "${SCOM_DW_HOST:-scom-dw.example.com}:${SCOM_DW_PORT:-1433}"
-    database: "${SCOM_DW_DATABASE:-OperationsManagerDW}"
-    user: "${SCOM_DW_USER:-svc-omread}"
+    url: "${SCOM_DW_HOST}:${SCOM_DW_PORT}"
+    database: "${SCOM_DW_DATABASE}"
+    user: "${SCOM_DW_USER}"
     isDefault: false
     editable: false
 
     secureJsonData:
-      password: "${SCOM_DW_PASSWORD:-changeme}"
+      password: "${SCOM_DW_PASSWORD}"
 
     jsonData:
       # Max open connections to the database

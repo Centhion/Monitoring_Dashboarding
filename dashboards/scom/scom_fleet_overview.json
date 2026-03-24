@@ -9,7 +9,7 @@
     "overview"
   ],
   "schemaVersion": 39,
-  "version": 3,
+  "version": 6,
   "timezone": "browser",
   "editable": true,
   "graphTooltip": 1,
@@ -122,7 +122,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Servers\"\nFROM vManagedEntity me\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Windows.Computer%'",
+          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Servers\"\nFROM vManagedEntity me\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'",
           "editorMode": "code"
         }
       ],
@@ -412,7 +412,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  AVG(ph.AverageValue) AS \"Avg CPU %\",\n  MAX(ph.MaxValue) AS \"Peak CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND ph.DateTime >= DATEADD(hour, -24, GETUTCDATE())\nAND me.ManagedEntityRowId IN (\n    SELECT r.TargetManagedEntityRowId \n    FROM vRelationship r \n    INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId \n    WHERE gme.DisplayName LIKE '$site_group'\n  )\nGROUP BY me.Path\nORDER BY AVG(ph.AverageValue) DESC",
+          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  AVG(ph.AverageValue) AS \"Avg CPU %\",\n  MAX(ph.MaxValue) AS \"Peak CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND ph.DateTime >= DATEADD(hour, -24, GETUTCDATE())\nGROUP BY me.Path\nORDER BY AVG(ph.AverageValue) DESC",
           "editorMode": "code"
         }
       ],
@@ -560,7 +560,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  AVG(ph.AverageValue) AS \"Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Memory' AND pri.CounterName = '% Committed Bytes In Use'\nAND ph.DateTime >= DATEADD(hour, -24, GETUTCDATE())\nAND me.ManagedEntityRowId IN (\n    SELECT r.TargetManagedEntityRowId \n    FROM vRelationship r \n    INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId \n    WHERE gme.DisplayName LIKE '$site_group'\n  )\nGROUP BY me.Path\nORDER BY AVG(ph.AverageValue) DESC",
+          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  AVG(ph.AverageValue) AS \"Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Memory' AND pri.CounterName = '% Committed Bytes In Use'\nAND ph.DateTime >= DATEADD(hour, -24, GETUTCDATE())\nGROUP BY me.Path\nORDER BY AVG(ph.AverageValue) DESC",
           "editorMode": "code"
         }
       ],
@@ -692,7 +692,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  pri.InstanceName AS \"Drive\",\n  MIN(ph.AverageValue) AS \"Free %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = '% Free Space'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND ph.DateTime >= DATEADD(hour, -24, GETUTCDATE())\nAND me.ManagedEntityRowId IN (\n    SELECT r.TargetManagedEntityRowId \n    FROM vRelationship r \n    INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId \n    WHERE gme.DisplayName LIKE '$site_group'\n  )\nGROUP BY me.Path, pri.InstanceName\nORDER BY MIN(ph.AverageValue) ASC",
+          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  pri.InstanceName AS \"Drive\",\n  MIN(ph.AverageValue) AS \"Free %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = '% Free Space'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND ph.DateTime >= DATEADD(hour, -24, GETUTCDATE())\nGROUP BY me.Path, pri.InstanceName\nORDER BY MIN(ph.AverageValue) ASC",
           "editorMode": "code"
         }
       ],
@@ -920,26 +920,7 @@
     }
   ],
   "templating": {
-    "list": [
-      {
-        "name": "site_group",
-        "type": "query",
-        "datasource": {
-          "type": "mssql",
-          "uid": "scom-dw"
-        },
-        "query": {
-          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me INNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId WHERE met.ManagedEntityTypeSystemName = 'System.Group' AND me.DisplayName LIKE '%Servers%' ORDER BY me.DisplayName",
-          "refId": "StandardVariableQuery"
-        },
-        "label": "Site / Group",
-        "refresh": 1,
-        "multi": false,
-        "includeAll": true,
-        "allValue": "%",
-        "sort": 1
-      }
-    ]
+    "list": []
   },
   "style": "dark"
 }
