@@ -124,7 +124,9 @@
       "options": {
         "reduceOptions": {
           "values": false,
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": ""
         },
         "orientation": "auto",
@@ -184,7 +186,9 @@
       "options": {
         "reduceOptions": {
           "values": false,
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": ""
         },
         "orientation": "auto",
@@ -240,7 +244,9 @@
       "options": {
         "reduceOptions": {
           "values": false,
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": ""
         },
         "orientation": "auto",
@@ -296,7 +302,9 @@
       "options": {
         "reduceOptions": {
           "values": false,
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": ""
         },
         "orientation": "auto",
@@ -402,7 +410,9 @@
         "cellHeight": "sm",
         "footer": {
           "show": false,
-          "reducer": ["sum"],
+          "reducer": [
+            "sum"
+          ],
           "countRows": false,
           "fields": ""
         },
@@ -420,7 +430,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.Path AS \"Server\",\n  a.AlertDescription AS \"Description\",\n  a.RaisedDateTime AS \"Raised\",\n  CASE a.ResolutionState WHEN 0 THEN 'New' WHEN 247 THEN 'Acknowledged' WHEN 248 THEN 'Assigned' WHEN 249 THEN 'Investigating' WHEN 254 THEN 'Resolved' ELSE CAST(a.ResolutionState AS VARCHAR) END AS \"State\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255\nAND ($severity = 'All' OR\n     ($severity = 'Critical' AND a.Severity = 2) OR\n     ($severity = 'Warning' AND a.Severity = 1) OR\n     ($severity = 'Informational' AND a.Severity = 0))\nORDER BY a.Severity DESC, a.RaisedDateTime DESC",
+          "rawSql": "SELECT\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.Path AS \"Server\",\n  a.AlertDescription AS \"Description\",\n  a.RaisedDateTime AS \"Raised\",\n  CASE a.ResolutionState WHEN 0 THEN 'New' WHEN 247 THEN 'Acknowledged' WHEN 248 THEN 'Assigned' WHEN 249 THEN 'Investigating' WHEN 254 THEN 'Resolved' ELSE CAST(a.ResolutionState AS VARCHAR) END AS \"State\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255\nAND ($severity = 'All' OR\n     ($severity = 'Critical' AND a.Severity = 2) OR\n     ($severity = 'Warning' AND a.Severity = 1) OR\n     ($severity = 'Informational' AND a.Severity = 0))\nAND a.ManagedEntityRowId IN (\n    SELECT r.TargetManagedEntityRowId \n    FROM vRelationship r \n    INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId \n    WHERE gme.DisplayName LIKE '$site_group'\n  )\nORDER BY a.Severity DESC, a.RaisedDateTime DESC",
           "format": "table"
         }
       ]
@@ -553,7 +563,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT\n  DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0) AS time,\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS metric,\n  COUNT(*) AS value\nFROM Alert.vAlert a\nWHERE $__timeFilter(a.RaisedDateTime)\nGROUP BY DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0), a.Severity\nORDER BY time",
+          "rawSql": "SELECT\n  DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0) AS time,\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS metric,\n  COUNT(*) AS value\nFROM Alert.vAlert a\nWHERE $__timeFilter(a.RaisedDateTime)\nGROUP BY DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0), a.Severity\nAND a.ManagedEntityRowId IN (\n    SELECT r.TargetManagedEntityRowId \n    FROM vRelationship r \n    INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId \n    WHERE gme.DisplayName LIKE '$site_group'\n  )\nORDER BY time",
           "format": "time_series"
         }
       ]
@@ -642,7 +652,9 @@
         "cellHeight": "sm",
         "footer": {
           "show": false,
-          "reducer": ["sum"],
+          "reducer": [
+            "sum"
+          ],
           "countRows": false,
           "fields": ""
         },
@@ -660,16 +672,56 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT TOP 50\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.Path AS \"Server\",\n  a.RaisedDateTime AS \"Raised\",\n  a.ResolvedDateTime AS \"Resolved\",\n  DATEDIFF(minute, a.RaisedDateTime, a.ResolvedDateTime) AS \"Duration (min)\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState = 255\nAND a.ResolvedDateTime >= DATEADD(day, -7, GETUTCDATE())\nORDER BY a.ResolvedDateTime DESC",
+          "rawSql": "SELECT TOP 50\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.Path AS \"Server\",\n  a.RaisedDateTime AS \"Raised\",\n  a.ResolvedDateTime AS \"Resolved\",\n  DATEDIFF(minute, a.RaisedDateTime, a.ResolvedDateTime) AS \"Duration (min)\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState = 255\nAND a.ResolvedDateTime >= DATEADD(day, -7, GETUTCDATE())\nAND a.ManagedEntityRowId IN (\n    SELECT r.TargetManagedEntityRowId \n    FROM vRelationship r \n    INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId \n    WHERE gme.DisplayName LIKE '$site_group'\n  )\nORDER BY a.ResolvedDateTime DESC",
           "format": "table"
         }
       ]
     }
   ],
   "schemaVersion": 39,
-  "tags": ["scom", "alerts", "operations"],
+  "tags": [
+    "scom",
+    "alerts",
+    "operations"
+  ],
   "templating": {
     "list": [
+      {
+        "name": "site_group",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me INNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId WHERE met.ManagedEntityTypeSystemName = 'System.Group' AND me.DisplayName LIKE '%Servers%' ORDER BY me.DisplayName",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Site / Group",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1
+      },
+      {
+        "name": "server",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT target_me.Path AS __text, target_me.Path AS __value FROM vRelationship r INNER JOIN vManagedEntity source_me ON r.SourceManagedEntityRowId = source_me.ManagedEntityRowId INNER JOIN vManagedEntity target_me ON r.TargetManagedEntityRowId = target_me.ManagedEntityRowId WHERE source_me.DisplayName LIKE '$site_group' ORDER BY target_me.Path",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Server",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1
+      },
       {
         "current": {
           "selected": false,
@@ -718,5 +770,5 @@
   "timezone": "browser",
   "title": "SCOM Alerts",
   "uid": "scom-alerts",
-  "version": 1
+  "version": 3
 }
