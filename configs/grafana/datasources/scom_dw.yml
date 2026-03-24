@@ -28,7 +28,7 @@ datasources:
     uid: scom-dw
     url: "${SCOM_DW_HOST:-scom-dw.example.com}:${SCOM_DW_PORT:-1433}"
     database: "${SCOM_DW_DATABASE:-OperationsManagerDW}"
-    user: "${SCOM_DW_USER:-svc-grafana-readonly}"
+    user: "${SCOM_DW_USER:-svc-omread}"
     isDefault: false
     editable: false
 
