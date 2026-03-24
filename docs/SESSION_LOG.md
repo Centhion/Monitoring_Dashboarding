@@ -451,3 +451,62 @@ Chronological record of work sessions for context continuity.
 - Commits: 9291b6a, dc33b3a, be8ff79, b0057cc
 
 ---
+
+## Session: 2026-03-24
+
+### Completed
+
+- **Phase 13A Alert Noise Reduction**: 28 changes across 7 alert files. CPU warning raised from 85% to 90%, memory from 80% to 90%. Warning `for` durations extended to 15-30m. Server reboot alerts changed to info (no email). Outage detection timing adjusted (SitePartialOutage 2m, ServerDown 5m).
+
+- **Alert Reference Table**: Complete catalog of all 87 alert rules added to THRESHOLD_GUIDE.md with severity, for duration, description, and source file.
+
+- **SLA Availability dashboard rebuilt**: Fleet summary, per-site table with gauge bars, per-role breakdown, per-host detail (actionable table sorted by worst availability), availability trends with threshold lines.
+
+- **Phase 15 SCOM Data Warehouse Integration**:
+  - Researched SCOM DW schema (Perf.vPerfHourly, Alert.vAlert, State.vStateHourly, vManagedEntity)
+  - Created SQL Server datasource config (`configs/grafana/datasources/scom_dw.yml`) with env var placeholders
+  - Built 4 SCOM dashboards: Server Overview, Fleet Overview, Alerts, Health State
+  - Added group-based site filtering using vRelationship joins (matches SCOM's existing group structure: Steamboat Servers, Solitude Servers, etc.)
+  - Updated docker-compose.yml with SCOM dashboard mount and datasource mount
+  - Default username set to `svc-omread` (existing SCOM DW reader account)
+
+- **Phase 13, 13B, 14 planned in PROJECT_PLAN.md**: Alert strategy, operator documentation, production rollout with full task breakdowns.
+
+- **Deployment context saved to memory**: Team structure, budget, alert fatigue priority, Docker-first approach.
+
+### In Progress
+
+- **Deployment to Denver DC Docker host**: All code ready. Need Traefik configuration and `.env` with SCOM DW credentials on the production host.
+
+### Blockers
+
+- **Traefik configuration**: User needs to inspect existing Traefik setup on Docker host and add Grafana labels. First time working with Traefik.
+- **SCOM DW password**: User has it but won't enter until deployed on production host. Set via `.env` at deployment time.
+
+### Decisions
+
+- **SCOM DW parallel with Alloy**: Both data sources coexist. SCOM dashboards for immediate SquaredUp replacement, Alloy dashboards for future state.
+- **svc-omread for Grafana SQL connection**: Existing read-only SCOM DW service account. No new SQL accounts needed. No SCOM Run As role needed -- just SQL db_datareader.
+- **Group-based site filtering**: SCOM dashboards filter by SCOM groups (Steamboat Servers, etc.) via vRelationship joins. Matches how SCOM is already organized.
+- **No RBAC complexity for demo**: Viewer accounts, datacenter dropdown filtering, bookmark-based navigation. LDAP integration deferred to production Phase 14B.
+- **Alert noise reduction**: CPU/memory warning thresholds raised, `for` durations extended, reboots changed to info. Designed to be dramatically quieter than SCOM.
+- **Password only in .env**: SCOM DW password, SMTP password, all secrets live only in .env (gitignored). Never in repo files.
+
+### Next Session
+
+1. Deploy to Denver DC Docker host (Traefik config, .env setup, stack_manage.py)
+2. Verify SCOM DW dashboards populate with real data
+3. Create Viewer accounts for team evaluation
+4. Phase 13B: start writing operator documentation
+
+### Context
+
+- SCOM DW SQL Server: `VM-DEN-SQL11`, port 1433, database `OperationsManagerDW`, user `svc-omread`
+- SCOM has 365 groups organized by site (Steamboat, Solitude, Sugarbush, Stratton, Tremblant, etc.)
+- Management Packs installed: Windows Server, AD, DNS, DHCP, IIS, File Services, Exchange, Certificate Services, Nutanix, Linux, Network Monitoring
+- 4 active SCOM alerts (all Warning/Medium priority)
+- Docker host has Traefik -- Grafana gets labels, not port mapping
+- Reporting URL: http://VM-DEN-SQL11:80/ReportServer (SSRS, not what Grafana connects to)
+- Commits this session: 33aeeb0, 4793462, 6d8af21, c145343, fc49f70, f1b9a28
+
+---
