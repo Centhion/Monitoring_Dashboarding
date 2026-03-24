@@ -1,6 +1,7 @@
 # =============================================================================
-# Docker Compose -- Enterprise Monitoring Stack (PoC / Local Testing)
+# Docker Compose -- Observability Stack
 # =============================================================================
+name: observability-stack-poc
 # Spins up the full observability backend for local validation before
 # deploying to Kubernetes. Services are memory-limited to run alongside
 # developer workloads on Docker Desktop (~2 GB total).
