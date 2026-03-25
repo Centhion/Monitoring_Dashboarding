@@ -37,7 +37,7 @@
 | Phase 11: Dashboard Production Readiness | Completed | 19 dashboards in 3 folders, 6 role dashboards, functional tags, 82 bugs fixed, deep audit passed |
 | Phase 12: Dashboard UX Polish | Completed | Click-to-filter drill-downs, expanded role metrics, color standardization, demo data improvements |
 | Phase 13: Alert Strategy | In Progress | Alert fatigue reduction, threshold tuning, notification design -- critical for platform adoption |
-| Phase 13B: Operator Documentation | Pending | Sysadmin-focused docs for 10-year supportability -- KB/Wiki ready |
+| Phase 13B: Operator Documentation | Completed | Sysadmin-focused docs for 10-year supportability -- KB/Wiki ready, 10 docs in docs/operations/ |
 | Phase 14: Production Rollout | Pending | Pilot site deployment, security hardening, fleet rollout, operations handoff |
 | Phase 15: SCOM Data Warehouse Integration | Pending | Grafana SQL datasource to SCOM DW for immediate SquaredUp replacement without new agents |
 
@@ -1839,41 +1839,43 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 **Goal**: Create sysadmin-focused documentation that enables a team of 10 to operate, troubleshoot, and maintain this platform for 10+ years without the original builder. Written for Wiki/KB format -- no code knowledge required.
 
-**Status**: Pending
+**Status**: Completed
 
 **Audience**: Sysadmins who know Windows/Linux servers but have never used Grafana, Prometheus, or Alloy. They need to know what to do, not how it works internally.
+
+**Delivery**: All docs in `docs/operations/` directory, standalone Markdown files ready for Wiki/KB import. Glossary included in Dashboard Guide.
 
 ### Documentation Deliverables
 
 **Operations Guide** (day-to-day tasks):
-- [ ] 1. "Adding a New Server to Monitoring" -- step-by-step with screenshots: install Alloy, set env vars, verify in Grafana -- Medium
-- [ ] 2. "Adding a New Site/Datacenter" -- run deploy_configure.py, verify NOC shows new site -- Simple
-- [ ] 3. "Silencing Alerts for Maintenance" -- three methods: Grafana UI, maintenance_window.py script, recurring mute timings -- Simple
-- [ ] 4. "Responding to an Alert" -- Teams notification arrives, click link, navigate dashboard, identify problem, follow runbook -- Medium
-- [ ] 5. "Checking Platform Health" -- how to verify Grafana/Prometheus/Loki are running, what to do if one is down -- Simple
-- [ ] 6. "Restarting the Monitoring Stack" -- stack_manage.py commands, when to use --reset vs --stop -- Simple
-- [ ] 7. "Removing a Server from Monitoring" -- uninstall Alloy, data ages out automatically -- Simple
-- [ ] 8. "Changing Alert Thresholds" -- reference THRESHOLD_GUIDE.md, edit dashboard JSON or alert rule YAML, restart -- Simple
+- [x] 1. "Adding a New Server to Monitoring" -- `docs/operations/ADDING_A_SERVER.md` -- Medium
+- [x] 2. "Adding a New Site/Datacenter" -- `docs/operations/ADDING_A_SITE.md` -- Simple
+- [x] 3. "Silencing Alerts for Maintenance" -- `docs/MAINTENANCE_WINDOWS.md` (Phase 13) -- Simple
+- [x] 4. "Responding to an Alert" -- `docs/ALERT_RESPONSE_GUIDE.md` (Phase 13) -- Medium
+- [x] 5. "Checking Platform Health" -- `docs/operations/PLATFORM_HEALTH.md` -- Simple
+- [x] 6. "Restarting the Monitoring Stack" -- `docs/operations/STACK_MANAGEMENT.md` -- Simple
+- [x] 7. "Removing a Server from Monitoring" -- included in `docs/operations/STACK_MANAGEMENT.md` -- Simple
+- [x] 8. "Changing Alert Thresholds" -- `docs/operations/CHANGING_THRESHOLDS.md` -- Simple
 
 **Alert Reference** (per-alert documentation):
-- [ ] 9. Complete alert catalog -- every alert rule with: name, severity, what it means, what to check, how to fix, when to escalate, false positive guidance -- Complex
-- [ ] 10. Alert severity definitions -- what Critical/Warning/Info mean for this team specifically, expected response times -- Simple
+- [x] 9. Complete alert catalog -- `docs/ALERT_CATALOG.md` (Phase 13) -- Complex
+- [x] 10. Alert severity definitions -- `docs/ALERT_SEVERITY_CONTRACT.md` (Phase 13) -- Simple
 
 **Dashboard Guide** (how to use each dashboard):
-- [ ] 11. "Navigating the Dashboards" -- NOC -> Site Overview -> role dashboard flow with screenshots, what each folder contains -- Medium
-- [ ] 12. "Understanding Dashboard Panels" -- what the colors mean, what the stat boxes show, how to filter by site/host/role -- Medium
-- [ ] 13. Per-dashboard reference pages -- one page per dashboard explaining what it shows and when to use it -- Complex
+- [x] 11. "Navigating the Dashboards" -- `docs/operations/DASHBOARD_GUIDE.md` -- Medium
+- [x] 12. "Understanding Dashboard Panels" -- included in Dashboard Guide -- Medium
+- [x] 13. Per-dashboard reference pages -- included in Dashboard Guide (all 23 dashboards) -- Complex
 
 **Architecture Overview** (for engineers/escalation):
-- [ ] 14. "How the Monitoring Stack Works" -- simplified data flow diagram, what each component does, where configs live -- Medium
-- [ ] 15. "Alloy Agent Reference" -- what roles exist, what each role monitors, how labels work -- Medium
-- [ ] 16. "Troubleshooting Guide" -- common problems (no data, alert not firing, dashboard empty), diagnostic steps -- Medium
+- [x] 14. "How the Monitoring Stack Works" -- `docs/operations/ARCHITECTURE_OVERVIEW.md` -- Medium
+- [x] 15. "Alloy Agent Reference" -- included in Architecture Overview -- Medium
+- [x] 16. "Troubleshooting Guide" -- `docs/operations/TROUBLESHOOTING.md` -- Medium
 
 **Administration Guide** (platform maintenance):
-- [ ] 17. "Backup and Recovery" -- what to back up (git repo, Grafana DB), how to restore from scratch -- Simple
-- [ ] 18. "Upgrading Components" -- how to update Grafana/Prometheus/Loki versions safely -- Medium
-- [ ] 19. "Capacity Planning" -- disk usage projections, when to expand, what to monitor -- Medium
-- [ ] 20. "User Management" -- creating local accounts, LDAP integration, RBAC folder permissions -- Simple
+- [x] 17. "Backup and Recovery" -- `docs/operations/ADMIN_GUIDE.md` -- Simple
+- [x] 18. "Upgrading Components" -- included in Admin Guide -- Medium
+- [x] 19. "Capacity Planning" -- included in Admin Guide -- Medium
+- [x] 20. "User Management" -- included in Admin Guide -- Simple
 
 ### Format Requirements
 
