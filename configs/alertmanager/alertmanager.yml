@@ -18,9 +18,8 @@ route:
   receiver: teams_default
   group_by:
   - alertname
-  - hostname
   - datacenter
-  group_wait: 30s
+  group_wait: 60s
   group_interval: 5m
   repeat_interval: 4h
   routes:
@@ -61,6 +60,7 @@ route:
     continue: false
   - match:
       severity: warning
+    group_wait: 60s
     repeat_interval: 4h
     routes:
     - match:
@@ -109,6 +109,16 @@ inhibit_rules:
   - alertname = "PrometheusNotificationsFailing"
   target_matchers:
   - alertname =~ "Fleet.*"
+# Critical severity suppresses warning for the same metric category on the same host.
+# Prevents duplicate notifications when a warning escalates to critical
+# (e.g., WindowsCpuHighCritical fires, suppress WindowsCpuHighWarning on same host).
+- source_matchers:
+  - severity = "critical"
+  target_matchers:
+  - severity = "warning"
+  equal:
+  - hostname
+  - datacenter
 - source_matchers:
   - alertname = "SiteMajorOutage"
   target_matchers:
@@ -144,7 +154,7 @@ receivers:
   - to: ops-team@example.com
     send_resolved: true
     headers:
-      Subject: '[CRITICAL] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[CRITICAL] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: teams_info
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -157,7 +167,7 @@ receivers:
   - to: dv-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[CRITICAL] [dv] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[CRITICAL] [dv] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: dv_warning
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -166,7 +176,7 @@ receivers:
   - to: dv-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[WARNING] [dv] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[WARNING] [dv] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: ent_critical
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -175,7 +185,7 @@ receivers:
   - to: ent-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[CRITICAL] [ent] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[CRITICAL] [ent] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: ent_warning
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -184,7 +194,7 @@ receivers:
   - to: ent-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[WARNING] [ent] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[WARNING] [ent] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: sbt_critical
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -193,7 +203,7 @@ receivers:
   - to: sbt-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[CRITICAL] [sbt] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[CRITICAL] [sbt] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: sbt_warning
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -202,7 +212,7 @@ receivers:
   - to: sbt-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[WARNING] [sbt] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[WARNING] [sbt] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: sno_critical
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -211,7 +221,7 @@ receivers:
   - to: sno-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[CRITICAL] [sno] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[CRITICAL] [sno] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: sno_warning
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -220,7 +230,7 @@ receivers:
   - to: sno-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[WARNING] [sno] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[WARNING] [sno] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: sol_critical
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -229,7 +239,7 @@ receivers:
   - to: sol-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[CRITICAL] [sol] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[CRITICAL] [sol] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: sol_warning
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -238,7 +248,7 @@ receivers:
   - to: sol-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[WARNING] [sol] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[WARNING] [sol] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: schw_critical
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -247,7 +257,7 @@ receivers:
   - to: schw-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[CRITICAL] [schw] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[CRITICAL] [schw] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: schw_warning
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -256,7 +266,7 @@ receivers:
   - to: schw-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[WARNING] [schw] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[WARNING] [schw] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: mm_critical
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -265,7 +275,7 @@ receivers:
   - to: mm-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[CRITICAL] [mm] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[CRITICAL] [mm] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'
 - name: mm_warning
   webhook_configs:
   - url: https://example.com/webhook/placeholder
@@ -274,4 +284,4 @@ receivers:
   - to: mm-ops@example.com
     send_resolved: true
     headers:
-      Subject: '[WARNING] [mm] {{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}'
+      Subject: '[WARNING] [mm] {{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))'

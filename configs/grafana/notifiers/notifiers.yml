@@ -94,9 +94,8 @@ policies:
   receiver: Microsoft Teams
   group_by:
   - alertname
-  - hostname
   - datacenter
-  group_wait: 30s
+  group_wait: 60s
   group_interval: 5m
   repeat_interval: 4h
   routes:
@@ -139,6 +138,7 @@ policies:
     matchers:
     - severity = warning
     continue: false
+    group_wait: 60s
     repeat_interval: 4h
     routes:
     - receiver: DV Email

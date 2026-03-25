@@ -145,6 +145,38 @@ routes:
 | Per-site maintenance at different times | Site-specific mute timing (config + matcher) |
 | CI/CD pipeline integration | Programmatic silence (script) |
 
+## Best Practices
+
+1. **Always set an end time.** Open-ended silences get forgotten and mask real alerts. If you don't know how long maintenance will take, overestimate and remove the silence early when done.
+
+2. **Be specific with matchers.** Silence `hostname = srv-sql-03` rather than `datacenter = dv` unless the entire site is genuinely in maintenance. Over-broad silences hide problems on servers not being maintained.
+
+3. **Add a comment.** Every silence should explain who created it, why, and what work is being done. This helps the next person understand why alerts are suppressed.
+
+4. **Remove silences when done.** Don't wait for expiration. If maintenance finishes at 14:00 and the silence runs until 18:00, expire it at 14:00 so the team gets notified of any issues the maintenance may have introduced.
+
+5. **Coordinate with the team.** Post in the Teams monitoring channel when creating a maintenance window so the team knows alerts are suppressed and why.
+
+6. **Check for active silences when investigating.** If a server should be alerting but isn't, check Alertmanager silences or Grafana mute timings for active suppressions.
+
+## Troubleshooting
+
+**Silence not working?**
+- Verify matchers match the alert's labels exactly. Label values are case-sensitive (`dv` is not `DV`).
+- Check that the silence time range overlaps with the current time. All times are in **UTC**.
+- Grafana mute timings only affect Grafana-managed alerts. For Prometheus Alertmanager-routed alerts, create silences via the Alertmanager UI or API.
+
+**Script returns "cannot reach Grafana"?**
+- Verify `GRAFANA_URL` is correct and accessible from your workstation.
+- Check that port 3000 (or your custom port) is not blocked by firewall rules.
+
+**Script returns "401 Unauthorized"?**
+- Verify your API key is valid and has Editor or Admin permissions.
+- API keys expire. Check expiration in Grafana under **Configuration > API Keys**.
+
+**Mute timing exists but alerts still fire?**
+- A mute timing must be referenced by a notification policy route to take effect. Creating the timing alone is not enough. See "Activating a Mute Timing" above.
+
 ## Configuration Files
 
 | File | Purpose |

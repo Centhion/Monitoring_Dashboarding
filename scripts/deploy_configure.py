@@ -341,7 +341,7 @@ def _site_receiver_block(site_code: str, email: str, webhook_url: str) -> list[d
                     "send_resolved": True,
                     "headers": {
                         "Subject": f"[CRITICAL] [{site_code}] "
-                        "{{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}"
+                        "{{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))"
                     },
                 }
             ],
@@ -357,7 +357,7 @@ def _site_receiver_block(site_code: str, email: str, webhook_url: str) -> list[d
                     "send_resolved": True,
                     "headers": {
                         "Subject": f"[WARNING] [{site_code}] "
-                        "{{ .GroupLabels.alertname }} on {{ .GroupLabels.hostname }}"
+                        "{{ .GroupLabels.alertname }} in {{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))"
                     },
                 }
             ],
@@ -427,8 +427,8 @@ def generate_alertmanager_yml(config: dict) -> str:
                     "to": default_email,
                     "send_resolved": True,
                     "headers": {
-                        "Subject": "[CRITICAL] {{ .GroupLabels.alertname }} on "
-                        "{{ .GroupLabels.hostname }}"
+                        "Subject": "[CRITICAL] {{ .GroupLabels.alertname }} in "
+                        "{{ .GroupLabels.datacenter }} ({{ .Alerts | len }} host(s))"
                     },
                 }
             ],
@@ -458,8 +458,8 @@ def generate_alertmanager_yml(config: dict) -> str:
         "templates": ["/etc/alertmanager/templates/*.tmpl"],
         "route": {
             "receiver": "teams_default",
-            "group_by": ["alertname", "hostname", "datacenter"],
-            "group_wait": "30s",
+            "group_by": ["alertname", "datacenter"],
+            "group_wait": "60s",
             "group_interval": "5m",
             "repeat_interval": "4h",
             "routes": [
@@ -472,6 +472,7 @@ def generate_alertmanager_yml(config: dict) -> str:
                 },
                 {
                     "match": {"severity": "warning"},
+                    "group_wait": "60s",
                     "repeat_interval": "4h",
                     "routes": warning_routes,
                     "continue": False,
@@ -499,6 +500,13 @@ def generate_alertmanager_yml(config: dict) -> str:
                     'alertname = "PrometheusNotificationsFailing"'
                 ],
                 "target_matchers": ['alertname =~ "Fleet.*"'],
+            },
+            # Critical suppresses warning on same host to prevent duplicate
+            # notifications when a warning escalates to critical
+            {
+                "source_matchers": ['severity = "critical"'],
+                "target_matchers": ['severity = "warning"'],
+                "equal": ["hostname", "datacenter"],
             },
             # Mass-outage: major outage suppresses all per-host alerts at site
             {
@@ -624,8 +632,8 @@ def generate_notifiers_yml(config: dict) -> str:
         {
             "orgId": 1,
             "receiver": "Microsoft Teams",
-            "group_by": ["alertname", "hostname", "datacenter"],
-            "group_wait": "30s",
+            "group_by": ["alertname", "datacenter"],
+            "group_wait": "60s",
             "group_interval": "5m",
             "repeat_interval": "4h",
             "routes": [
@@ -641,6 +649,7 @@ def generate_notifiers_yml(config: dict) -> str:
                     "receiver": "Microsoft Teams",
                     "matchers": ["severity = warning"],
                     "continue": False,
+                    "group_wait": "60s",
                     "repeat_interval": "4h",
                     "routes": warning_site_routes,
                 },

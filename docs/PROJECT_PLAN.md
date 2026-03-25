@@ -36,7 +36,7 @@
 | Phase 10C: Integration and Polish | Completed | Wrapper + stack_manage.py integration, example config, QUICKSTART update |
 | Phase 11: Dashboard Production Readiness | Completed | 19 dashboards in 3 folders, 6 role dashboards, functional tags, 82 bugs fixed, deep audit passed |
 | Phase 12: Dashboard UX Polish | Completed | Click-to-filter drill-downs, expanded role metrics, color standardization, demo data improvements |
-| Phase 13: Alert Strategy | Pending | Alert fatigue reduction, threshold tuning, notification design -- critical for platform adoption |
+| Phase 13: Alert Strategy | In Progress | Alert fatigue reduction, threshold tuning, notification design -- critical for platform adoption |
 | Phase 13B: Operator Documentation | Pending | Sysadmin-focused docs for 10-year supportability -- KB/Wiki ready |
 | Phase 14: Production Rollout | Pending | Pilot site deployment, security hardening, fleet rollout, operations handoff |
 | Phase 15: SCOM Data Warehouse Integration | Pending | Grafana SQL datasource to SCOM DW for immediate SquaredUp replacement without new agents |
@@ -1789,46 +1789,49 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 **Goal**: Design and implement an alerting approach that eliminates SCOM-style alert fatigue. This is the #1 factor for platform adoption. If the team gets flooded with noise, they'll reject the platform.
 
-**Status**: Pending
+**Status**: In Progress
 
 **Context**: Current SCOM environment generates excessive alert noise. The team has no on-call rotation. Alerts go to per-site email DLs during business hours. The platform must be quieter and more actionable than SCOM from day one.
 
+**Inventory**: 100 alert rules across 12 files (96 Prometheus + 4 Grafana). 35 critical, 59 warning, 6 info.
+
 ### 13A: Alert Audit and Baseline
 
-- [ ] 1. Inventory all 167 existing alert rules -- categorize as: critical (must act now), warning (investigate soon), informational (awareness only) -- Medium
-- [ ] 2. Review each alert threshold against real-world baselines -- are the defaults appropriate for 1,500+ host fleet? Document expected fire rate per rule -- Complex
-- [ ] 3. Identify SCOM alerts to replicate -- which SCOM alerts does the team actually act on today? These must exist in the new platform. Which do they ignore? Those should not exist -- Medium
-- [ ] 4. Define alert severity contract -- what does Critical mean? (wake someone up / immediate action). What does Warning mean? (investigate within 4 hours). What does Info mean? (FYI, no action needed) -- Simple
+- [x] 1. Create `docs/ALERT_CATALOG.md` -- categorize all 100 rules into tiers (Act Now / Investigate / Awareness), document expected fire rate, recommended action, default-enabled status -- Medium
+- [x] 2. Review all thresholds against fleet-scale reality (1,500 hosts). Flag rules likely to be noisy at scale -- Medium -- 14 high-noise rules identified, 5 Lansweeper rules disabled by default
+- [ ] 3. *(Human action)* Inventory SCOM alerts the team acts on vs ignores. Export from SCOM console. Map to Prometheus equivalents -- Medium
+- [x] 4. Create `docs/ALERT_SEVERITY_CONTRACT.md` -- define what Critical/Warning/Info mean for this team, expected response times, escalation paths -- Simple
 
 ### 13B: Alert Noise Reduction
 
-- [ ] 5. Review and tune inhibition rules -- mass-outage suppression (SitePartialOutage, RolePartialOutage) working correctly? Test with simulated outage -- Medium
-- [ ] 6. Review group_by settings -- are alerts grouped effectively? Should `[alertname, datacenter]` be the standard (one notification per alert type per site) vs `[alertname, hostname, datacenter]` (one per host)? -- Medium
-- [ ] 7. Review repeat_interval -- Critical at 1h, Warning at 4h, Info at 12h. Are these right for the team's workflow? -- Simple
-- [ ] 8. Review group_wait -- 15s for critical, 30s for warning. Should warning be longer to catch more related alerts? -- Simple
-- [ ] 9. Define maintenance window procedures -- who creates silences? For what scenarios? Document the process for sysadmins -- Simple
-- [ ] 10. Test alert delivery end-to-end -- configure real Teams webhook, send test alerts, verify formatting, verify routing to correct site DL -- Medium
+- [x] 5. Change `group_by` from `[alertname, hostname, datacenter]` to `[alertname, datacenter]` in Alertmanager and Grafana notifiers -- batches per-site instead of per-host -- Simple
+- [x] 6. Tune `group_wait`: increase warning from 30s to 60s to catch more related alerts in one batch, keep critical at 15s -- Simple
+- [x] 7. Validate `repeat_interval`: Critical 1h, Warning 4h, Info 12h -- confirmed appropriate for business-hours-only, no on-call workflow -- Simple
+- [x] 8. Review and tune inhibition rules -- added critical-suppresses-warning rule, verified outage suppression paths (6 inhibition rules total) -- Medium
+- [x] 9. Updated `docs/MAINTENANCE_WINDOWS.md` with best practices and troubleshooting sections -- Simple
+- [ ] 10. *(Human action)* Test alert delivery end-to-end -- configure real Teams webhook, send test alerts, verify formatting, verify routing to correct site DL -- Medium
 
 ### 13C: Alert Documentation
 
-- [ ] 11. Review and update ALERT_RUNBOOKS.md -- each alert rule needs: what it means, why it fires, what to check, how to fix it, when to escalate -- Complex
-- [ ] 12. Create sysadmin-facing alert response guide -- simplified version of runbooks for the 8 sysadmins who didn't build this -- Medium
-- [ ] 13. Document threshold change process -- how does a sysadmin request a threshold change? Who approves? How is it deployed? -- Simple
+- [x] 11. Add runbook entries for ~49 missing alerts (hardware, cert, lansweeper, SNMP, probe, endpoint, outage, SNMP traps) to ALERT_RUNBOOKS.md -- Complex -- all 100 alerts now have runbook entries
+- [x] 12. Create `docs/ALERT_RESPONSE_GUIDE.md` -- sysadmin-facing guide: Teams notification arrives, what to do next, find the dashboard, silence if needed -- Medium
+- [x] 13. Document threshold change process in the response guide -- how a sysadmin requests a change, who approves, how it's deployed -- Simple
 
 ### 13D: Alert Validation with Real Data
 
-- [ ] 14. Deploy to pilot site and monitor alert volume for 1 week -- count alerts per day, identify noisy rules, tune -- Complex
-- [ ] 15. Compare alert volume to SCOM -- are we generating fewer, more actionable alerts? -- Simple
-- [ ] 16. Get team feedback on alert quality after 2 weeks -- are they acting on alerts or ignoring them? -- Simple
+- [ ] 14. *(Human action)* Deploy to pilot site and monitor alert volume for 1 week -- count alerts per day, identify noisy rules, tune -- Complex
+- [ ] 15. *(Human action)* Compare alert volume to SCOM -- are we generating fewer, more actionable alerts? -- Simple
+- [ ] 16. *(Human action)* Get team feedback on alert quality after 2 weeks -- are they acting on alerts or ignoring them? -- Simple
 
 ### Success Criteria
 
-- Alert volume is measurably lower than SCOM for equivalent infrastructure
-- Every alert that fires has a clear runbook entry and is actionable
-- No alert fires more than once for the same ongoing issue (dedup works)
+- Every alert rule has a documented category, expected behavior, and runbook entry
+- Severity contract defines team expectations for Critical/Warning/Info
+- Alertmanager config produces batched, site-level notifications (not per-host spam)
+- Sysadmin can respond to an alert end-to-end using only the documentation
+- Maintenance window procedures documented for self-service
+- Alert volume is measurably lower than SCOM for equivalent infrastructure (validated in 13D)
 - Mass-outage events generate 1 alert, not 50
-- Team can silence alerts for maintenance without engineer help
-- Teams webhook delivers formatted, readable notifications
 
 ---
 
