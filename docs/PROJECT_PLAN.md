@@ -2003,7 +2003,7 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 ### 15B: Core Dashboards (SCOM Data)
 
-- [ ] 5. SCOM Server Overview dashboard -- Medium
+- [x] 5. SCOM Server Overview dashboard -- Medium (completed 2026-03-25)
   - Template variables: server name (from vManagedEntity), time range
   - CPU utilization (Processor / % Processor Time)
   - Memory utilization (Memory / % Committed Bytes In Use + Available MBytes)
@@ -2011,19 +2011,23 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
   - Disk latency (LogicalDisk / Avg. Disk sec/Read, sec/Write)
   - Network throughput (Network Interface / Bytes Total/sec)
   - All queries against Perf.vPerfHourly joined with vPerformanceRuleInstance and vManagedEntity
-- [ ] 6. SCOM Fleet Overview dashboard -- Medium
+  - Fixed variable quoting bug (LIKE -> raw equality), removed includeAll from server variable
+- [x] 6. SCOM Fleet Overview dashboard -- Medium (completed 2026-03-25)
   - Top servers by CPU, memory, disk utilization
   - Server count, health state summary
-  - Queries against Perf.vPerfDaily for fleet-wide aggregation
-- [ ] 7. SCOM Alert Dashboard -- Medium
+  - Queries against Perf.vPerfHourly with $__timeFilter for dashboard time picker support
+  - Fixed disk Free % column visibility (color-text cell type, column widths)
+- [x] 7. SCOM Alert Dashboard -- Medium (completed 2026-03-25)
   - Active alerts from Alert.vAlert (ResolutionState != 255)
   - Alert history timeline
   - Alert count by severity, by server
   - Template variables for severity filter, server filter
-- [ ] 8. SCOM Health State dashboard -- Medium
+  - All panels verified rendering correctly via Chrome review
+- [x] 8. SCOM Health State dashboard -- Medium (completed 2026-03-25)
   - Current health state per server from State.vStateHourly
   - Health state changes over time
   - Servers in critical/warning state
+  - Fixed summary stats to use MAX(DateTime) subquery instead of stale DATEADD filter
 
 ### 15C: Role-Specific Dashboards (SCOM Data)
 

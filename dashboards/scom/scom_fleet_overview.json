@@ -166,8 +166,8 @@
     {
       "id": 4,
       "type": "stat",
-      "title": "Avg CPU (Last Hour)",
-      "description": "Average processor utilization across all servers in the last hour",
+      "title": "Avg CPU",
+      "description": "Average processor utilization across all servers in the selected time range",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -186,7 +186,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT AVG(ph.AverageValue) AS \"CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nWHERE pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND ph.DateTime >= DATEADD(hour, -1, GETUTCDATE())",
+          "rawSql": "SELECT AVG(ph.AverageValue) AS \"CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nWHERE pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND $__timeFilter(ph.DateTime)",
           "editorMode": "code"
         }
       ],
@@ -259,7 +259,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT AVG(ph.AverageValue) AS \"Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nWHERE pri.ObjectName = 'Memory' AND pri.CounterName = '% Committed Bytes In Use'\nAND ph.DateTime >= DATEADD(hour, -1, GETUTCDATE())",
+          "rawSql": "SELECT AVG(ph.AverageValue) AS \"Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nWHERE pri.ObjectName = 'Memory' AND pri.CounterName = '% Committed Bytes In Use'\nAND $__timeFilter(ph.DateTime)",
           "editorMode": "code"
         }
       ],
@@ -412,7 +412,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  AVG(ph.AverageValue) AS \"Avg CPU %\",\n  MAX(ph.MaxValue) AS \"Peak CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND ph.DateTime >= DATEADD(hour, -24, GETUTCDATE())\nGROUP BY me.Path\nORDER BY AVG(ph.AverageValue) DESC",
+          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  AVG(ph.AverageValue) AS \"Avg CPU %\",\n  MAX(ph.MaxValue) AS \"Peak CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND $__timeFilter(ph.DateTime)\nGROUP BY me.Path\nORDER BY AVG(ph.AverageValue) DESC",
           "editorMode": "code"
         }
       ],
@@ -560,7 +560,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  AVG(ph.AverageValue) AS \"Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Memory' AND pri.CounterName = '% Committed Bytes In Use'\nAND ph.DateTime >= DATEADD(hour, -24, GETUTCDATE())\nGROUP BY me.Path\nORDER BY AVG(ph.AverageValue) DESC",
+          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  AVG(ph.AverageValue) AS \"Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Memory' AND pri.CounterName = '% Committed Bytes In Use'\nAND $__timeFilter(ph.DateTime)\nGROUP BY me.Path\nORDER BY AVG(ph.AverageValue) DESC",
           "editorMode": "code"
         }
       ],
@@ -692,7 +692,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  pri.InstanceName AS \"Drive\",\n  MIN(ph.AverageValue) AS \"Free %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = '% Free Space'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND ph.DateTime >= DATEADD(hour, -24, GETUTCDATE())\nGROUP BY me.Path, pri.InstanceName\nORDER BY MIN(ph.AverageValue) ASC",
+          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  pri.InstanceName AS \"Drive\",\n  MIN(ph.AverageValue) AS \"Free %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = '% Free Space'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND $__timeFilter(ph.DateTime)\nGROUP BY me.Path, pri.InstanceName\nORDER BY MIN(ph.AverageValue) ASC",
           "editorMode": "code"
         }
       ],
@@ -744,7 +744,19 @@
               },
               {
                 "id": "custom.width",
-                "value": 220
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Drive"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 50
               }
             ]
           },
@@ -761,18 +773,8 @@
               {
                 "id": "custom.cellOptions",
                 "value": {
-                  "type": "gauge",
-                  "mode": "gradient",
-                  "valueDisplayMode": "text"
+                  "type": "color-text"
                 }
-              },
-              {
-                "id": "min",
-                "value": 0
-              },
-              {
-                "id": "max",
-                "value": 100
               },
               {
                 "id": "decimals",

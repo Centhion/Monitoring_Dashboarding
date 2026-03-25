@@ -142,7 +142,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Healthy\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND sh.NewHealthState = 1\nAND sh.DateTime >= DATEADD(hour, -1, GETUTCDATE())",
+          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Healthy\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND sh.NewHealthState = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
           "refId": "A"
         }
       ]
@@ -206,7 +206,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Warning\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND sh.NewHealthState = 2\nAND sh.DateTime >= DATEADD(hour, -1, GETUTCDATE())",
+          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Warning\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND sh.NewHealthState = 2\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
           "refId": "A"
         }
       ]
@@ -270,7 +270,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Critical\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND sh.NewHealthState = 3\nAND sh.DateTime >= DATEADD(hour, -1, GETUTCDATE())",
+          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Critical\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND sh.NewHealthState = 3\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
           "refId": "A"
         }
       ]
@@ -331,7 +331,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Maintenance\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND sh.InMaintenanceMode = 1\nAND sh.DateTime >= DATEADD(hour, -1, GETUTCDATE())",
+          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Maintenance\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND sh.InMaintenanceMode = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
           "refId": "A"
         }
       ]
