@@ -510,3 +510,59 @@ Chronological record of work sessions for context continuity.
 - Commits this session: 33aeeb0, 4793462, 6d8af21, c145343, fc49f70, f1b9a28
 
 ---
+
+## Session: 2026-03-24 (continued)
+
+### Completed
+
+- **SCOM DW Simulator**: Azure SQL Edge container with synthetic data. 48 servers across 8 sites, 80K perf rows, 63 alerts, health state. Seeded via `scripts/scom_dw_seed_runner.py` (requires pymssql).
+
+- **Grafana SCOM DW connectivity**: Fixed env var passing -- Grafana provisioning doesn't support `:-` default syntax. SCOM connection vars set in docker-compose.yml Grafana environment section. Defaults point to local simulator (`scom-dw-sim`).
+
+- **SCOM dashboard query fixes**: Removed complex group filter subqueries that broke variable resolution. Simplified to direct queries. Fixed entity type pattern `%Computer%` to match `Microsoft.Windows.Server.Computer`. Set time range to 7 days. Removed broken `$severity` SQL filter.
+
+- **Docker Compose project renamed**: `observability-stack-poc`.
+
+- **API query validation**: 22 out of 23 SCOM panel queries confirmed returning data through Grafana API.
+
+- **SLA Availability dashboard rebuilt**: Fleet summary, per-site, per-role, per-host detail, availability trends.
+
+### In Progress
+
+- **SCOM dashboards visual review**: Queries return data via API but some panels may still show "No data" in the browser due to variable resolution or time range issues. Need `claude --chrome` session or manual review to verify visually.
+
+- **Group-based site filtering**: Removed temporarily because complex subqueries broke dashboards. Need to re-implement as simpler approach once base queries work.
+
+### Blockers
+
+- **Chrome browser integration**: Claude Code has Chrome capability but requires `claude --chrome` flag at session start. Can't enable mid-session. Next session should start with `claude --chrome` for visual dashboard review.
+
+### Decisions
+
+- **Azure SQL Edge for SCOM simulator**: ARM64 compatible (works on Mac), lightweight. Standard mssql/server image is AMD64 only.
+- **Simplified SCOM queries first**: Removed group filter subqueries to get base dashboards working. Site filtering added back later.
+- **scom-demo Docker Compose profile**: SCOM simulator disabled by default. Start with `--profile scom-demo` to include it.
+- **Env vars for SCOM connection**: Set in docker-compose.yml Grafana environment, not in datasource YAML. Grafana resolves `${VAR}` from container environment.
+- **Viewer accounts for demo**: Local Grafana accounts with Viewer role. No LDAP during evaluation.
+- **Bookmarks over RBAC**: Each site team gets a URL bookmark pre-filtered to their datacenter. Simpler than Editor roles or per-site folders.
+
+### Next Session
+
+1. Start with `claude --chrome` to visually review SCOM dashboards
+2. Fix any remaining "No data" panels based on visual review
+3. Re-implement group-based site filtering (simpler approach)
+4. Deploy to Denver DC Docker host
+5. Phase 13B: operator documentation
+
+### Context
+
+- SCOM DW simulator running as `mon-scom-dw-sim` container on `scom-demo` profile
+- Seed script: `python scripts/scom_dw_seed_runner.py` (needs pymssql in a venv: `/tmp/scom-venv`)
+- To start with simulator: `docker compose --profile scom-demo up -d`
+- To swap to production: set `SCOM_DW_HOST=VM-DEN-SQL11` and `SCOM_DW_PASSWORD=<password>` in `.env`
+- Grafana sees 3 datasources: Prometheus, Loki, SCOM Data Warehouse
+- 4 folders: Enterprise, Servers, Infrastructure, SCOM Monitoring
+- Demo data generator still needed for Alloy dashboards (separate from SCOM simulator)
+- Commits: fe5da4d, fef63fb, f4419f6
+
+---
