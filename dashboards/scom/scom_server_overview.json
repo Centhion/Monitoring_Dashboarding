@@ -984,12 +984,12 @@
     ]
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "SCOM Server Overview",
   "uid": "scom-server-overview",
-  "version": 6
+  "version": 7
 }

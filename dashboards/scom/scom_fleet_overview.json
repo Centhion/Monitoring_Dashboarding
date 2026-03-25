@@ -9,7 +9,7 @@
     "overview"
   ],
   "schemaVersion": 39,
-  "version": 6,
+  "version": 7,
   "timezone": "browser",
   "editable": true,
   "graphTooltip": 1,
@@ -17,7 +17,7 @@
   "liveNow": false,
   "refresh": "5m",
   "time": {
-    "from": "now-24h",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {},

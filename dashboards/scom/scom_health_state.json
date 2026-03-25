@@ -668,12 +668,12 @@
     ]
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "SCOM Health State",
   "uid": "scom-health-state",
-  "version": 6
+  "version": 7
 }

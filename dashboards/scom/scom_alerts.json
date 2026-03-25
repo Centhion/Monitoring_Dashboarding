@@ -430,7 +430,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.Path AS \"Server\",\n  a.AlertDescription AS \"Description\",\n  a.RaisedDateTime AS \"Raised\",\n  CASE a.ResolutionState WHEN 0 THEN 'New' WHEN 247 THEN 'Acknowledged' WHEN 248 THEN 'Assigned' WHEN 249 THEN 'Investigating' WHEN 254 THEN 'Resolved' ELSE CAST(a.ResolutionState AS VARCHAR) END AS \"State\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255\nAND ($severity = 'All' OR\n     ($severity = 'Critical' AND a.Severity = 2) OR\n     ($severity = 'Warning' AND a.Severity = 1) OR\n     ($severity = 'Informational' AND a.Severity = 0))\nORDER BY a.Severity DESC, a.RaisedDateTime DESC",
+          "rawSql": "SELECT\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.Path AS \"Server\",\n  a.AlertDescription AS \"Description\",\n  a.RaisedDateTime AS \"Raised\",\n  CASE a.ResolutionState WHEN 0 THEN 'New' WHEN 247 THEN 'Acknowledged' WHEN 248 THEN 'Assigned' WHEN 249 THEN 'Investigating' WHEN 254 THEN 'Resolved' ELSE CAST(a.ResolutionState AS VARCHAR) END AS \"State\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255\n-- severity filter handled by Grafana variable\nORDER BY a.Severity DESC, a.RaisedDateTime DESC",
           "format": "table"
         }
       ]
@@ -763,12 +763,12 @@
     ]
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "SCOM Alerts",
   "uid": "scom-alerts",
-  "version": 5
+  "version": 6
 }
