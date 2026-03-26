@@ -2050,31 +2050,97 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 - [ ] 12. Side-by-side comparison guide -- document how SCOM dashboard data maps to Alloy dashboard data -- Simple
 - [ ] 13. Decommission plan for SquaredUp -- timeline, user migration, license cancellation -- Simple
 
+### 15E: Production Schema Alignment (added 2026-03-25 after discovery)
+
+**Context**: Production discovery (2026-03-25) revealed schema differences from simulator. Entity type is `Microsoft.Windows.Computer` (not `.Server.Computer`). Counter names stored in separate `vPerformanceRule` table joined via `RuleRowId`. Counter ObjectNames differ from simulator assumptions. No SCOM site groups exist -- site filtering must use hostname parsing (`VM-<SITE>-*`).
+
+- [ ] 1. Fix DW query JOIN path in all dashboards -- Medium
+  - Add `vPerformanceRule` JOIN via `RuleRowId` for ObjectName/CounterName lookup
+  - Current: `vPerfHourly -> vPerformanceRuleInstance (ObjectName, CounterName)`
+  - Production: `vPerfHourly -> vPerformanceRuleInstance -> vPerformanceRule (ObjectName, CounterName)`
+- [ ] 2. Fix entity type in all dashboards -- Simple
+  - Replace `Microsoft.Windows.Server.Computer` with `Microsoft.Windows.Computer`
+- [ ] 3. Fix counter name mappings in all dashboards -- Medium
+  - `Processor` -> `Processor Information` / `% Processor Time` (929 servers)
+  - `Memory` / `% Committed Bytes In Use` -> `Memory` / `PercentMemoryUsed` (929 servers)
+  - `Network Interface` -> `Network Adapter` / `Bytes Total/sec` (1,310 servers)
+  - `NTDS` -> `DirectoryServices` for LDAP/DRA counters (110 servers)
+  - `NTDS` -> `Security System-Wide Statistics` for Kerberos/NTLM (112 servers)
+- [ ] 4. Build site variable from hostname parsing -- Medium
+  - Extract site code from `me.DisplayName` using `SUBSTRING`/`CHARINDEX` on `VM-<SITE>-` pattern
+  - Production sites: BMR, DED, DEN, DEU, DV, MM, SBT, SCHW, SNO, SOL, STR, SUG, SVAM, TRM, WP
+- [ ] 5. Update simulator to match production schema -- Medium
+  - Add `vPerformanceRule` table with `RuleRowId` -> ObjectName/CounterName mapping
+  - Update seed data with production counter names
+  - Use `VM-<SITE>-` hostname pattern with generic site codes
+  - Update `vPerformanceRuleInstance` to use `RuleRowId` reference instead of embedded counter names
+
+### 15F: Hub-and-Spoke Dashboard Architecture (added 2026-03-25)
+
+- [ ] 6. SCOM Fleet Overview -- add site filtering and per-site breakdown -- Medium
+  - `$site` variable derived from hostname
+  - Per-site summary row: server count, avg CPU, avg memory per site
+  - All existing panels filtered by site when selected
+- [ ] 7. Role fleet dashboards (IIS Fleet, AD Fleet, DHCP Fleet) -- Complex
+  - Hub view per role with site breakdown
+  - Top N problem servers per role
+  - Drill-down links to server detail
+- [ ] 8. Server Overview -- add site context and cascading filter -- Simple
+  - Show site code in header
+  - Server dropdown filtered by selected site
+- [ ] 9. Cross-links between hub and spoke dashboards -- Simple
+  - Fleet -> Role Fleet -> Server Detail
+  - Consistent URL params (`var-site`, `var-server`)
+
+### 15G: Additional Role Dashboards (added 2026-03-25, based on production MP discovery)
+
+- [ ] 10. DHCP Server dashboard -- Medium (46 servers, 14 counters)
+  - Acks/sec, Requests/sec, Queue Length, Discovers/sec, Packets Received/sec
+- [ ] 11. DNS Server dashboard (dedicated, separate from AD) -- Medium (113 servers, 60+ counters)
+  - Total Query Received/sec, Recursive Queries/sec, Dynamic Updates, Zone Transfers
+- [ ] 12. Exchange Server dashboard -- Medium (1 server + 23 services)
+  - DB latency (Read/Write), Queue lengths, Messages/sec, Mailbox count/size, ActiveSync
+- [ ] 13. DFS Replication dashboard -- Simple (114 servers)
+  - Staging space, conflict files, bandwidth savings
+- [ ] 14. UPS/Battery dashboard -- Simple (26 devices)
+  - Capacity %, runtime remaining, voltage, load, temperature
+- [ ] 15. SQL Cluster/AG status dashboard -- Medium
+  - Availability Group membership and status across sites (from cluster group data)
+  - Note: SQL Server MP perf counters NOT available in production DW -- SQL monitoring is via Windows OS counters only
+- [ ] 16. Remove SQL Server perf counter dashboard -- Simple
+  - `scom_sql_server.json` built on simulator-only counters that don't exist in production
+  - Replace with SQL Cluster/AG dashboard (task 15)
+
 ### Human Actions Required
 
-- [ ] Provide SCOM Data Warehouse SQL Server hostname, port, database name
+- [x] Provide SCOM Data Warehouse SQL Server hostname, port, database name (VM-DEN-SQL11, OperationsManagerDW)
+- [x] Identify which SCOM Management Packs are installed (discovery completed 2026-03-25)
 - [ ] Create read-only SQL login with db_datareader on OperationsManagerDW
 - [ ] Verify network path from Docker host (Denver DC) to SCOM DW SQL Server
-- [ ] Identify which SCOM Management Packs are installed (determines available counters)
+- [ ] Confirm hostname naming convention (need to validate `VM-<SITE>-` pattern covers all servers)
 - [ ] Provide SquaredUp dashboard inventory (what dashboards does the team use today?)
 
 ### Risks
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| SCOM DW query performance | Slow dashboards | Use Hourly/Daily views, filter by DateTime first, avoid Raw for >24h ranges |
+| SCOM DW query performance at 1,335 servers | Slow dashboards | Use Hourly/Daily views, filter by DateTime first, avoid Raw for >24h ranges |
 | Raw data only 10 days | Short history at high resolution | Use Hourly (400 days) for most dashboards, Raw only for recent drill-down |
 | SCOM DW on different network segment | Connectivity failure | Verify firewall rules before deployment |
-| Different counter names than Alloy | Confusion during transition | Document counter name mapping (SCOM vs Prometheus) |
-| SCOM schema changes on upgrade | Dashboard breakage | Views are stable across SCOM 2016/2019/2022 |
+| Hostname pattern varies by site | Site extraction fails for some servers | Validate patterns from discovery, handle edge cases with fallback |
+| No CI/CD pipeline | Can't update post-deploy | Validate all queries against production discovery data before deployment |
+| SQL Server MP missing perf counters | No SQL-specific dashboard | Use Windows OS counters for SQL servers, build AG/cluster status from group data |
 
 ### Success Criteria
 
 - Grafana shows the same server performance data that SquaredUp shows
 - Team can find any server's CPU/memory/disk/network in Grafana
 - Active SCOM alerts visible in Grafana
+- Site filtering works via hostname-derived variable matching Prometheus/Loki pattern
+- Hub dashboards show fleet-wide and per-site views with drill-down to detail
 - SquaredUp can be decommissioned without loss of visibility
 - No new agents deployed -- purely reading existing SCOM data
+- Zero post-deployment query fixes needed (validated against production discovery data)
 
 ---
 

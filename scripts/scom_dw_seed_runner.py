@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
 """
-Seeds the SCOM DW Simulator (Azure SQL Edge) with schema and demo data.
+Seeds the SCOM DW Simulator (Azure SQL Edge) with production-aligned schema.
 Run after the scom-dw-sim container is healthy.
+
+Schema matches production OperationsManagerDW (discovered 2026-03-25):
+  - vPerformanceRule (separate table for ObjectName/CounterName)
+  - vPerformanceRuleInstance (RuleRowId reference)
+  - Entity type: Microsoft.Windows.Computer
+  - Hostname pattern: VM-<SITE>-<ROLE><NUM>
 
 Usage:
     python scripts/scom_dw_seed_runner.py
 """
 
 import sys
-import time
 import random
+from datetime import datetime, timezone, timedelta
 
 try:
     import pymssql
@@ -23,257 +29,436 @@ USER = "sa"
 PASSWORD = "ScomDemo123!"
 DB = "OperationsManagerDW"
 
-def execute(conn, sql, ignore_errors=False):
-    """Execute SQL statement."""
-    cursor = conn.cursor()
-    try:
-        cursor.execute(sql)
-        conn.commit()
-        return True
-    except Exception as e:
-        if not ignore_errors:
-            print(f"  ERROR: {str(e)[:120]}")
-        return False
+# Production site codes (discovered 2026-03-25)
+SITES = ["DEN", "DV", "SBT", "SNO", "SOL", "STR", "SUG", "TRM", "WP"]
+
+# Server roles per site
+ROLES = ["DC", "SQL", "IIS", "FS", "APP", "DHCP"]
+
+# Production counter names (discovered from OperationsManagerDW 2026-03-25)
+# Format: (ObjectName, CounterName, InstanceName, role_filter)
+# role_filter: None = all servers, "DC" = DC only, "IIS" = IIS only, etc.
+COUNTERS = [
+    # Windows OS -- all servers
+    ("Processor Information", "% Processor Time", "_Total", None),
+    ("Memory", "PercentMemoryUsed", "", None),
+    ("Memory", "Available MBytes", "", None),
+    ("Memory", "Pages/sec", "", None),
+    ("LogicalDisk", "% Free Space", "C:", None),
+    ("LogicalDisk", "% Free Space", "D:", None),
+    ("LogicalDisk", "Free Megabytes", "C:", None),
+    ("LogicalDisk", "Free Megabytes", "D:", None),
+    ("LogicalDisk", "% Idle Time", "C:", None),
+    ("LogicalDisk", "Avg. Disk sec/Transfer", "C:", None),
+    ("LogicalDisk", "Avg. Disk sec/Transfer", "D:", None),
+    ("LogicalDisk", "Current Disk Queue Length", "C:", None),
+    ("Network Adapter", "Bytes Total/sec", "Ethernet0", None),
+    ("Network Adapter", "Current Bandwidth", "Ethernet0", None),
+    ("Network Adapter", "PercentBandwidthUsedTotal", "Ethernet0", None),
+    ("System", "Processor Queue Length", "", None),
+    ("System", "System Up Time", "", None),
+    # AD/DC -- DirectoryServices (production ObjectName, not NTDS)
+    ("DirectoryServices", "LDAP Searches/sec", "", "DC"),
+    ("DirectoryServices", "LDAP Client Sessions", "", "DC"),
+    ("DirectoryServices", "LDAP Writes/sec", "", "DC"),
+    ("DirectoryServices", "DRA Inbound Bytes Total/sec", "", "DC"),
+    ("DirectoryServices", "DRA Outbound Bytes Total/sec", "", "DC"),
+    ("DirectoryServices", "DS Search sub-operations/sec", "", "DC"),
+    ("Security System-Wide Statistics", "Kerberos Authentications", "", "DC"),
+    ("Security System-Wide Statistics", "NTLM Authentications", "", "DC"),
+    ("Security System-Wide Statistics", "KDC AS Requests", "", "DC"),
+    ("Security System-Wide Statistics", "KDC TGS Requests", "", "DC"),
+    # DNS -- DC servers
+    ("DNS", "Total Query Received/sec", "", "DC"),
+    ("DNS", "Recursive Queries/sec", "", "DC"),
+    ("DNS", "Dynamic Update Received/sec", "", "DC"),
+    # IIS -- Web Service counters
+    ("Web Service", "Current Connections", "_Total", "IIS"),
+    ("Web Service", "Total Method Requests/sec", "_Total", "IIS"),
+    ("Web Service", "Bytes Total/sec", "_Total", "IIS"),
+    ("Web Service", "Bytes Received/sec", "_Total", "IIS"),
+    ("Web Service", "Bytes Sent/sec", "_Total", "IIS"),
+    ("Web Service", "Connection Attempts/sec", "_Total", "IIS"),
+    # DHCP
+    ("DHCP Server", "Acks/sec", "", "DHCP"),
+    ("DHCP Server", "Requests/sec", "", "DHCP"),
+    ("DHCP Server", "Discovers/sec", "", "DHCP"),
+    ("DHCP Server", "Active Queue Length", "", "DHCP"),
+    ("DHCP Server", "Packets Received/sec", "", "DHCP"),
+    # AD Storage -- DC servers
+    ("AD Storage", "Database Size", "", "DC"),
+    ("AD Storage", "Database Drive Free Space", "", "DC"),
+    ("AD Storage", "Log File Drive Free Space", "", "DC"),
+    # DFS -- DC and FS servers
+    ("DFS Replicated Folders", "Staging Space In Use", "", "DC,FS"),
+    ("DFS Replicated Folders", "Conflict Space In Use", "", "DC,FS"),
+    ("DFS Replication Connections", "Bandwidth Savings Using DFS Replication", "", "DC,FS"),
+]
+
+
+def gen_value(counter_name):
+    """Generate a realistic random value for a given counter."""
+    generators = {
+        "% Processor Time": lambda: 15.0 + random.random() * 70,
+        "PercentMemoryUsed": lambda: 30.0 + random.random() * 50,
+        "Available MBytes": lambda: 1024.0 + random.random() * 12288,
+        "Pages/sec": lambda: random.random() * 100,
+        "% Free Space": lambda: 10.0 + random.random() * 75,
+        "Free Megabytes": lambda: 5000.0 + random.random() * 50000,
+        "% Idle Time": lambda: 40.0 + random.random() * 60,
+        "Avg. Disk sec/Transfer": lambda: 0.001 + random.random() * 0.02,
+        "Current Disk Queue Length": lambda: random.randint(0, 3),
+        "Bytes Total/sec": lambda: 100000.0 + random.random() * 20000000,
+        "Current Bandwidth": lambda: 1000000000,
+        "PercentBandwidthUsedTotal": lambda: 1.0 + random.random() * 30,
+        "Processor Queue Length": lambda: random.randint(0, 5),
+        "System Up Time": lambda: 86400.0 + random.random() * 8640000,
+        "LDAP Searches/sec": lambda: 50.0 + random.random() * 450,
+        "LDAP Client Sessions": lambda: 10.0 + random.random() * 200,
+        "LDAP Writes/sec": lambda: 5.0 + random.random() * 50,
+        "DRA Inbound Bytes Total/sec": lambda: 10000.0 + random.random() * 190000,
+        "DRA Outbound Bytes Total/sec": lambda: 10000.0 + random.random() * 190000,
+        "DS Search sub-operations/sec": lambda: 20.0 + random.random() * 200,
+        "Kerberos Authentications": lambda: 20.0 + random.random() * 280,
+        "NTLM Authentications": lambda: 5.0 + random.random() * 45,
+        "KDC AS Requests": lambda: 10.0 + random.random() * 100,
+        "KDC TGS Requests": lambda: 20.0 + random.random() * 200,
+        "Total Query Received/sec": lambda: 100.0 + random.random() * 900,
+        "Recursive Queries/sec": lambda: 10.0 + random.random() * 190,
+        "Dynamic Update Received/sec": lambda: random.random() * 20,
+        "Current Connections": lambda: 5.0 + random.random() * 195,
+        "Total Method Requests/sec": lambda: 10.0 + random.random() * 290,
+        "Bytes Received/sec": lambda: 20000.0 + random.random() * 200000,
+        "Bytes Sent/sec": lambda: 30000.0 + random.random() * 300000,
+        "Connection Attempts/sec": lambda: 5.0 + random.random() * 100,
+        "Acks/sec": lambda: 1.0 + random.random() * 50,
+        "Requests/sec": lambda: 2.0 + random.random() * 60,
+        "Discovers/sec": lambda: 1.0 + random.random() * 30,
+        "Active Queue Length": lambda: random.randint(0, 5),
+        "Packets Received/sec": lambda: 5.0 + random.random() * 100,
+        "Database Size": lambda: 500.0 + random.random() * 2000,
+        "Database Drive Free Space": lambda: 10000.0 + random.random() * 40000,
+        "Log File Drive Free Space": lambda: 5000.0 + random.random() * 20000,
+        "Staging Space In Use": lambda: 100.0 + random.random() * 5000,
+        "Conflict Space In Use": lambda: random.random() * 500,
+        "Bandwidth Savings Using DFS Replication": lambda: 1000.0 + random.random() * 100000,
+    }
+    return generators.get(counter_name, lambda: random.random() * 100)()
+
 
 def main():
     print("Connecting to SCOM DW Simulator...")
 
-    # Step 1: Create database
+    # Create database
     conn = pymssql.connect(server=HOST, port=PORT, user=USER, password=PASSWORD, autocommit=True)
-    print("  Connected to SQL Server")
-
-    execute(conn, f"IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = '{DB}') CREATE DATABASE [{DB}]")
-    print("  Database created")
+    cursor = conn.cursor()
+    cursor.execute(f"IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = '{DB}') CREATE DATABASE [{DB}]")
     conn.close()
 
-    # Step 2: Connect to the new database
+    # Connect to DW database
     conn = pymssql.connect(server=HOST, port=PORT, user=USER, password=PASSWORD, database=DB, autocommit=True)
+    cursor = conn.cursor()
 
-    # Create login and user
-    execute(conn, "IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'svc-omread') CREATE LOGIN [svc-omread] WITH PASSWORD = 'ScomDemo123!'", ignore_errors=True)
-    execute(conn, "IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'svc-omread') CREATE USER [svc-omread] FOR LOGIN [svc-omread]", ignore_errors=True)
-    execute(conn, "ALTER ROLE db_datareader ADD MEMBER [svc-omread]", ignore_errors=True)
-    print("  User svc-omread created")
+    # Create login/user
+    for sql in [
+        "IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'svc-omread') CREATE LOGIN [svc-omread] WITH PASSWORD = 'ScomDemo123!'",
+        "IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'svc-omread') CREATE USER [svc-omread] FOR LOGIN [svc-omread]",
+        "ALTER ROLE db_datareader ADD MEMBER [svc-omread]",
+    ]:
+        try:
+            cursor.execute(sql)
+        except Exception:
+            pass
+    print("  Login created")
 
     # Create schemas
     for schema in ["Perf", "State", "Alert"]:
-        execute(conn, f"IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = '{schema}') EXEC('CREATE SCHEMA [{schema}]')")
-    print("  Schemas created")
+        try:
+            cursor.execute(f"IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = '{schema}') EXEC('CREATE SCHEMA [{schema}]')")
+        except Exception:
+            pass
 
     # Create tables
-    execute(conn, """
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'vManagedEntityType')
-        CREATE TABLE vManagedEntityType (
-            ManagedEntityTypeRowId INT PRIMARY KEY IDENTITY(1,1),
-            ManagedEntityTypeSystemName NVARCHAR(256)
-        )
-    """)
+    tables = {
+        "vManagedEntityType": """
+            CREATE TABLE vManagedEntityType (
+                ManagedEntityTypeRowId INT PRIMARY KEY IDENTITY(1,1),
+                ManagedEntityTypeSystemName NVARCHAR(256)
+            )""",
+        "vManagedEntity": """
+            CREATE TABLE vManagedEntity (
+                ManagedEntityRowId INT PRIMARY KEY IDENTITY(1,1),
+                ManagedEntityTypeRowId INT,
+                Path NVARCHAR(512),
+                Name NVARCHAR(256),
+                DisplayName NVARCHAR(256),
+                FullName NVARCHAR(512)
+            )""",
+        "vRelationship": """
+            CREATE TABLE vRelationship (
+                RelationshipRowId INT PRIMARY KEY IDENTITY(1,1),
+                SourceManagedEntityRowId INT,
+                TargetManagedEntityRowId INT
+            )""",
+        "vPerformanceRule": """
+            CREATE TABLE vPerformanceRule (
+                RuleRowId INT PRIMARY KEY IDENTITY(1,1),
+                ObjectName NVARCHAR(256),
+                CounterName NVARCHAR(256),
+                MultiInstanceId INT DEFAULT 0,
+                LastReceivedDateTime DATETIME DEFAULT GETUTCDATE()
+            )""",
+        "vPerformanceRuleInstance": """
+            CREATE TABLE vPerformanceRuleInstance (
+                PerformanceRuleInstanceRowId INT PRIMARY KEY IDENTITY(1,1),
+                RuleRowId INT,
+                InstanceName NVARCHAR(256),
+                LastReceivedDateTime DATETIME DEFAULT GETUTCDATE()
+            )""",
+    }
+    for name, ddl in tables.items():
+        try:
+            cursor.execute(f"IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = '{name}') {ddl}")
+        except Exception as e:
+            print(f"  Table {name}: {e}")
 
-    execute(conn, """
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'vManagedEntity')
-        CREATE TABLE vManagedEntity (
-            ManagedEntityRowId INT PRIMARY KEY IDENTITY(1,1),
-            ManagedEntityTypeRowId INT,
-            Path NVARCHAR(512),
-            Name NVARCHAR(256),
-            DisplayName NVARCHAR(256),
-            FullName NVARCHAR(512)
-        )
-    """)
+    # Schema-qualified tables
+    schema_tables = {
+        "Perf.vPerfHourly": """
+            CREATE TABLE Perf.vPerfHourly (
+                DateTime DATETIME,
+                PerformanceRuleInstanceRowId INT,
+                ManagedEntityRowId INT,
+                SampleCount INT,
+                AverageValue FLOAT,
+                MinValue FLOAT,
+                MaxValue FLOAT,
+                StandardDeviation FLOAT
+            )""",
+        "State.vStateHourly": """
+            CREATE TABLE State.vStateHourly (
+                DateTime DATETIME,
+                ManagedEntityRowId INT,
+                MonitorRowId INT,
+                OldHealthState INT,
+                NewHealthState INT,
+                InMaintenanceMode BIT
+            )""",
+        "Alert.vAlert": """
+            CREATE TABLE Alert.vAlert (
+                AlertGuid UNIQUEIDENTIFIER DEFAULT NEWID(),
+                AlertName NVARCHAR(256),
+                AlertDescription NVARCHAR(MAX),
+                Severity INT,
+                Priority INT,
+                ResolutionState INT,
+                RaisedDateTime DATETIME,
+                ResolvedDateTime DATETIME NULL,
+                ManagedEntityRowId INT
+            )""",
+    }
+    for name, ddl in schema_tables.items():
+        tbl = name.split(".")[1]
+        try:
+            cursor.execute(f"IF OBJECT_ID('{name}') IS NULL {ddl}")
+        except Exception as e:
+            print(f"  Table {name}: {e}")
 
-    execute(conn, """
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'vRelationship')
-        CREATE TABLE vRelationship (
-            RelationshipRowId INT PRIMARY KEY IDENTITY(1,1),
-            SourceManagedEntityRowId INT,
-            TargetManagedEntityRowId INT
-        )
-    """)
+    # Indexes
+    for idx_sql in [
+        "IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_PerfH_DT') CREATE INDEX IX_PerfH_DT ON Perf.vPerfHourly (DateTime)",
+        "IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_PerfH_ME') CREATE INDEX IX_PerfH_ME ON Perf.vPerfHourly (ManagedEntityRowId)",
+        "IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_PerfH_RI') CREATE INDEX IX_PerfH_RI ON Perf.vPerfHourly (PerformanceRuleInstanceRowId)",
+    ]:
+        try:
+            cursor.execute(idx_sql)
+        except Exception:
+            pass
 
-    execute(conn, """
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'vPerformanceRuleInstance')
-        CREATE TABLE vPerformanceRuleInstance (
-            PerformanceRuleInstanceRowId INT PRIMARY KEY IDENTITY(1,1),
-            ObjectName NVARCHAR(256),
-            CounterName NVARCHAR(256),
-            InstanceName NVARCHAR(256)
-        )
-    """)
-
-    execute(conn, """
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'vPerfHourly' AND SCHEMA_ID('Perf') IS NOT NULL)
-        CREATE TABLE Perf.vPerfHourly (
-            DateTime DATETIME,
-            ManagedEntityRowId INT,
-            PerformanceRuleInstanceRowId INT,
-            SampleCount INT,
-            AverageValue FLOAT,
-            MinValue FLOAT,
-            MaxValue FLOAT,
-            StandardDeviation FLOAT
-        )
-    """)
-
-    execute(conn, """
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'vStateHourly' AND SCHEMA_ID('State') IS NOT NULL)
-        CREATE TABLE State.vStateHourly (
-            DateTime DATETIME,
-            ManagedEntityRowId INT,
-            MonitorRowId INT,
-            OldHealthState INT,
-            NewHealthState INT,
-            InMaintenanceMode BIT
-        )
-    """)
-
-    execute(conn, """
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'vAlert' AND SCHEMA_ID('Alert') IS NOT NULL)
-        CREATE TABLE Alert.vAlert (
-            AlertGuid UNIQUEIDENTIFIER DEFAULT NEWID(),
-            AlertName NVARCHAR(256),
-            AlertDescription NVARCHAR(MAX),
-            Severity INT,
-            Priority INT,
-            ResolutionState INT,
-            RaisedDateTime DATETIME,
-            ResolvedDateTime DATETIME NULL,
-            ManagedEntityRowId INT
-        )
-    """)
     print("  Tables created")
 
     # Check if already seeded
-    cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM vManagedEntity")
     if cursor.fetchone()[0] > 0:
-        print("  Already seeded -- skipping data insert")
-        cursor.execute("SELECT COUNT(*) FROM vManagedEntity")
-        print(f"  Entities: {cursor.fetchone()[0]}")
-        cursor.execute("SELECT COUNT(*) FROM Perf.vPerfHourly")
-        print(f"  Perf rows: {cursor.fetchone()[0]}")
-        cursor.execute("SELECT COUNT(*) FROM Alert.vAlert")
-        print(f"  Alerts: {cursor.fetchone()[0]}")
+        print("  Already seeded -- showing counts:")
+        for tbl in ["vManagedEntity", "vPerformanceRule", "vPerformanceRuleInstance", "Perf.vPerfHourly", "State.vStateHourly", "Alert.vAlert"]:
+            cursor.execute(f"SELECT COUNT(*) FROM {tbl}")
+            print(f"    {tbl}: {cursor.fetchone()[0]}")
         conn.close()
         return
 
+    # =========================================================================
     # Seed entity types
-    execute(conn, """
+    # =========================================================================
+    cursor.execute("""
         INSERT INTO vManagedEntityType (ManagedEntityTypeSystemName) VALUES
         ('Microsoft.Windows.Computer'),
-        ('Microsoft.Windows.Server.Computer'),
-        ('System.Group'),
-        ('Microsoft.SQLServer.DBEngine'),
-        ('Microsoft.Windows.InternetInformationServices.ApplicationPool')
+        ('System.Group')
     """)
 
-    # Seed groups
+    # =========================================================================
+    # Seed servers: VM-<SITE>-<ROLE><NUM>
+    # =========================================================================
+    servers = []  # (ManagedEntityRowId will be assigned, track hostname and role)
+    for site in SITES:
+        for role in ROLES:
+            hostname = f"VM-{site}-{role}1"
+            cursor.execute(
+                "INSERT INTO vManagedEntity (ManagedEntityTypeRowId, Path, Name, DisplayName, FullName) VALUES (1, %s, %s, %s, %s)",
+                (hostname, hostname, hostname, hostname)
+            )
+        # Second DC and SQL per site
+        for extra_role in ["DC", "SQL"]:
+            hostname = f"VM-{site}-{extra_role}2"
+            cursor.execute(
+                "INSERT INTO vManagedEntity (ManagedEntityTypeRowId, Path, Name, DisplayName, FullName) VALUES (1, %s, %s, %s, %s)",
+                (hostname, hostname, hostname, hostname)
+            )
+    conn.commit()
+
+    # Get all server IDs with their hostnames
+    cursor.execute("SELECT ManagedEntityRowId, DisplayName FROM vManagedEntity WHERE ManagedEntityTypeRowId = 1")
+    all_servers = cursor.fetchall()
+    print(f"  Seeded {len(all_servers)} servers across {len(SITES)} sites")
+
+    # Build server lookup by role
+    def servers_for_role(role_filter):
+        """Get server IDs matching a role filter (e.g., 'DC', 'IIS', 'DC,FS')."""
+        if role_filter is None:
+            return all_servers
+        roles = [r.strip() for r in role_filter.split(",")]
+        return [(sid, name) for sid, name in all_servers if any(f"-{r}" in name for r in roles)]
+
+    # Seed groups (role-based, matching production)
     groups = [
-        "Steamboat Servers", "Deer Valley Monitors", "Solitude Servers",
-        "Snowshoe Servers", "Stratton Servers", "Sugarbush Servers",
-        "Tremblant Servers", "CMH Servers", "DEV Servers", "UAT Servers",
+        "AD Domain Controller Group (Windows Server 2016)",
+        "IIS 10.0 Web Server Group",
+        "DHCP Server Group",
+        "All Windows Computers",
     ]
     for g in groups:
-        execute(conn, f"INSERT INTO vManagedEntity (ManagedEntityTypeRowId, Path, Name, DisplayName, FullName) VALUES (3, '{g}', '{g}', '{g}', '{g}')")
+        cursor.execute(
+            "INSERT INTO vManagedEntity (ManagedEntityTypeRowId, Path, Name, DisplayName, FullName) VALUES (2, %s, %s, %s, %s)",
+            (g, g, g, g)
+        )
+    conn.commit()
+    print("  Groups seeded")
 
-    # Seed servers
-    sites = {
-        "Steamboat Servers": "SBT", "Deer Valley Monitors": "DV", "Solitude Servers": "SOL",
-        "Snowshoe Servers": "SNO", "Stratton Servers": "STR", "Sugarbush Servers": "SGB",
-        "Tremblant Servers": "TMB", "CMH Servers": "CMH",
-    }
-    roles = ["DC", "SQL", "IIS", "FS", "APP", "DHCP"]
-
-    for site_name, site_abbrev in sites.items():
-        for i, role in enumerate(roles):
-            hostname = f"SRV-{role}-{i+1:02d}.{site_abbrev}.alterra.com"
-            execute(conn, f"INSERT INTO vManagedEntity (ManagedEntityTypeRowId, Path, Name, DisplayName, FullName) VALUES (2, '{hostname}', '{hostname}', '{hostname}', '{hostname}')")
-
-    print(f"  Seeded {len(sites) * len(roles)} servers across {len(sites)} sites")
-
-    # Seed relationships (group membership)
-    for group_name, abbrev in sites.items():
-        execute(conn, f"""
-            INSERT INTO vRelationship (SourceManagedEntityRowId, TargetManagedEntityRowId)
-            SELECT g.ManagedEntityRowId, s.ManagedEntityRowId
-            FROM vManagedEntity s, vManagedEntity g
-            WHERE s.ManagedEntityTypeRowId = 2 AND g.DisplayName = '{group_name}'
-            AND s.Path LIKE '%.{abbrev}.%'
-        """)
+    # Seed relationships
+    cursor.execute("SELECT ManagedEntityRowId, DisplayName FROM vManagedEntity WHERE ManagedEntityTypeRowId = 2")
+    group_rows = cursor.fetchall()
+    for gid, gname in group_rows:
+        if "Domain Controller" in gname:
+            matched = servers_for_role("DC")
+        elif "IIS" in gname:
+            matched = servers_for_role("IIS")
+        elif "DHCP" in gname:
+            matched = servers_for_role("DHCP")
+        elif "All Windows" in gname:
+            matched = all_servers
+        else:
+            matched = []
+        for sid, _ in matched:
+            cursor.execute("INSERT INTO vRelationship (SourceManagedEntityRowId, TargetManagedEntityRowId) VALUES (%s, %s)", (gid, sid))
+    conn.commit()
     print("  Relationships seeded")
 
-    # Seed performance counters
-    counters = [
-        ("Processor", "% Processor Time", "_Total"),
-        ("Memory", "Available MBytes", ""),
-        ("Memory", "% Committed Bytes In Use", ""),
-        ("LogicalDisk", "% Free Space", "C:"),
-        ("LogicalDisk", "% Free Space", "D:"),
-        ("LogicalDisk", "Avg. Disk sec/Read", "C:"),
-        ("LogicalDisk", "Avg. Disk sec/Write", "C:"),
-        ("LogicalDisk", "Disk Bytes/sec", "C:"),
-        ("Network Interface", "Bytes Total/sec", "Ethernet0"),
-        ("System", "Processor Queue Length", ""),
-    ]
-    for obj, counter, inst in counters:
-        execute(conn, f"INSERT INTO vPerformanceRuleInstance (ObjectName, CounterName, InstanceName) VALUES ('{obj}', '{counter}', '{inst}')")
-    print("  Counters seeded")
+    # =========================================================================
+    # Seed performance rules (counter definitions)
+    # =========================================================================
+    # Deduplicate: same ObjectName+CounterName can have multiple instances
+    rule_map = {}  # (ObjectName, CounterName) -> RuleRowId
+    for obj, ctr, inst, role_filter in COUNTERS:
+        key = (obj, ctr)
+        if key not in rule_map:
+            cursor.execute(
+                "INSERT INTO vPerformanceRule (ObjectName, CounterName) VALUES (%s, %s)",
+                (obj, ctr)
+            )
+            cursor.execute("SELECT SCOPE_IDENTITY()")
+            rule_map[key] = int(cursor.fetchone()[0])
+    conn.commit()
+    print(f"  Seeded {len(rule_map)} performance rules")
 
+    # Seed performance rule instances (rule + instance name)
+    instance_map = {}  # (ObjectName, CounterName, InstanceName) -> PerformanceRuleInstanceRowId
+    for obj, ctr, inst, role_filter in COUNTERS:
+        key = (obj, ctr, inst)
+        if key not in instance_map:
+            rule_id = rule_map[(obj, ctr)]
+            cursor.execute(
+                "INSERT INTO vPerformanceRuleInstance (RuleRowId, InstanceName) VALUES (%s, %s)",
+                (rule_id, inst)
+            )
+            cursor.execute("SELECT SCOPE_IDENTITY()")
+            instance_map[key] = int(cursor.fetchone()[0])
+    conn.commit()
+    print(f"  Seeded {len(instance_map)} performance rule instances")
+
+    # =========================================================================
     # Seed performance data (7 days hourly)
+    # =========================================================================
     print("  Seeding 7 days of hourly performance data...")
-    cursor = conn.cursor()
-    cursor.execute("SELECT ManagedEntityRowId FROM vManagedEntity WHERE ManagedEntityTypeRowId = 2")
-    server_ids = [r[0] for r in cursor.fetchall()]
-
-    cursor.execute("SELECT PerformanceRuleInstanceRowId, CounterName FROM vPerformanceRuleInstance")
-    counter_rows = cursor.fetchall()
-
-    batch_size = 500
-    values = []
+    now = datetime.now(timezone.utc)
+    batch = []
+    total_rows = 0
 
     for hour in range(168):
-        for server_id in server_ids:
-            for counter_id, counter_name in counter_rows:
-                if counter_name == "% Processor Time":
-                    avg_val = 20 + random.random() * 60
-                elif counter_name == "Available MBytes":
-                    avg_val = 2048 + random.random() * 8192
-                elif counter_name == "% Committed Bytes In Use":
-                    avg_val = 30 + random.random() * 50
-                elif counter_name == "% Free Space":
-                    avg_val = 15 + random.random() * 70
-                elif "Disk sec" in counter_name:
-                    avg_val = 0.001 + random.random() * 0.02
-                elif counter_name == "Disk Bytes/sec":
-                    avg_val = 1e6 + random.random() * 5e7
-                elif counter_name == "Bytes Total/sec":
-                    avg_val = 5e5 + random.random() * 2e7
-                elif counter_name == "Processor Queue Length":
-                    avg_val = random.randint(0, 5)
-                else:
-                    avg_val = random.random() * 100
+        dt = now - timedelta(hours=hour)
+        dt_str = dt.strftime("%Y-%m-%d %H:%M:%S")
 
-                values.append(f"(DATEADD(hour, -{hour}, GETUTCDATE()), {server_id}, {counter_id}, 12, {avg_val:.4f}, {avg_val*0.5:.4f}, {avg_val*1.5:.4f}, 1.0)")
+        for obj, ctr, inst, role_filter in COUNTERS:
+            pri_id = instance_map[(obj, ctr, inst)]
+            target_servers = servers_for_role(role_filter)
 
-                if len(values) >= batch_size:
-                    sql = f"INSERT INTO Perf.vPerfHourly (DateTime, ManagedEntityRowId, PerformanceRuleInstanceRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES {','.join(values)}"
-                    execute(conn, sql)
-                    values = []
+            for sid, _ in target_servers:
+                val = gen_value(ctr)
+                batch.append((dt_str, pri_id, sid, 12, val, val * 0.7, val * 1.3, 1.0))
+                total_rows += 1
+
+                if len(batch) >= 1000:
+                    cursor.executemany(
+                        "INSERT INTO Perf.vPerfHourly (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                        batch
+                    )
+                    conn.commit()
+                    batch = []
 
         if (hour + 1) % 24 == 0:
-            print(f"    Day {(hour+1)//24}/7 complete")
+            print(f"    Day {(hour+1)//24}/7 complete ({total_rows:,} rows)")
 
-    if values:
-        sql = f"INSERT INTO Perf.vPerfHourly (DateTime, ManagedEntityRowId, PerformanceRuleInstanceRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES {','.join(values)}"
-        execute(conn, sql)
+    if batch:
+        cursor.executemany(
+            "INSERT INTO Perf.vPerfHourly (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+            batch
+        )
+        conn.commit()
+    print(f"  Perf data: {total_rows:,} rows")
 
-    # Seed state data
+    # =========================================================================
+    # Seed state data (every 4 hours for 7 days)
+    # =========================================================================
     print("  Seeding health state data...")
-    for server_id in server_ids:
-        health = random.choices([1, 2, 3], weights=[90, 8, 2])[0]
-        maint = 1 if random.random() < 0.03 else 0
-        execute(conn, f"INSERT INTO State.vStateHourly VALUES (GETUTCDATE(), {server_id}, 1, 1, {health}, {maint})")
+    batch = []
+    for hour in range(0, 168, 4):
+        dt = now - timedelta(hours=hour)
+        dt_str = dt.strftime("%Y-%m-%d %H:%M:%S")
+        for sid, _ in all_servers:
+            r = random.random()
+            health = 3 if r < 0.02 else (2 if r < 0.07 else 1)
+            maint = 1 if random.random() < 0.03 else 0
+            batch.append((dt_str, sid, 1, 1, health, maint))
 
+    cursor.executemany(
+        "INSERT INTO State.vStateHourly (DateTime, ManagedEntityRowId, MonitorRowId, OldHealthState, NewHealthState, InMaintenanceMode) VALUES (%s, %s, %s, %s, %s, %s)",
+        batch
+    )
+    conn.commit()
+    print(f"  State data: {len(batch)} rows")
+
+    # =========================================================================
     # Seed alerts
+    # =========================================================================
     print("  Seeding alerts...")
     alert_names = [
         "Logical Disk Free Space is low",
@@ -285,34 +470,39 @@ def main():
     ]
 
     # Active alerts
-    sample_servers = random.sample(server_ids, min(15, len(server_ids)))
-    for sid in sample_servers:
+    for sid, name in random.sample(all_servers, min(15, len(all_servers))):
         alert = random.choice(alert_names)
         sev = random.choice([1, 1, 2])
         hours_ago = random.randint(1, 72)
-        execute(conn, f"INSERT INTO Alert.vAlert (AlertName, AlertDescription, Severity, Priority, ResolutionState, RaisedDateTime, ManagedEntityRowId) VALUES ('{alert}', 'Threshold exceeded', {sev}, 1, 0, DATEADD(hour, -{hours_ago}, GETUTCDATE()), {sid})")
+        dt = (now - timedelta(hours=hours_ago)).strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute(
+            "INSERT INTO Alert.vAlert (AlertName, AlertDescription, Severity, Priority, ResolutionState, RaisedDateTime, ManagedEntityRowId) VALUES (%s, %s, %s, 1, 0, %s, %s)",
+            (alert, f"Threshold exceeded on {name}", sev, dt, sid)
+        )
 
     # Resolved alerts
-    sample_servers2 = random.sample(server_ids, min(50, len(server_ids)))
-    for sid in sample_servers2:
+    for sid, name in random.sample(all_servers, min(50, len(all_servers))):
         alert = random.choice(alert_names)
         sev = random.choice([1, 1, 2])
         hours_ago = random.randint(1, 168)
         duration = random.randint(10, 240)
-        execute(conn, f"INSERT INTO Alert.vAlert (AlertName, AlertDescription, Severity, Priority, ResolutionState, RaisedDateTime, ResolvedDateTime, ManagedEntityRowId) VALUES ('{alert}', 'Resolved', {sev}, 1, 255, DATEADD(hour, -{hours_ago}, GETUTCDATE()), DATEADD(minute, {duration}, DATEADD(hour, -{hours_ago}, GETUTCDATE())), {sid})")
+        raised = now - timedelta(hours=hours_ago)
+        resolved = raised + timedelta(minutes=duration)
+        cursor.execute(
+            "INSERT INTO Alert.vAlert (AlertName, AlertDescription, Severity, Priority, ResolutionState, RaisedDateTime, ResolvedDateTime, ManagedEntityRowId) VALUES (%s, %s, %s, 1, 255, %s, %s, %s)",
+            (alert, f"Resolved on {name}", sev, raised.strftime("%Y-%m-%d %H:%M:%S"), resolved.strftime("%Y-%m-%d %H:%M:%S"), sid)
+        )
+    conn.commit()
 
     # Final counts
-    cursor.execute("SELECT COUNT(*) FROM vManagedEntity")
-    print(f"\n  Entities: {cursor.fetchone()[0]}")
-    cursor.execute("SELECT COUNT(*) FROM Perf.vPerfHourly")
-    print(f"  Perf rows: {cursor.fetchone()[0]}")
-    cursor.execute("SELECT COUNT(*) FROM Alert.vAlert")
-    print(f"  Alerts: {cursor.fetchone()[0]}")
-    cursor.execute("SELECT COUNT(*) FROM State.vStateHourly")
-    print(f"  State rows: {cursor.fetchone()[0]}")
+    print("\n  Final counts:")
+    for tbl in ["vManagedEntity", "vPerformanceRule", "vPerformanceRuleInstance", "Perf.vPerfHourly", "State.vStateHourly", "Alert.vAlert"]:
+        cursor.execute(f"SELECT COUNT(*) FROM {tbl}")
+        print(f"    {tbl}: {cursor.fetchone()[0]:,}")
 
     conn.close()
-    print("\nSCOM DW Simulator seeded successfully!")
+    print("\nSCOM DW Simulator seeded successfully (production-aligned schema)!")
+
 
 if __name__ == "__main__":
     main()

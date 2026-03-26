@@ -1,0 +1,336 @@
+ObjectName	CounterName	server_count
+10.188.21.96	Average Jitter	66
+10.188.21.96	Avg Response Time	66
+Active Server Pages	Requests Not Found	1
+Active Server Pages	Requests Queued	1
+AD Replication	AD Replication Queue	57
+AD Storage	Database Drive Free Space	114
+AD Storage	Database Size	114
+AD Storage	Log File Drive Free Space	114
+AD Storage	Log File Size	57
+AgentStateRollup	NumberAgents	1
+ASP.NET	Requests Current	1
+ASP.NET Applications	Requests/Sec	1
+Battery Capacity	in percent	26
+Battery Run Time Remaining	Minutes	26
+Battery Status		26
+Battery Temperature	In Degrees	26
+Deduplication	Completion Percent	4
+Deduplication	Savings Rate	4
+DFS Replicated Folders	Conflict Files Cleaned up	114
+DFS Replicated Folders	Conflict Files Generated	114
+DFS Replicated Folders	Conflict Folder Cleanups Completed	114
+DFS Replicated Folders	Conflict Space In Use	114
+DFS Replicated Folders	Deleted Files Cleaned up	114
+DFS Replicated Folders	Deleted Files Generated	114
+DFS Replicated Folders	Deleted Space In Use	114
+DFS Replicated Folders	Staging Bytes Cleaned up	114
+DFS Replicated Folders	Staging Bytes Generated	114
+DFS Replicated Folders	Staging Space In Use	114
+DFS Replication Connections	Bandwidth Savings Using DFS Replication	114
+DHCP Server	Acks/sec	46
+DHCP Server	Active Queue Length	46
+DHCP Server	Conflict Check Queue Length	46
+DHCP Server	Declines/sec	46
+DHCP Server	Discovers/sec	46
+DHCP Server	Duplicates Dropped/sec	46
+DHCP Server	Informs/sec	46
+DHCP Server	Milliseconds per packet (Avg).	46
+DHCP Server	Nacks/sec	46
+DHCP Server	Offers/sec	46
+DHCP Server	Packets Expired/sec	46
+DHCP Server	Packets Received/sec	46
+DHCP Server	Releases/sec	46
+DHCP Server	Requests/sec	46
+DirectoryServices	DRA Inbound Bytes Compressed (Between Sites, After Compression)/sec	110
+DirectoryServices	DRA Inbound Bytes Compressed (Between Sites, Before Compression)/sec	110
+DirectoryServices	DRA Inbound Bytes Not Compressed (Within Site)/sec	110
+DirectoryServices	DRA Inbound Bytes Total/sec	110
+DirectoryServices	DRA Outbound Bytes Compressed (Between Sites, After Compression)/sec	110
+DirectoryServices	DRA Outbound Bytes Compressed (Between Sites, Before Compression)/sec	110
+DirectoryServices	DRA Outbound Bytes Not Compressed (Within Site)/sec	110
+DirectoryServices	DRA Outbound Bytes Total/sec	110
+DirectoryServices	DS Search sub-operations/sec	110
+DirectoryServices	LDAP Client Sessions	110
+DirectoryServices	LDAP Searches/sec	110
+DirectoryServices	LDAP UDP operations/sec	110
+DirectoryServices	LDAP Writes/sec	110
+DNS	AXFR Request Received	58
+DNS	AXFR Request Sent	58
+DNS	AXFR Response Received	58
+DNS	AXFR Success Received	58
+DNS	AXFR Success Sent	58
+DNS	Caching Memory	58
+DNS	Database Node Memory	58
+DNS	Dynamic Update NoOperation	58
+DNS	Dynamic Update NoOperation/sec	58
+DNS	Dynamic Update Queued	58
+DNS	Dynamic Update Received	58
+DNS	Dynamic Update Received/sec	58
+DNS	Dynamic Update Rejected	58
+DNS	Dynamic Update TimeOuts	58
+DNS	Dynamic Update Written to Database	58
+DNS	Dynamic Update Written to Database/sec	58
+DNS	IXFR Request Received	58
+DNS	IXFR Request Sent	58
+DNS	IXFR Response Received	58
+DNS	IXFR Success Received	58
+DNS	IXFR Success Sent	58
+DNS	IXFR TCP Success Received	58
+DNS	IXFR UDP Success Received	58
+DNS	Nbstat Memory	58
+DNS	Notify Received	58
+DNS	Notify Sent	58
+DNS	Record Flow Memory	58
+DNS	Recursive Queries	58
+DNS	Recursive Queries/sec	58
+DNS	Recursive Query Failure	58
+DNS	Recursive Query Failure/sec	58
+DNS	Recursive Send TimeOuts	58
+DNS	Recursive TimeOut/sec	58
+DNS	Secure Update Failure	58
+DNS	Secure Update Received	58
+DNS	Secure Update Received/sec	58
+DNS	TCP Message Memory	58
+DNS	TCP Query Received	58
+DNS	TCP Query Received/sec	58
+DNS	TCP Response Sent	58
+DNS	TCP Response Sent/sec	58
+DNS	Total Query Received	58
+DNS	Total Query Received/sec	113
+DNS	Total Response Sent	58
+DNS	Total Response Sent/sec	58
+DNS	UDP Message Memory	58
+DNS	UDP Query Received	58
+DNS	UDP Query Received/sec	58
+DNS	UDP Response Sent	58
+DNS	UDP Response Sent/sec	58
+DNS	Unmatched Responses Received	58
+DNS	WINS Lookup Received	58
+DNS	WINS Lookup Received/sec	58
+DNS	WINS Response Sent	58
+DNS	WINS Response Sent/sec	58
+DNS	WINS Reverse Lookup Received	58
+DNS	WINS Reverse Lookup Received/sec	58
+DNS	WINS Reverse Response Sent	58
+DNS	WINS Reverse Response Sent/sec	58
+DNS	Zone Transfer Failure	58
+DNS	Zone Transfer Request Received	58
+DNS	Zone Transfer SOA Request Sent	58
+DNS	Zone Transfer Success	58
+DNS Server 2016 Zone	QueriesFailure	2002
+DNS Server 2016 Zone	QueriesNameError	2002
+DNS Server 2016 Zone	QueriesReceived	2002
+Domain Naming Op Master	Op Master Domain Naming Last Bind	113
+Domain Naming Op Master	Op Master Domain Naming Last Ping	113
+Exchange App Pool	Active Requests	10
+Exchange App Pool	Cpu Usage (%)	10
+Exchange App Pool	Pool Non Paged Memory Size (MB)	10
+Exchange App Pool	Pool Paged Memory Size (MB)	10
+Exchange App Pool	Private Bytes (%)	10
+Exchange App Pool	Private Memory Size (MB)	10
+Exchange Database	Database Page Fault Stalls/sec	1
+Exchange Database	I/O Database Reads Average Latency (ms)	1
+Exchange Database	I/O Database Writes Average Latency (ms)	1
+Exchange Database	I/O Log Reads Average Latency (ms)	1
+Exchange Database	I/O Log Writes Average Latency (ms)	1
+Exchange Mailbox Database	Database Available Space (MB)	1
+Exchange Mailbox Database	Database Page Fault Stalls/sec	1
+Exchange Mailbox Database	Database Size (MB)	1
+Exchange Mailbox Database	I/O Database Reads Average Latency (ms)	1
+Exchange Mailbox Database	I/O Database Writes Average Latency (ms)	1
+Exchange Mailbox Database	I/O Log Reads Average Latency (ms)	1
+Exchange Mailbox Database	I/O Log Writes Average Latency (ms)	1
+Exchange Mailbox Database	Index Size (MB)	1
+Exchange Mailbox Database	Transaction Log Available Space (MB)	1
+Exchange Mailbox Database	Transaction Log Size (MB)	1
+Exchange Organization	Client Connections Count	1
+Exchange Organization	E2E Deliver <=90sec	1
+Exchange Organization	E2E Send To External <=90sec	1
+Exchange Organization	Mailbox Count	1
+Exchange Organization	Mailbox Database Size (MB)	1
+Exchange Organization	Messages Received/sec	1
+Exchange Organization	Messages Sent/Sec	1
+Exchange Organization	Store Messages Submitted/sec	1
+Exchange Server	ActiveSync Pending	1
+Exchange Server	Avg. Auth Latency (ms)	1
+Exchange Server	Avg. Disk sec/Read	1
+Exchange Server	Avg. Disk sec/Write	1
+Exchange Server	Avg. RPC Latency (ms)	1
+Exchange Server	Client Connections Count	1
+Exchange Server	Cpu Usage (%)	1
+Exchange Server	Disk Free Space (MB)	1
+Exchange Server	Disk Reads/sec	1
+Exchange Server	Disk Size (MB)	1
+Exchange Server	Disk Writes/sec	1
+Exchange Server	E2E Deliver <=90sec	1
+Exchange Server	E2E Percentile95	1
+Exchange Server	E2E Send To External <=90sec	1
+Exchange Server	EWS Response Time (ms)	1
+Exchange Server	LDAP Search Time (ms)	1
+Exchange Server	Messages Received/sec	1
+Exchange Server	Messages Sent/Sec	1
+Exchange Server	Outstanding Proxy Requests	1
+Exchange Server	Private Bytes (%)	1
+Exchange Server	Private Memory Size (MB)	1
+Exchange Server	Proxy Failure Rate (%)	1
+Exchange Server	Proxy Requests/sec	1
+Exchange Server	Queue Count	1
+Exchange Server	Queue Database Size (MB)	1
+Exchange Server	Queue Length	1
+Exchange Server	Requests/sec	1
+Exchange Server	SMTP Bytes Received/sec	1
+Exchange Server	SMTP Bytes Sent/sec	1
+Exchange Server	SMTP Connections Current	1
+Exchange Server	Store Messages Submitted/sec	1
+Exchange Server	Total Memory (MB)	1
+Exchange Windows Service	Cpu Usage (%)	23
+Exchange Windows Service	Pool Non Paged Memory Size (MB)	23
+Exchange Windows Service	Pool Paged Memory Size (MB)	23
+Exchange Windows Service	Private Bytes (%)	23
+Exchange Windows Service	Private Memory Size (MB)	23
+General Response	Active Directory Last Bind	113
+General Response	Global Catalog Search Time	112
+Health Service	Active File Uploads	1
+Health Service	agent processor utilization	946
+Health Service	Module Count	946
+Health Service	Workflow Count	946
+Health Service Management Groups	Bind Data Source Item Drop Rate	1
+Health Service Management Groups	Bind Data Source Item Incoming Rate	1
+Health Service Management Groups	Send Queue % Used	946
+Health Service Management Groups	Send Queue Size	946
+HTTP Service Request Queues	CurrentQueueSize	2
+HTTP Service Request Queues	RejectionRate	1
+ICMP Ping	Response Time (ms)	35
+Infrastructure Op Master	Op Master Infrastructure Last Bind	113
+Infrastructure Op Master	Op Master Infrastructure Last Ping	113
+Input Frequency	In Hz	26
+Input Line Voltage	In VAC	26
+Logical Disk	% Used Inodes	2
+Logical Disk	% Used Space	2
+Logical Disk	Disk Read Bytes/sec	2
+Logical Disk	Disk Reads/sec	2
+Logical Disk	Disk Transfers/sec	2
+Logical Disk	Disk Write Bytes/sec	2
+Logical Disk	Disk Writes/sec	2
+Logical Disk	Free Megabytes	2
+Logical Disk	Logical Disk Bytes/sec	2
+Logical Disk	Used Megabytes	2
+LogicalDisk	% Free Space	1776
+LogicalDisk	% Idle Time	1776
+LogicalDisk	Avg. Disk sec/Transfer	1776
+LogicalDisk	Current Disk Queue Length	1776
+LogicalDisk	Disk Bytes/sec	15
+LogicalDisk	Disk Read Bytes/sec	15
+LogicalDisk	Disk Reads/sec	15
+LogicalDisk	Disk Write Bytes/sec	15
+LogicalDisk	Disk Writes/sec	15
+LogicalDisk	Free Megabytes	1776
+ManagementGroupAlerts	AlertsCount	1
+Memory	% Available Memory	1
+Memory	% Used Memory	1
+Memory	Available Bytes	112
+Memory	Available MBytes	918
+Memory	Available MBytes Memory	1
+Memory	Committed Bytes	112
+Memory	Free Memory %	2
+Memory	Free System Page Table Entries	918
+Memory	Page Reads/sec	1
+Memory	Page Writes/sec	1
+Memory	Pages/sec	1031
+Memory	PercentMemoryUsed	929
+Memory	Pool Nonpaged Bytes	918
+Memory	Pool Paged Bytes	918
+Memory	Used Memory MBytes	1
+Microsoft FTP Service	Bytes Total/sec	33
+Microsoft FTP Service	Current Connections	33
+MSExchangeTransport Queues	Active Mailbox Delivery Queue Length	1
+MSExchangeTransport Queues	Active Non-Smtp Delivery Queue Length	1
+MSExchangeTransport Queues	External Active Remote Delivery Queue Length	1
+MSExchangeTransport Queues	External Aggregate Delivery Queue Length (All External Queues)	1
+MSExchangeTransport Queues	External Retry Remote Delivery Queue Length	1
+MSExchangeTransport Queues	Internal Aggregate Delivery Queue Length (All Internal Queues)	1
+MSExchangeTransport Queues	Internal Retry Remote Delivery Queue Length	1
+MSExchangeTransport Queues	Retry Non-Smtp Delivery Queue Length	1
+MSExchangeTransport Queues	Submission Queue Length	1
+MSExchangeTransport Queues	Unreachable Queue Length	1
+Network Adapter	Bytes Received/Sec	1
+Network Adapter	Bytes Sent/Sec	1
+Network Adapter	Bytes Total/sec	1310
+Network Adapter	Current Bandwidth	1309
+Network Adapter	PercentBandwidthUsedTotal	1258
+OpsMgr DB Write Action Modules	Avg. Batch Size	1
+OpsMgr DB Write Action Modules	Avg. Processing Time	1
+OpsMgr DW Synchronization Module	Avg. Batch Processing Time, ms	1
+OpsMgr DW Synchronization Module	Avg. Batch Size	1
+OpsMgr DW Synchronization Module	Batch Age, sec	1
+OpsMgr DW Synchronization Module	Batch Size	1
+OpsMgr DW Synchronization Module	Batches/sec	1
+OpsMgr DW Synchronization Module	Data Items/sec	1
+OpsMgr DW Synchronization Module	Errors/sec	1
+OpsMgr DW Synchronization Module	Total Error Count	1
+OpsMgr DW Writer Module	Avg. Batch Processing Time, ms	1
+OpsMgr DW Writer Module	Avg. Batch Size	1
+OpsMgr DW Writer Module	Batches/sec	1
+OpsMgr DW Writer Module	Data Items/sec	1
+OpsMgr DW Writer Module	Dropped Batch Count	1
+OpsMgr DW Writer Module	Dropped Data Item Count	1
+OpsMgr DW Writer Module	Errors/sec	1
+OpsMgr DW Writer Module	Total Error Count	1
+OpsMgr SDK Service	Client Connections	1
+Output Frequency	In Hz	26
+Output Load	In percent	26
+Output Voltage	In VAC	26
+PDC Op Master	Op Master PDC Last Bind	113
+PDC Op Master	Op Master PDC Last Ping	113
+Process	% Processor Time	168
+Process	Handle Count	112
+Process	Percent Processor Time	4
+Process	Private Bytes	170
+Processor	% DPC Time	1
+Processor	% Idle Time	1
+Processor	% Interrupt Time	1
+Processor	% IO Wait Time	1
+Processor	% Nice Time	1
+Processor	% Privileged Time	1
+Processor	% Processor Time	115
+Processor	% User Time	1
+Processor Information	% Processor Time	929
+RID Op Master	Op Master RID Last Bind	113
+RID Op Master	Op Master RID Last Ping	113
+Schema Op Master	Op Master Schema Last Bind	113
+Schema Op Master	Op Master Schema Last Ping	113
+Scopes	AddressesAvailable	4
+Scopes	AddressesInUse	4
+Scopes	IPV4Scope-AddressesAvailable	1440
+Scopes	IPV4Scope-AddressesInUse	1440
+Security System-Wide Statistics	KDC AS Requests	112
+Security System-Wide Statistics	KDC TGS Requests	112
+Security System-Wide Statistics	Kerberos Authentications	112
+Security System-Wide Statistics	NTLM Authentications	112
+Server	Server Sessions	112
+SMS Notification Server	Total online clients	1
+Swap Space	% Available Swap Space	1
+Swap Space	% Used Swap Space	1
+Swap Space	Available MBytes Swap	1
+Swap Space	Used MBytes Swap Space	1
+System	Processor Queue Length	918
+System	System Up Time	1058
+TCPv4	Connections Established	112
+TCPv6	Connections Established	112
+Time On Battery	Minutes	26
+Web Service	Bytes Received/sec	357
+Web Service	Bytes Sent/sec	357
+Web Service	Bytes Total/sec	357
+Web Service	Connection Attempts/sec	357
+Web Service	Current Connections	368
+Web Service	Total Method Requests/sec	357
+Web Test Performance	Content Size	47
+Web Test Performance	Content Time	47
+Web Test Performance	DNS Resolution Time	47
+Web Test Performance	Time To First Byte	47
+Web Test Performance	Time To Last Byte	47
+Web Test Performance	Transaction Response Time	49
+WebTest	ResponseTime	4
+wp-ssphq-u-b01	Probe Temperature (Degrees)	12
+wp-ssphq-u-b01	Relative Humidity (%)	12
