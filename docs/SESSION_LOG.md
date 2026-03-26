@@ -736,3 +736,92 @@ Chronological record of work sessions for context continuity.
 - Production discovery CSVs in `scripts/scom_production_*.csv` -- these are the ground truth for counter names and entity types.
 
 ---
+
+## Session: 2026-03-26 (continued) -- SquaredUp Reference, Site Overview, Full Counter Coverage
+
+### Completed (28 commits total this mega-session spanning 2026-03-25 to 2026-03-26)
+
+**SquaredUp Analysis**
+- Reviewed 13 production SquaredUp screenshots (IMG_1761-1773)
+- Documented navigation structure, data sources, connection details in `docs/SQUARED_UP_REFERENCE.md`
+- Key finding: SquaredUp uses Integrated Security to vm-den-sql11; ops navigates by resort first, then role
+- Mapped all SquaredUp views to Grafana equivalents -- site filtering covers "Resorts" nav, role dashboards cover "Teams" nav
+
+**Site Overview Dashboard (Phase 15F)**
+- Created `scom_site_overview.json` -- primary ops landing page replacing SquaredUp's per-resort view
+- Site health summary (total/healthy/warning/critical), active alerts table, full server inventory with health state, maintenance mode, CPU %, memory %
+- Single-site focused (no "All") -- each resort team bookmarks `?var-site=DV`
+- Fleet Overview Per-Site Summary now links to Site Overview (not self-filtering)
+- Added Site Overview to nav links on all 11 dashboards
+
+**Dashboard Enhancements -- Deeper Operational Counters**
+- **DHCP**: added Response Activity (offers/acks/nacks/declines), Errors & Latency (duplicates/expired/ms per packet), Scope Address Usage table (per-scope utilization % with IP exhaustion thresholds)
+- **AD/DC**: added FSMO Role Holder Health (all 5 FSMO Last Bind values), AD Replication Queue, GC Search Time, detailed DRA inbound/outbound replication breakdown
+- **Server Overview**: added Kernel Memory (Pool Nonpaged/Paged Bytes, Free PTE) and TCP Connections & Server Sessions
+
+**Full Counter Seeding**
+- Identified 30 dashboard counters not seeded in simulator
+- Seeded all missing counters (70 total now): kernel memory, TCP, FSMO, AD replication, GC search time, LDAP binds, DHCP lifecycle, IIS ASP.NET/errors, disk throughput
+- Updated `scom_dw_seed_runner.py` with all counters so fresh rebuilds include everything
+- **Result: 10 of 11 dashboards fully populated in simulator. Only Exchange intentionally empty (production-only).**
+
+**Architecture / Deployment**
+- Created then reverted standalone `docker-compose.scom.yml` -- kept everything in main compose file per existing patterns
+- Made Grafana `depends_on` Prometheus/Loki optional (`required: false`) so Grafana starts without full metrics stack
+- Updated `docs/operations/STACK_MANAGEMENT.md` with full SCOM deployment guide (production + demo)
+- Updated `docs/operations/DASHBOARD_GUIDE.md` with all 11 SCOM dashboards, navigation flow, filter table, glossary
+- Added `scom-dw` to `validate_dashboards.py` valid datasource UIDs
+- Phase 15A marked complete in PROJECT_PLAN.md
+
+### Final Dashboard Inventory (11 total)
+
+| Dashboard | Panels | Simulator Data | Chrome Verified |
+|-----------|--------|----------------|-----------------|
+| Fleet Overview | 14 | Full | Yes |
+| Site Overview | 10 | Full | Yes |
+| Server Overview | 17 | Full | Yes |
+| Health State | ~10 | Full | Yes |
+| Alerts | ~10 | Full | Yes |
+| AD/DC | 18 | Full | Yes |
+| IIS | ~14 | Full | Yes |
+| DHCP | 14 | Full | Yes |
+| DNS | ~8 | Full | Yes |
+| DFS | ~8 | Full | Yes |
+| Exchange | ~12 | No data (expected) | Yes (empty OK) |
+
+### Decisions
+
+- **No separate SCOM-only compose file**: Reverted. Main compose handles everything via profiles and optional dependencies. Respects existing `stack_manage.py` patterns.
+- **No SquaredUp copy**: Build better dashboards, not clones. Site filtering + role dashboards cover both "Resorts" and "Teams" navigation patterns.
+- **Seed everything**: No empty panels in the demo. Exchange is the only exception because it's a fundamentally different infrastructure (would need Exchange entities in simulator).
+- **SQL Authentication for Grafana**: Docker host likely not domain-joined, so Windows Auth not practical. Create purpose-built SQL login (`grafana-scom-ro`), not reuse the AD `svc-omread` account.
+- **Phased demo**: Phase 1 = live SCOM data (replace SquaredUp). Phase 2 = Alloy stack (replace SCOM agents). Don't mix live and synthetic.
+
+### Blockers
+
+- **Docker host domain join status**: User checking. Determines SQL auth vs Windows Auth.
+- **SQL login creation**: Need `grafana-scom-ro` (or similar) with `db_datareader` on OperationsManagerDW.
+- **Network path**: Docker host -> VM-DEN-SQL11:1433.
+- **Hostname pattern validation**: Need to confirm all 1,335 production servers follow `VM-<SITE>-` pattern.
+
+### Next Session
+
+1. **User confirms Docker host domain join** and creates SQL login
+2. **Deploy to production**: set `.env`, run `stack_manage.py`, verify live SCOM data
+3. **Fix any counter name mismatches** on production (some panels may need ObjectName/CounterName tweaks)
+4. **Validate hostname patterns** -- confirm site variable extracts correctly for all 15 production sites
+5. **Alert History enhancements** if needed (daily average, top alerted objects, most common alerts)
+
+### Context
+
+- Stack: `python3 scripts/stack_manage.py` from project root. `.env` goes in project root.
+- Demo: `cd deploy/docker && docker compose --profile scom-demo up -d` -- auto-seeds, no manual steps.
+- `svc-omread` exists in ADUC as AD account. Do NOT use same name for SQL login. Use `grafana-scom-ro`.
+- SquaredUp connection string from IMG_1772: `Data Source=vm-den-sql11;Initial Catalog=OperationsManagerDW;Integrated Security=True`
+- Grafana volume was wiped earlier in session. Fresh state: admin/admin with password change prompt.
+- Production sites (15): BMR, DED, DEN, DEU, DV, MM, SBT, SCHW, SNO, SOL, STR, SUG, SVAM, TRM, WP
+- Simulator sites (9): DEN, DV, SBT, SNO, SOL, STR, SUG, TRM, WP
+- Commits this session: 10c1179 through ad0ff98 (28 commits)
+- `docs/INTERNAL_PROPOSAL.md` still untracked (not committed)
+
+---
