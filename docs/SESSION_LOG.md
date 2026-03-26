@@ -825,3 +825,62 @@ Chronological record of work sessions for context continuity.
 - `docs/INTERNAL_PROPOSAL.md` still untracked (not committed)
 
 ---
+
+## Session: 2026-03-26 (final) -- Sanitization, Deployment Recon, Full Verification
+
+### Completed
+
+- **Full codebase sanitization**: Removed all org-specific references (resort names, site codes, server hostnames, SQL server names) from dashboards, configs, docs, inventory, and site configs. Replaced with generic NATO alphabet codes (ALPHA, BRAVO, CHARLIE, etc.) for simulator and generic placeholders for docs.
+- **Site code fix**: Discovered that hyphenated site codes (SITE-A) broke the `VM-<SITE>-<ROLE>` hostname parsing logic (SUBSTRING/CHARINDEX found wrong dash). Changed to single-word NATO alphabet codes.
+- **TLS connection fix**: Grafana v11.5 MSSQL plugin requires `encrypt: "disable"` not `encrypt: "false"` to skip TLS. Fixed in `scom_dw.yml`. This will need to be `"true"` for production.
+- **Full simulator rebuild**: Rebuilt SCOM simulator with generic site codes. 72 servers, 70 rules, 73 instances, 411K perf rows, 3K state rows, 65 alerts. All 11 dashboards verified in Chrome.
+- **DHCP Scope Address Usage table**: Added per-scope utilization view showing addresses in use, available, and % with IP exhaustion thresholds.
+- **Production discovery data cleanup**: Removed production CSVs (scom_production_*.csv) and old SQL seed file from repo.
+- **SquaredUp reference sanitized**: Removed resort names and production server hostnames.
+- **Docker host reconnaissance**: Reviewed Traefik config and GPO Analyzer compose from Denver DC Docker host. Documented Traefik integration pattern in `docs/DEPLOYMENT_NOTES.md`.
+- **Commits**: c880331 through ef5c80c (7 commits)
+
+### Docker Host Environment (Denver DC)
+
+- Traefik at `/opt/docker-host/traefik/`
+- External Docker network: `Frontend` (used by Traefik for auto-discovery)
+- Entrypoints: HTTP (:80), HTTPS (:443), Dashboard (:8080)
+- GPO Analyzer running from Azure Container Registry
+- App directory: `/opt/docker-apps/`
+- User had limited permissions (could not `cd /opt` or `su`)
+
+### Blockers (all human/infrastructure actions)
+
+1. **Docker host access**: User cannot `cd /opt` or `su`. Needs permissions from host admin.
+2. **DNS hostname**: Need a hostname for Grafana (e.g., `sys-monitoring.<domain>`) for Traefik routing.
+3. **SQL login**: Create `grafana-scom-ro` with `db_datareader` on OperationsManagerDW.
+4. **Network path**: Verify Docker host can reach SCOM DW SQL Server on port 1433.
+5. **TLS cert**: Need cert for monitoring hostname added to Traefik certificate store.
+
+### Decisions
+
+- **NATO alphabet site codes**: ALPHA/BRAVO/CHARLIE instead of SITE-A/B/C. Single-word codes required for hostname parsing logic to work correctly.
+- **Direct port first, Traefik later**: Deploy Grafana on port 3000 directly first, add Traefik integration as a second step after basic functionality is confirmed.
+- **encrypt: "disable" for simulator, "true" for production**: MSSQL datasource TLS setting needs to change when pointing at production SQL Server.
+- **No separate compose file**: Everything in main docker-compose.yml. Traefik labels will be added as an overlay or directly when deploying.
+
+### Next Session
+
+1. **Get Docker host access** (user needs to request permissions)
+2. **Get DNS hostname assigned** for Grafana
+3. **Create SQL login** on SCOM DW server
+4. **Clone repo to Docker host** and do initial deployment
+5. **Verify SCOM dashboards with production data**
+6. **Add Traefik labels** once basic deployment works
+
+### Context
+
+- Docker host runs Linux (not domain-joined -- confirmed by user "likely")
+- Traefik network is `Frontend` (external: true)
+- Traefik routing pattern: labels on containers with `traefik.http.routers.<name>.rule=Host(...)`
+- SCOM DW datasource `encrypt` setting: `"disable"` in repo, must change to `"true"` for production
+- Simulator takes ~8 minutes to fully seed (411K rows) on fresh volume
+- `docs/INTERNAL_PROPOSAL.md` is now committed (was tracked during sanitization commit)
+- All 30 commits this mega-session: 10c1179 through ef5c80c
+
+---
