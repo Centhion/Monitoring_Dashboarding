@@ -613,6 +613,69 @@ Chronological record of work sessions for context continuity.
 - The `scom_dw_seed.sql` file does NOT include role-specific counters -- those were seeded via Python only. If the SCOM sim container restarts, only the base seed data (Windows OS counters) will exist. Role counters need re-seeding or adding to the SQL seed file.
 - Grafana volume was wiped during debugging -- fresh state, admin/admin login, password change prompt on first access
 - The `rawQuery` field in Server Overview targets contains old query strings (pre-fix). These are vestigial -- Grafana uses `rawSql` for execution. Harmless but messy.
-- Files not committed: `scripts/scom_dw_discovery.sql` (new), `docs/INTERNAL_PROPOSAL.md` (pre-existing untracked)
+- Files not committed: `docs/INTERNAL_PROPOSAL.md` (pre-existing untracked)
+
+---
+
+## Session: 2026-03-25 (continued) -- Production Schema Alignment + Full Dashboard Rebuild
+
+### Completed (14 commits)
+
+- **Production SCOM DW Discovery**: User ran 4 SQL queries against VM-DEN-SQL11 OperationsManagerDW. Discovered: entity type is `Microsoft.Windows.Computer`, counter names stored in separate `vPerformanceRule` table via `RuleRowId`, counter ObjectNames differ from simulator (Processor Information, PercentMemoryUsed, Network Adapter, DirectoryServices, Security System-Wide Statistics). No SQL Server MP perf counters. No SCOM site groups -- site filtering from hostname parsing.
+- **Phase 15E complete**: Rebuilt SCOM simulator with production-aligned schema. 72 servers across 9 sites (DEN, DV, SBT, SNO, SOL, STR, SUG, TRM, WP). 44 performance rules, 47 instances, 284K perf rows. vPerformanceRule table added. Hostname pattern VM-<SITE>-<ROLE><NUM>.
+- **All 10 SCOM dashboards rebuilt**: Corrected JOIN path (vPerfHourly -> vPerformanceRuleInstance -> vPerformanceRule via RuleRowId), entity type, counter names, hostname field (me.DisplayName not me.Path).
+- **Site filtering added to all dashboards**: Site variable extracts code from hostname using STUFF/LEFT/CHARINDEX. Server variable cascades from site. Role dashboards filter by role prefix.
+- **Per-Site Summary table** added to Fleet Overview: shows server count, avg CPU, avg memory per site with drill-down links.
+- **4 new role dashboards**: DHCP (scom_dhcp.json), DNS (scom_dns.json), DFS Replication (scom_dfs.json), Exchange (scom_exchange.json).
+- **SQL Server dashboard removed**: No SQL Server perf counters in production DW.
+- **Standardized navigation**: 4-link nav bar on all 10 dashboards with keepTime. Fleet drill-downs pass site context.
+- **Auto-seed container**: scom-dw-seed Docker container runs seed automatically on `docker compose --profile scom-demo up`. No manual pymssql step needed.
+- **Variable query format fix**: Grafana v11.5 MSSQL plugin requires template variable queries as plain SQL strings, not `{"query": "...", "refId": "..."}` objects. Fixed across all 10 dashboards.
+- **Production discovery CSVs saved**: scripts/scom_production_counters.csv, scom_production_entities.csv, scom_production_groups.csv
+
+### 10 SCOM Dashboards (final state)
+
+| Dashboard | UID | Servers | Role Filter |
+|-----------|-----|---------|-------------|
+| Fleet Overview | scom-fleet-overview | All (72) | None (hub) |
+| Server Overview | scom-server-overview | Any | All roles |
+| Health State | scom-health-state | All | None |
+| Alerts | scom-alerts | All | None |
+| AD/DC | scom-ad-dc | DC (18) | VM-*-DC* |
+| IIS | scom-iis | IIS (9) | VM-*-IIS* |
+| DHCP | scom-dhcp | DHCP (9) | VM-*-DHCP* |
+| DNS | scom-dns | DC (18) | VM-*-DC* |
+| DFS Replication | scom-dfs | DC+FS (27) | VM-*-DC*/FS* |
+| Exchange | scom-exchange | All | None (prod only) |
+
+### Key Technical Decisions
+
+- **Variable queries must be plain strings**: Grafana v11.5 MSSQL plugin cannot unmarshal object-format variable queries. Panel target queries work with objects. This is a Grafana bug/limitation.
+- **Site extraction from hostname**: `LEFT(STUFF(me.DisplayName, 1, 3, ''), CHARINDEX('-', STUFF(me.DisplayName, 1, 3, '')) - 1)` extracts site code from VM-<SITE>-<ROLE> pattern.
+- **No SCOM site groups in production**: Site filtering via hostname parsing, not SCOM group membership.
+- **SQL Server MP not installed**: No SQL-specific perf counters in DW. SQL servers monitored via Windows OS counters only. AG cluster status visible via group data.
+- **Production deployment**: Skip `--profile scom-demo`, set `SCOM_DW_HOST=VM-DEN-SQL11` and `SCOM_DW_PASSWORD` in `.env`. Simulator containers don't start without the profile.
+
+### Blockers
+
+- **Production SQL login**: Need `svc-omread` with `db_datareader` on OperationsManagerDW (human action)
+- **Network path verification**: Denver DC Docker host to VM-DEN-SQL11 (human action)
+- **Hostname pattern validation**: Need to confirm all 1,335 production servers follow `VM-<SITE>-` pattern
+
+### Next Session
+
+1. Visual Chrome review of all 10 rebuilt dashboards with working variables
+2. Verify site dropdown, server cascading, and cross-dashboard navigation
+3. Build remaining deferred dashboards if needed (UPS/Battery, SQL Cluster/AG)
+4. Production deployment prep once SQL login and network path are confirmed
+
+### Context
+
+- Stack: `docker compose --profile scom-demo up -d` (from deploy/docker/)
+- Grafana: localhost:3000, admin/admin (fresh volume, password change prompt on first login)
+- SCOM simulator seeds automatically via mon-scom-dw-seed container (~3 min on first start)
+- Production discovery data in scripts/scom_production_*.csv
+- 15 production sites: BMR, DED, DEN, DEU, DV, MM, SBT, SCHW, SNO, SOL, STR, SUG, SVAM, TRM, WP
+- Commits: dfac108 through 8442895
 
 ---
