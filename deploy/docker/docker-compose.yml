@@ -327,7 +327,6 @@ services:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "ScomDemo123!"
     volumes:
-      - ../../scripts/scom_dw_seed.sql:/docker-entrypoint-initdb.d/seed.sql:ro
       - scom_dw_data:/var/opt/mssql
     deploy:
       resources:
@@ -339,6 +338,29 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+    networks:
+      - monitoring
+
+  # ---------------------------------------------------------------------------
+  # SCOM DW Seed Runner -- auto-seeds the simulator on first startup
+  # ---------------------------------------------------------------------------
+  scom-dw-seed:
+    build:
+      context: ../../scripts
+      dockerfile: Dockerfile.scom-seed
+    container_name: mon-scom-dw-seed
+    restart: "no"
+    profiles:
+      - scom-demo
+    environment:
+      SCOM_DW_HOST: scom-dw-sim
+      SCOM_DW_PORT: "1433"
+      SCOM_DW_SA_USER: sa
+      SCOM_DW_SA_PASSWORD: "ScomDemo123!"
+      SCOM_DW_WAIT_SECONDS: "120"
+    depends_on:
+      scom-dw-sim:
+        condition: service_started
     networks:
       - monitoring
 

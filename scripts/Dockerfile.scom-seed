@@ -1,0 +1,5 @@
+FROM python:3.12-slim
+RUN pip install --no-cache-dir pymssql
+COPY scom_dw_seed_runner.py /seed/seed_runner.py
+WORKDIR /seed
+CMD ["python", "-u", "seed_runner.py"]

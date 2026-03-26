@@ -13,7 +13,9 @@ Usage:
     python scripts/scom_dw_seed_runner.py
 """
 
+import os
 import sys
+import time
 import random
 from datetime import datetime, timezone, timedelta
 
@@ -23,11 +25,13 @@ except ImportError:
     print("ERROR: pymssql required. Install: pip install pymssql")
     sys.exit(1)
 
-HOST = "localhost"
-PORT = 1433
-USER = "sa"
-PASSWORD = "ScomDemo123!"
+# Connection settings from environment (for Docker) or defaults (for local)
+HOST = os.environ.get("SCOM_DW_HOST", "localhost")
+PORT = int(os.environ.get("SCOM_DW_PORT", "1433"))
+USER = os.environ.get("SCOM_DW_SA_USER", "sa")
+PASSWORD = os.environ.get("SCOM_DW_SA_PASSWORD", "ScomDemo123!")
 DB = "OperationsManagerDW"
+MAX_WAIT = int(os.environ.get("SCOM_DW_WAIT_SECONDS", "120"))
 
 # Production site codes (discovered 2026-03-25)
 SITES = ["DEN", "DV", "SBT", "SNO", "SOL", "STR", "SUG", "TRM", "WP"]
@@ -146,8 +150,27 @@ def gen_value(counter_name):
     return generators.get(counter_name, lambda: random.random() * 100)()
 
 
+def wait_for_sql():
+    """Wait for SQL Server to accept connections."""
+    print(f"Waiting for SQL Server at {HOST}:{PORT} (max {MAX_WAIT}s)...")
+    start = time.time()
+    while time.time() - start < MAX_WAIT:
+        try:
+            conn = pymssql.connect(server=HOST, port=PORT, user=USER, password=PASSWORD)
+            conn.close()
+            print("  SQL Server is ready")
+            return True
+        except Exception:
+            time.sleep(3)
+    print("  TIMEOUT: SQL Server not available")
+    return False
+
+
 def main():
-    print("Connecting to SCOM DW Simulator...")
+    if not wait_for_sql():
+        sys.exit(1)
+
+    print("Seeding SCOM DW Simulator...")
 
     # Create database
     conn = pymssql.connect(server=HOST, port=PORT, user=USER, password=PASSWORD, autocommit=True)

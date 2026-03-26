@@ -82,7 +82,7 @@
           "uid": "scom-dw"
         },
         "query": {
-          "query": "SELECT DISTINCT SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __text, SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 ORDER BY 1",
+          "query": "SELECT DISTINCT LEFT(STUFF(me.DisplayName, 1, 3, ''), CHARINDEX('-', STUFF(me.DisplayName, 1, 3, '')) - 1) AS __text, LEFT(STUFF(me.DisplayName, 1, 3, ''), CHARINDEX('-', STUFF(me.DisplayName, 1, 3, '')) - 1) AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 AND me.DisplayName LIKE 'VM-%' ORDER BY 1",
           "refId": "StandardVariableQuery"
         },
         "label": "Site",
