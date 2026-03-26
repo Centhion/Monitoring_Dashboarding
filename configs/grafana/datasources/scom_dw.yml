@@ -40,7 +40,5 @@ datasources:
       maxOpenConns: 10
       # Connection timeout in seconds
       connMaxLifetime: 14400
-      # Encrypt connection (recommended for production)
-      encrypt: "false"
-      # Trust server certificate (set to false in production with proper certs)
-      tlsSkipVerify: true
+      # Encrypt connection -- use "disable" for local/simulator, "true" for production
+      encrypt: "disable"
