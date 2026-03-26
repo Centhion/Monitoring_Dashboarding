@@ -244,23 +244,69 @@ Dashboards are organized into 4 folders in the left sidebar:
 
 ## SCOM Monitoring Dashboards
 
-These dashboards read from the SCOM Data Warehouse and show the same data that SquaredUp displays. Use these during the transition period while SCOM is still running.
+These dashboards read directly from the SCOM Data Warehouse SQL Server. They show the same data that SquaredUp displays, replacing it with zero new agents. Use the **Site** dropdown to filter by datacenter and the **Server** dropdown to drill into a specific host.
 
-### SCOM Server Overview
-
-**What it shows**: Per-server CPU, memory, disk, and network from SCOM-collected data. Similar to the Windows Server Overview but sourced from SCOM instead of Alloy.
+**Navigation flow**: Fleet Overview (all sites) -> select a site -> select a server -> Server Overview or role-specific dashboard.
 
 ### SCOM Fleet Overview
 
-**What it shows**: Top servers by resource utilization, fleet-wide summary from SCOM data.
+**What it shows**: Fleet-wide summary with per-site breakdown table (server count, avg CPU, avg memory per site), top 10 problem servers by CPU, memory, and disk. Fleet CPU trend over time.
 
-### SCOM Alerts
+**When to use**: Starting point for fleet-wide health. Click a site name in the Per-Site Summary to filter, or click a server name in the Top 10 tables to drill into Server Overview.
 
-**What it shows**: Active SCOM alerts, alert history, alert trends.
+### SCOM Server Overview
+
+**What it shows**: Single-server detail view with CPU, memory, disk free space, processor queue, disk latency, disk throughput, and network throughput. All data from SCOM performance counters.
+
+**When to use**: Investigating a specific server's performance. Typically reached by clicking a server name from Fleet Overview or other dashboards.
 
 ### SCOM Health State
 
-**What it shows**: SCOM health state per server, state change timeline.
+**What it shows**: Count of healthy, warning, critical, and maintenance-mode servers. Server health table sorted by state. Health state changes over time chart.
+
+**When to use**: Quick check on which servers are in a degraded state.
+
+### SCOM Alerts
+
+**What it shows**: Active alert counts by severity, active alerts table with server and timestamp, alert trend chart, recently resolved alerts with resolution duration.
+
+**When to use**: Reviewing current and recent SCOM alerts. Filter by severity to focus on critical issues.
+
+### SCOM AD/DC
+
+**What it shows**: Active Directory Domain Controller metrics -- LDAP searches/sec, Kerberos and NTLM authentication rates, DRA replication traffic, DNS query volume.
+
+**When to use**: Investigating AD authentication or replication issues at a specific site.
+
+### SCOM IIS
+
+**What it shows**: IIS web server metrics -- current connections, requests/sec, bandwidth, error rates.
+
+**When to use**: Investigating web application performance issues.
+
+### SCOM DHCP
+
+**What it shows**: DHCP server metrics -- request rates, acknowledgment rates, queue depth, packet throughput.
+
+**When to use**: Investigating DHCP lease issues at a specific site.
+
+### SCOM DNS
+
+**What it shows**: DNS server metrics -- total query volume, recursive queries, dynamic update rates.
+
+**When to use**: Investigating DNS resolution performance. DNS runs on Domain Controllers.
+
+### SCOM DFS Replication
+
+**What it shows**: DFS staging space usage, conflict space, and bandwidth savings for replication-enabled servers (Domain Controllers and File Servers).
+
+**When to use**: Investigating file replication backlog or conflict issues.
+
+### SCOM Exchange
+
+**What it shows**: Exchange Server mail flow (messages/sec), queue length, client connections, RPC latency, database I/O latency, and database size.
+
+**When to use**: Investigating Exchange mail delivery or database performance issues. Note: this dashboard only shows data when connected to the production SCOM DW (Exchange counters are not in the simulator).
 
 ---
 
@@ -268,12 +314,15 @@ These dashboards read from the SCOM Data Warehouse and show the same data that S
 
 Most dashboards have dropdown filters at the top:
 
-| Filter | What It Does | How to Use |
-|--------|-------------|------------|
-| **hostname** | Show data for a single server | Type the server name or scroll the list |
-| **datacenter** | Filter to a single site | Select your site code |
-| **role** | Filter to servers with a specific role | Select `dc`, `sql`, `iis`, etc. |
-| **environment** | Filter to prod, staging, or dev | Usually left on `prod` |
+| Filter | What It Does | Dashboards | How to Use |
+|--------|-------------|------------|------------|
+| **hostname** | Show data for a single server | Prometheus/Loki dashboards | Type the server name or scroll the list |
+| **datacenter** | Filter to a single site | Prometheus/Loki dashboards | Select your site code |
+| **role** | Filter to servers with a specific role | Prometheus/Loki dashboards | Select `dc`, `sql`, `iis`, etc. |
+| **environment** | Filter to prod, staging, or dev | Prometheus/Loki dashboards | Usually left on `prod` |
+| **Site** | Filter to a datacenter | SCOM dashboards | Select site code (DEN, SOL, etc.) or "All" |
+| **Server** | Show data for a single server | SCOM dashboards | Cascades from Site selection. Lists only servers at the selected site. |
+| **Severity** | Filter alerts by severity level | SCOM Alerts dashboard | Select "All", "Critical", or "Warning" |
 
 Filters persist across panels on the same dashboard. Changing a filter updates all panels simultaneously.
 
@@ -316,3 +365,7 @@ Consistent across all dashboards:
 | **Role** | The `role` label. A server function like `dc`, `sql`, `iis`, `generic`. |
 | **Mute timing** | A scheduled period when alerts are suppressed (maintenance window). |
 | **Silence** | An ad-hoc suppression of alerts, usually for a specific server or alert type. |
+| **SCOM** | System Center Operations Manager. The existing monitoring platform. SCOM agents collect data and store it in the Data Warehouse. |
+| **SCOM DW** | SCOM Data Warehouse. A SQL Server database (`OperationsManagerDW`) containing historical performance, state, and alert data from SCOM agents. |
+| **SquaredUp** | The previous dashboard tool ($26K/year) that read from the SCOM DW. Replaced by Grafana SCOM dashboards. |
+| **Management Pack** | A SCOM plugin that defines what to monitor for a specific role (SQL Server MP, IIS MP, AD MP, etc.). Determines which performance counters are collected. |

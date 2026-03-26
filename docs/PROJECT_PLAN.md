@@ -1980,7 +1980,7 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 **Goal**: Replace SquaredUp immediately by connecting Grafana to the existing SCOM Data Warehouse SQL database. No new agents required. Team sees the same SCOM-collected data in Grafana dashboards instead of SquaredUp.
 
-**Status**: Pending
+**Status**: In Progress (15A-15F complete, 15G partial, 15H pending deployment)
 
 **Context**: SquaredUp costs $26K/year and reads from the SCOM Data Warehouse to render dashboards. Grafana can do exactly the same thing via the Microsoft SQL Server datasource. This eliminates SquaredUp while keeping SCOM agents and alerting intact. Alloy agent deployment (Phase 14) happens later as a separate migration.
 
@@ -1993,13 +1993,10 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 ### 15A: Datasource and Infrastructure
 
-- [ ] 1. Create SQL Server datasource provisioning config (`configs/grafana/datasources/scom_dw.yml`) -- Simple
-  - Connection to OperationsManagerDW database
-  - Read-only service account with db_datareader
-  - Connection string with server, port, database, auth
-- [ ] 2. Add SCOM DW datasource to docker-compose.yml environment (connection string as env var) -- Simple
-- [ ] 3. Create "SCOM Monitoring" dashboard provisioning folder -- Simple
-- [ ] 4. Test connectivity from Grafana to SCOM DW -- Simple
+- [x] 1. Create SQL Server datasource provisioning config (`configs/grafana/datasources/scom_dw.yml`) -- Simple (completed 2026-03-24)
+- [x] 2. Add SCOM DW datasource to docker-compose.yml environment (connection string as env var) -- Simple (completed 2026-03-24)
+- [x] 3. Create "SCOM Monitoring" dashboard provisioning folder -- Simple (completed 2026-03-24)
+- [x] 4. Test connectivity from Grafana to SCOM DW -- Simple (completed 2026-03-25, validated against production via discovery queries)
 
 ### 15B: Core Dashboards (SCOM Data)
 

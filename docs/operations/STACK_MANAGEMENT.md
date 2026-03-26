@@ -57,19 +57,70 @@ Use this only for:
 
 ---
 
-## Starting with SCOM Simulator
+## SCOM Data Warehouse Connection
 
-To include the SCOM Data Warehouse simulator (for demo environments):
+The stack reads from the SCOM Data Warehouse via a SQL Server datasource. This replaces SquaredUp by connecting Grafana directly to the existing SCOM DW.
 
-```bash
-docker compose --profile scom-demo -f deploy/docker/docker-compose.yml up -d
+### Production Deployment
+
+Set these variables in your `.env` file (in `deploy/docker/`):
+
+```env
+SCOM_DW_HOST=VM-DEN-SQL11
+SCOM_DW_PORT=1433
+SCOM_DW_DATABASE=OperationsManagerDW
+SCOM_DW_USER=svc-omread
+SCOM_DW_PASSWORD=<your-password>
 ```
 
-Then seed the demo data:
+Prerequisites:
+- SQL login `svc-omread` with `db_datareader` role on `OperationsManagerDW`
+- Network path from the Docker host to the SCOM DW SQL Server (port 1433)
+
+Then start the stack normally:
 
 ```bash
-python3 scripts/scom_dw_seed_runner.py
+cd deploy/docker
+docker compose up -d
 ```
+
+The SCOM dashboards (in the "SCOM Monitoring" folder) will connect to production data immediately. Prometheus/Loki dashboards will show "No data" until Alloy agents are deployed -- this is expected.
+
+### Demo/Development (Simulator)
+
+For local testing without production access, use the `scom-demo` profile which starts an Azure SQL Edge simulator and auto-seeds it with synthetic data matching the production schema:
+
+```bash
+cd deploy/docker
+docker compose --profile scom-demo up -d
+```
+
+The seed container (`mon-scom-dw-seed`) waits for SQL Edge to be ready, then populates 72 servers across 9 sites with 7 days of hourly performance data. No manual seeding step required.
+
+### SCOM Dashboards (10 total)
+
+| Dashboard | Description | Data Source |
+|-----------|-------------|-------------|
+| Fleet Overview | Per-site summary, top problem servers, CPU trend | All servers |
+| Server Overview | Single server CPU, memory, disk, network detail | Selected server |
+| Health State | Healthy/warning/critical counts, state history | State.vStateHourly |
+| Alerts | Active/resolved alerts, severity breakdown, trend | Alert.vAlert |
+| AD/DC | LDAP, Kerberos, NTLM, DRA replication | Domain Controllers |
+| IIS | Connections, requests, bandwidth, errors | IIS servers |
+| DHCP | Requests, acks, queue length, packets | DHCP servers |
+| DNS | Query volume, recursive queries, dynamic updates | Domain Controllers |
+| DFS Replication | Staging space, conflict space, bandwidth savings | DC + File Servers |
+| Exchange | Mail flow, queue, DB latency (production only) | Exchange servers |
+
+All dashboards include a **Site** dropdown for filtering by datacenter and a **Server** dropdown that cascades from the selected site.
+
+### Troubleshooting
+
+**"No data" on all SCOM panels**: Check `.env` has correct `SCOM_DW_HOST` and `SCOM_DW_PASSWORD`. Verify network connectivity: `telnet VM-DEN-SQL11 1433`.
+
+**Site dropdown empty**: The site variable extracts site codes from hostnames matching `VM-<SITE>-` pattern. If production servers use a different naming convention, the variable query needs adjustment.
+
+**Exchange dashboard empty**: Expected in the simulator (Exchange counters not seeded). Will populate on production if the Exchange Management Pack is installed.
 
 ---
 

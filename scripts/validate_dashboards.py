@@ -35,6 +35,7 @@ from pathlib import Path
 VALID_DATASOURCE_UIDS = {
     "prometheus": "prometheus",
     "loki": "loki",
+    "scom-dw": "mssql",
     # Grafana built-in datasources
     "-- Grafana --": "grafana",
     "grafana": "grafana",
