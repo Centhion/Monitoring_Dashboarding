@@ -530,7 +530,7 @@
 - [x] 8. Final validation sweep
   - Docker Compose: `docker compose -f deploy/docker/docker-compose.yml config` -- PASSED (all 4 services, all bind mount paths resolve correctly)
   - Validators: `python scripts/validate_all.py` -- ALL PASSED (27 files, 2 expected warnings on local Alloy URLs)
-  - Grep sweep: zero matches for org-specific terms (SCOM, Squared Up, Centhion, etamez, denver, RDU7)
+  - Grep sweep: zero matches for org-specific terms
   - Helm lint: DEFERRED -- Helm CLI not installed on dev workstation; requires `helm lint` on target machine
   - Tests: DEFERRED -- pytest not installed; requires `pip install pytest`
   - **Human action required**: Install Helm and run `helm lint deploy/helm/monitoring-stack/` + `helm template` to validate chart before first cluster deployment
@@ -2108,7 +2108,7 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 ### Human Actions Required
 
-- [x] Provide SCOM Data Warehouse SQL Server hostname, port, database name (VM-DEN-SQL11, OperationsManagerDW)
+- [x] Provide SCOM Data Warehouse SQL Server hostname, port, database name (completed, details in .env)
 - [x] Identify which SCOM Management Packs are installed (discovery completed 2026-03-25)
 - [ ] Create read-only SQL login with db_datareader on OperationsManagerDW
 - [ ] Verify network path from Docker host (Denver DC) to SCOM DW SQL Server

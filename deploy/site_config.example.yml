@@ -62,9 +62,9 @@ notifications:
 # Optional fields: timezone, environment, network_segment, gateway
 # ---------------------------------------------------------------------------
 sites:
-  - code: "ent"
-    display_name: "Enterprise HQ"
-    contact_email: "ent-ops@example.com"
+  - code: "hq"
+    display_name: "Headquarters"
+    contact_email: "hq-ops@example.com"
     timezone: "America/Denver"
     environment: prod
     network_segment: "10.0.0.0/16"
@@ -73,9 +73,9 @@ sites:
       redfish: true
       certs: true
 
-  - code: "dv"
-    display_name: "Deer Valley"
-    contact_email: "dv-ops@example.com"
+  - code: "site-a"
+    display_name: "Site Alpha"
+    contact_email: "site-a-ops@example.com"
     timezone: "America/Denver"
     environment: prod
     network_segment: "10.1.0.0/16"

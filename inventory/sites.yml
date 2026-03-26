@@ -16,71 +16,61 @@ valid_os:
 - windows
 - linux
 sites:
-  dv:
-    display_name: Deer Valley
+  site-a:
+    display_name: Site Alpha
     timezone: America/Denver
     environment: prod
-    contact_email: dv-ops@example.com
+    contact_email: site-a-ops@example.com
     gateway:
       enabled: true
       snmp_targets: true
       redfish_targets: true
       cert_targets: true
-  ent:
-    display_name: Enterprise
+  site-b:
+    display_name: Site Bravo
     timezone: America/Denver
     environment: prod
-    contact_email: ent-ops@example.com
+    contact_email: site-b-ops@example.com
     gateway:
       enabled: true
       snmp_targets: true
       redfish_targets: true
       cert_targets: true
-  sbt:
-    display_name: Steamboat
+  site-c:
+    display_name: Site Charlie
     timezone: America/Denver
     environment: prod
-    contact_email: sbt-ops@example.com
+    contact_email: site-c-ops@example.com
     gateway:
       enabled: true
       snmp_targets: true
       redfish_targets: true
       cert_targets: true
-  sno:
-    display_name: Snowshoe
+  site-d:
+    display_name: Site Delta
     timezone: America/Denver
     environment: prod
-    contact_email: sno-ops@example.com
+    contact_email: site-d-ops@example.com
     gateway:
       enabled: true
       snmp_targets: true
       redfish_targets: true
       cert_targets: true
-  sol:
-    display_name: Solitude
+  site-e:
+    display_name: Site Echo
     timezone: America/Denver
     environment: prod
-    contact_email: sol-ops@example.com
+    contact_email: site-e-ops@example.com
     gateway:
       enabled: true
       snmp_targets: true
       redfish_targets: true
       cert_targets: true
-  schw:
-    display_name: Schweitzer
+  hq:
+    display_name: Headquarters
     timezone: America/Denver
     environment: prod
-    contact_email: schw-ops@example.com
-    gateway:
-      enabled: true
-      snmp_targets: true
-      redfish_targets: true
-      cert_targets: true
-  mm:
-    display_name: Mammoth
-    timezone: America/Denver
-    environment: prod
-    contact_email: mm-ops@example.com
+    contact_email: hq-ops@example.com
     gateway:
       enabled: true
       snmp_targets: true
