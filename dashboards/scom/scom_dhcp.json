@@ -117,8 +117,8 @@
         "sort": 1,
         "current": {
           "selected": true,
-          "text": "VM-DEN-DHCP1",
-          "value": "VM-DEN-DHCP1"
+          "text": "VM-SITE-A-DHCP1",
+          "value": "VM-SITE-A-DHCP1"
         }
       }
     ]

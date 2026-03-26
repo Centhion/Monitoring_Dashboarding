@@ -33,13 +33,13 @@ PASSWORD = os.environ.get("SCOM_DW_SA_PASSWORD", "ScomDemo123!")
 DB = "OperationsManagerDW"
 MAX_WAIT = int(os.environ.get("SCOM_DW_WAIT_SECONDS", "120"))
 
-# Production site codes (discovered 2026-03-25)
-SITES = ["DEN", "DV", "SBT", "SNO", "SOL", "STR", "SUG", "TRM", "WP"]
+# Generic site codes for simulator (production sites populate dynamically from SCOM DW)
+SITES = ["SITE-A", "SITE-B", "SITE-C", "SITE-D", "SITE-E", "SITE-F", "SITE-G", "SITE-H", "SITE-J"]
 
 # Server roles per site
 ROLES = ["DC", "SQL", "IIS", "FS", "APP", "DHCP"]
 
-# Production counter names (discovered from OperationsManagerDW 2026-03-25)
+# Counter names matching standard SCOM Management Pack conventions
 # Format: (ObjectName, CounterName, InstanceName, role_filter)
 # role_filter: None = all servers, "DC" = DC only, "IIS" = IIS only, etc.
 COUNTERS = [

@@ -66,10 +66,10 @@ The stack reads from the SCOM Data Warehouse via a SQL Server datasource. This r
 Set these variables in your `.env` file (in `deploy/docker/`):
 
 ```env
-SCOM_DW_HOST=VM-DEN-SQL11
+SCOM_DW_HOST=<your-scom-dw-sql-server>
 SCOM_DW_PORT=1433
 SCOM_DW_DATABASE=OperationsManagerDW
-SCOM_DW_USER=svc-omread
+SCOM_DW_USER=<your-sql-login>
 SCOM_DW_PASSWORD=<your-password>
 ```
 
@@ -116,7 +116,7 @@ All dashboards include a **Site** dropdown for filtering by datacenter and a **S
 
 ### Troubleshooting
 
-**"No data" on all SCOM panels**: Check `.env` has correct `SCOM_DW_HOST` and `SCOM_DW_PASSWORD`. Verify network connectivity: `telnet VM-DEN-SQL11 1433`.
+**"No data" on all SCOM panels**: Check `.env` has correct `SCOM_DW_HOST` and `SCOM_DW_PASSWORD`. Verify network connectivity: `telnet <your-scom-dw-host> 1433`.
 
 **Site dropdown empty**: The site variable extracts site codes from hostnames matching `VM-<SITE>-` pattern. If production servers use a different naming convention, the variable query needs adjustment.
 

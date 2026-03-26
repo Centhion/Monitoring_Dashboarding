@@ -1,16 +1,15 @@
 # SquaredUp Dashboard Reference
 
-Screenshots captured 2026-03-25 from production SquaredUp instance (vm-den-scom1).
+Screenshots captured from production SquaredUp instance.
 Used as reference for Grafana SCOM dashboard design -- not a copy target.
 
 ## Navigation Structure
 
 - **Overview**: Active Alerts, Groups, Servers, Alert History
-- **Resorts**: Per-site views (Deer Valley, Steamboat, Solitude, etc.)
+- **Sites**: Per-site views (one tab per datacenter/location)
 - **Teams**: Per-role views (Active Directory, Exchange, SQL Server, Network, etc.)
-- **IKON**: Business-unit specific (IKON Servers, Infrastructure, SQL, Disk Performance)
-- **Citrix**: Denver Citrix, Steamboat Citrix
-- **Inntopia, Network**: Additional business-unit views
+- **Business Units**: Business-unit specific views (servers, infrastructure, SQL, disk performance)
+- **Application-specific**: Citrix, line-of-business application views
 
 ## Key Observations
 
@@ -23,26 +22,25 @@ Used as reference for Grafana SCOM dashboard design -- not a copy target.
 
 ## Connection Details (from Connections page)
 
-- Management Server: localhost (SquaredUp runs on vm-den-scom1)
-- Data Warehouse: Data Source=vm-den-sql11;Initial Catalog=OperationsManagerDW;Integrated Security=True
+- Management Server: localhost (SquaredUp runs on the SCOM management server)
+- Data Warehouse: SQL Server connection with Integrated Security
 - Auth: Windows Integrated Security (machine/service account on domain-joined host)
 
 ## Active Providers
 
-- generic (API), DigiCert (API), Pingdom (API), Mammoth Palo Alto (API), Data Warehouse (SCOM DW)
+- generic (API), certificate management (API), synthetic monitoring (API), firewall (API), Data Warehouse (SCOM DW)
 
 ## Screenshot Index
 
-- IMG_1761: Active Alerts (full view)
-- IMG_1762: Active Alerts (scrolled)
-- IMG_1763: Resorts dropdown (site list)
-- IMG_1764: Teams dropdown (role list)
-- IMG_1765: IKON dropdown (business unit)
-- IMG_1766: Citrix dropdown
-- IMG_1767: Groups overview (health donuts + group grid)
-- IMG_1768: Servers overview (Windows/Linux health donuts + critical grids)
-- IMG_1769: Alert History (daily average, timeline, top objects, common alerts)
-- IMG_1770: Deer Valley Servers (per-site: health donut, server table with sparklines)
-- IMG_1771: DV SQL Nodes (cluster tiles, memory/CPU bars, service monitors)
-- IMG_1772: Connections page (SCOM DW connection string)
-- IMG_1773: Integrations page (active providers)
+- Active Alerts (full view, scrolled)
+- Site dropdown (site list)
+- Teams dropdown (role list)
+- Business unit dropdown
+- Application-specific dropdown
+- Groups overview (health donuts + group grid)
+- Servers overview (Windows/Linux health donuts + critical grids)
+- Alert History (daily average, timeline, top objects, common alerts)
+- Per-site server view (health donut, server table with sparklines)
+- SQL cluster nodes (cluster tiles, memory/CPU bars, service monitors)
+- Connections page (SCOM DW connection string)
+- Integrations page (active providers)

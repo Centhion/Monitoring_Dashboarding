@@ -117,8 +117,8 @@
         "sort": 1,
         "current": {
           "selected": true,
-          "text": "VM-DEN-DC1",
-          "value": "VM-DEN-DC1"
+          "text": "VM-SITE-A-DC1",
+          "value": "VM-SITE-A-DC1"
         }
       }
     ]
