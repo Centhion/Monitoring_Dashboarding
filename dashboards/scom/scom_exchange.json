@@ -32,6 +32,14 @@
       "targetBlank": false
     },
     {
+      "title": "SCOM Site Overview",
+      "type": "link",
+      "icon": "dashboard",
+      "url": "/d/scom-site-overview",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
       "title": "SCOM Server Overview",
       "type": "link",
       "icon": "dashboard",

@@ -2072,6 +2072,12 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 - [ ] 7. Role fleet dashboards (IIS Fleet, AD Fleet, DHCP Fleet) -- Deferred
   - Hub view per role with site breakdown and Top N tables
   - Lower priority: individual role dashboards already have site filtering
+- [x] 7a. SCOM Site Overview dashboard -- Medium (completed 2026-03-26)
+  - Primary operational view replacing SquaredUp's per-resort server page
+  - Site health stats (total/healthy/warning/critical), active alerts table, full server inventory
+  - Server inventory with health state, maintenance mode, CPU %, memory % per server
+  - Single-site focused (no "All" option) -- each resort team bookmarks their site
+  - Drill-down links to Server Overview with site context
 - [x] 8. Server Overview -- site context and cascading filter -- Simple (completed 2026-03-25)
   - Site variable added, server dropdown cascades from site
 - [x] 9. Cross-links between all SCOM dashboards -- Simple (completed 2026-03-25)
