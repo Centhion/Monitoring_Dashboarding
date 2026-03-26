@@ -42,6 +42,15 @@
       "keepTime": true
     },
     {
+      "title": "SCOM Server Overview",
+      "type": "link",
+      "icon": "dashboard",
+      "url": "/d/scom-server-overview",
+      "tooltip": "Drill into individual server metrics",
+      "targetBlank": false,
+      "keepTime": true
+    },
+    {
       "title": "Enterprise NOC",
       "type": "link",
       "icon": "dashboard",
@@ -408,6 +417,207 @@
       }
     },
     {
+      "id": 20,
+      "type": "row",
+      "title": "Site Overview",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "panels": []
+    },
+    {
+      "id": 21,
+      "type": "table",
+      "title": "Per-Site Summary",
+      "description": "Server count, average CPU, average memory, and active alerts per site",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "format": "table",
+          "rawSql": "SELECT\n  SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS \"Site\",\n  COUNT(DISTINCT me.ManagedEntityRowId) AS \"Servers\",\n  AVG(CASE WHEN pr.CounterName = '% Processor Time' THEN ph.AverageValue END) AS \"Avg CPU %\",\n  AVG(CASE WHEN pr.CounterName = 'PercentMemoryUsed' THEN ph.AverageValue END) AS \"Avg Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.CounterName IN ('% Processor Time', 'PercentMemoryUsed')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ph.DateTime)\nGROUP BY SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4)\nORDER BY 1",
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Site"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Filter fleet by site",
+                    "url": "/d/scom-fleet-overview?var-site=${__value.text}",
+                    "targetBlank": false
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Servers"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg CPU %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 75
+                    },
+                    {
+                      "color": "red",
+                      "value": 90
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg Memory %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 75
+                    },
+                    {
+                      "color": "red",
+                      "value": 90
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "Site",
+            "desc": false
+          }
+        ]
+      }
+    },
+    {
       "id": 7,
       "type": "row",
       "title": "Top Problem Servers",
@@ -416,7 +626,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 16
       },
       "panels": []
     },
@@ -429,7 +639,7 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 8
+        "y": 17
       },
       "datasource": {
         "type": "mssql",
@@ -577,7 +787,7 @@
         "h": 10,
         "w": 8,
         "x": 8,
-        "y": 8
+        "y": 17
       },
       "datasource": {
         "type": "mssql",
@@ -709,7 +919,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 8
+        "y": 17
       },
       "datasource": {
         "type": "mssql",
@@ -843,7 +1053,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 27
       },
       "panels": []
     },
@@ -856,7 +1066,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 28
       },
       "datasource": {
         "type": "mssql",

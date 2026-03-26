@@ -2069,10 +2069,9 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 ### 15F: Hub-and-Spoke Dashboard Architecture (added 2026-03-25)
 
-- [ ] 6. SCOM Fleet Overview -- add site filtering and per-site breakdown -- Medium
-  - `$site` variable derived from hostname
-  - Per-site summary row: server count, avg CPU, avg memory per site
-  - All existing panels filtered by site when selected
+- [x] 6. SCOM Fleet Overview -- site filtering and per-site breakdown -- Medium (completed 2026-03-25)
+  - Site variable added, all panels filter by site
+  - Per-Site Summary table added: server count, avg CPU, avg memory per site with drill-down links
 - [ ] 7. Role fleet dashboards (IIS Fleet, AD Fleet, DHCP Fleet) -- Complex
   - Hub view per role with site breakdown
   - Top N problem servers per role
@@ -2093,13 +2092,14 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
   - Total Query Received/sec, Recursive Queries/sec, Dynamic Updates
   - Stat summary + query volume + dynamic update trends
   - Runs on DC servers (DNS collocated with AD)
-- [ ] 12. Exchange Server dashboard -- Medium (1 server + 23 services)
-  - DB latency (Read/Write), Queue lengths, Messages/sec, Mailbox count/size, ActiveSync
-- [ ] 13. DFS Replication dashboard -- Simple (114 servers)
-  - Staging space, conflict files, bandwidth savings
-- [ ] 14. UPS/Battery dashboard -- Simple (26 devices)
-  - Capacity %, runtime remaining, voltage, load, temperature
-- [ ] 15. SQL Cluster/AG status dashboard -- Medium
+- [x] 12. Exchange Server dashboard -- Medium (completed 2026-03-25)
+  - Messages/sec, queue length, client connections, RPC latency, DB I/O latency, DB size
+  - Note: Exchange counters not in simulator -- will populate on production
+- [x] 13. DFS Replication dashboard -- Simple (completed 2026-03-25)
+  - Staging space, conflict space, bandwidth savings (DC + FS servers)
+- [ ] 14. UPS/Battery dashboard -- Deferred
+  - UPS counter objects not in simulator, low priority for demo
+- [ ] 15. SQL Cluster/AG status dashboard -- Deferred
   - Availability Group membership and status across sites (from cluster group data)
   - Note: SQL Server MP perf counters NOT available in production DW -- SQL monitoring is via Windows OS counters only
 - [x] 16. Remove SQL Server perf counter dashboard -- Simple (completed 2026-03-25)
