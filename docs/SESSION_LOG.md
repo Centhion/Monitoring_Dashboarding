@@ -566,3 +566,53 @@ Chronological record of work sessions for context continuity.
 - Commits: fe5da4d, fef63fb, f4419f6
 
 ---
+
+## Session: 2026-03-25 (Chrome Review + Phase 15C)
+
+### Completed
+
+- **Chrome visual review of all 4 core SCOM dashboards** (Fleet Overview, Health State, Server Overview, Alerts)
+- **Fixed SCOM Fleet Overview**: replaced `DATEADD(hour, -1, GETUTCDATE())` with `$__timeFilter()` in Avg CPU, Avg Memory, Top 10 tables. Fixed "Free %" column visibility (gauge -> color-text, column widths).
+- **Fixed SCOM Health State**: replaced `DATEADD(hour, -1)` with `MAX(DateTime)` subquery in all 4 summary stat panels. Seeded 2,016 state rows (48 servers x 42 snapshots across 7 days) for realistic health state data.
+- **Fixed SCOM Server Overview**: changed `LIKE '$server'` to `= '${server:raw}'` in all 9 panel queries to fix Grafana MSSQL double-quoting bug. Removed `includeAll` from Server variable.
+- **Built 3 new Phase 15C role-specific dashboards**: SQL Server (`scom_sql_server.json`), IIS (`scom_iis.json`), AD/DC (`scom_ad_dc.json`) with stat summaries, performance trends, and role-specific panels.
+- **Seeded 32,256 role-specific performance counter rows** in SCOM simulator (8 counters each for SQL/IIS/AD across 8 servers, 7 days hourly).
+- **Created `scripts/scom_dw_discovery.sql`**: 7 production discovery queries for counter names, entity types, groups, hostname patterns, and MP validation.
+- **Commits**: 10c1179 (dashboard fixes), 08d9db5 (Phase 15C dashboards)
+
+### In Progress
+
+- **SCOM hub-and-spoke site filtering**: Dashboards currently scope to single server, not site-level. Need to add `$site` variable and build fleet-level hub dashboards per role (SQL Fleet, IIS Fleet, AD Fleet) matching Prometheus/Loki pattern. Deferred pending production discovery query results.
+- **Default server selection**: Added `current` field to server variables but untested due to Grafana rendering issue.
+
+### Blockers
+
+- **Grafana v11.5.2 panel rendering**: After Grafana volume wipe (required during debugging), ALL dashboards show "Loading plugin panel..." on fresh start. This is a Grafana cold-start/dashboardScene bug, not a dashboard JSON issue. The committed dashboard JSON was verified working before the volume wipe. Fix: wait for Grafana warm-up, or restart Grafana after initial boot. The container may need a manual restart to fully initialize plugins on first cold boot.
+- **Production SCOM DW counter names**: Role-specific dashboards (SQL/IIS/AD) use counter names from standard SCOM Management Packs, but exact strings need validation against production. Discovery SQL script created for this purpose.
+
+### Decisions
+
+- **`${server:raw}` for MSSQL variables**: Grafana's MSSQL plugin double-quotes values when using `LIKE '$var'`. Using `= '${server:raw}'` with raw interpolation avoids this. Applied to all server-scoped dashboards.
+- **`MAX(DateTime)` for health state summaries**: Health state stat panels query the latest snapshot rather than using `$__timeFilter`, since we always want current state regardless of time picker.
+- **Site filtering deferred to next session**: Rather than guess at production group structure, will use discovery query results to build proper site-filtered dashboards that match production exactly. Avoids deployment rework.
+- **Counter name validation before deployment**: User has no CI/CD pipeline, so dashboards must be correct on first deploy. Discovery queries provide all needed info to match counter strings to production.
+
+### Next Session
+
+1. **Run `scripts/scom_dw_discovery.sql` against production** (VM-DEN-SQL11) -- user action
+2. **Adjust counter names** in all SCOM dashboard queries based on discovery results
+3. **Build hub-and-spoke site filtering** using real SCOM group names from production
+4. **Build fleet-level dashboards per role** (SQL Fleet, IIS Fleet, AD Fleet) with site breakdown
+5. **Fix Grafana cold-start** -- may need to add a startup delay or health check to docker-compose
+6. **Re-verify all dashboards visually** after fixes
+
+### Context
+
+- SCOM simulator runs as `mon-scom-dw-sim` on `scom-demo` Docker Compose profile
+- Role-specific counter seed script ran via pymssql (`/tmp/scom-venv`), data is ephemeral (lost on container restart)
+- The `scom_dw_seed.sql` file does NOT include role-specific counters -- those were seeded via Python only. If the SCOM sim container restarts, only the base seed data (Windows OS counters) will exist. Role counters need re-seeding or adding to the SQL seed file.
+- Grafana volume was wiped during debugging -- fresh state, admin/admin login, password change prompt on first access
+- The `rawQuery` field in Server Overview targets contains old query strings (pre-fix). These are vestigial -- Grafana uses `rawSql` for execution. Harmless but messy.
+- Files not committed: `scripts/scom_dw_discovery.sql` (new), `docs/INTERNAL_PROPOSAL.md` (pre-existing untracked)
+
+---
