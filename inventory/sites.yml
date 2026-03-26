@@ -16,51 +16,51 @@ valid_os:
 - windows
 - linux
 sites:
-  site-a:
+  alpha:
     display_name: Site Alpha
     timezone: America/Denver
     environment: prod
-    contact_email: site-a-ops@example.com
+    contact_email: alpha-ops@example.com
     gateway:
       enabled: true
       snmp_targets: true
       redfish_targets: true
       cert_targets: true
-  site-b:
+  bravo:
     display_name: Site Bravo
     timezone: America/Denver
     environment: prod
-    contact_email: site-b-ops@example.com
+    contact_email: bravo-ops@example.com
     gateway:
       enabled: true
       snmp_targets: true
       redfish_targets: true
       cert_targets: true
-  site-c:
+  charlie:
     display_name: Site Charlie
     timezone: America/Denver
     environment: prod
-    contact_email: site-c-ops@example.com
+    contact_email: charlie-ops@example.com
     gateway:
       enabled: true
       snmp_targets: true
       redfish_targets: true
       cert_targets: true
-  site-d:
+  delta:
     display_name: Site Delta
     timezone: America/Denver
     environment: prod
-    contact_email: site-d-ops@example.com
+    contact_email: delta-ops@example.com
     gateway:
       enabled: true
       snmp_targets: true
       redfish_targets: true
       cert_targets: true
-  site-e:
+  echo:
     display_name: Site Echo
     timezone: America/Denver
     environment: prod
-    contact_email: site-e-ops@example.com
+    contact_email: echo-ops@example.com
     gateway:
       enabled: true
       snmp_targets: true

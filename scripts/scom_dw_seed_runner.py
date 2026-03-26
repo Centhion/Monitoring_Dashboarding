@@ -34,7 +34,7 @@ DB = "OperationsManagerDW"
 MAX_WAIT = int(os.environ.get("SCOM_DW_WAIT_SECONDS", "120"))
 
 # Generic site codes for simulator (production sites populate dynamically from SCOM DW)
-SITES = ["SITE-A", "SITE-B", "SITE-C", "SITE-D", "SITE-E", "SITE-F", "SITE-G", "SITE-H", "SITE-J"]
+SITES = ["ALPHA", "BRAVO", "CHARLIE", "DELTA", "ECHO", "FOXTROT", "GOLF", "HOTEL", "JULIET"]
 
 # Server roles per site
 ROLES = ["DC", "SQL", "IIS", "FS", "APP", "DHCP"]
