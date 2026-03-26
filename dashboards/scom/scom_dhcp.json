@@ -1,0 +1,656 @@
+{
+  "id": null,
+  "uid": "scom-dhcp",
+  "title": "SCOM DHCP Server",
+  "description": "DHCP server performance data from SCOM Data Warehouse. Shows request rates, acknowledgment rates, discovery activity, queue depth, and packet throughput for a selected DHCP server.",
+  "tags": [
+    "scom",
+    "dhcp",
+    "network"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "fiscalYearStartMonth": 0,
+  "liveNow": false,
+  "refresh": "",
+  "style": "dark",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "SCOM Fleet Overview",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/scom-fleet-overview"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "SCOM Alerts",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/scom-alerts"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Enterprise NOC",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/enterprise-noc"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "site",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __text, SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 ORDER BY 1",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Site",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "server",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me WHERE me.DisplayName LIKE 'VM-${site:raw}-DHCP%' AND me.ManagedEntityTypeRowId = 1 ORDER BY me.DisplayName",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Server",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "VM-DEN-DHCP1",
+          "value": "VM-DEN-DHCP1"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "DHCP server performance data from SCOM Data Warehouse. Shows request rates, acknowledgment rates, discovery activity, queue depth, and packet throughput for a selected DHCP server.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "id": 2,
+      "title": "DHCP Health",
+      "type": "row"
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Requests/sec",
+      "description": "Latest DHCP request rate per second.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Requests/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'DHCP Server' AND pr.CounterName = 'Requests/sec'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Acks/sec",
+      "description": "Latest DHCP acknowledgment rate per second.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Acks/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'DHCP Server' AND pr.CounterName = 'Acks/sec'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Active Queue Length",
+      "description": "Latest DHCP server active queue length. High values indicate the server is falling behind on lease processing.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 4
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Queue Length\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'DHCP Server' AND pr.CounterName = 'Active Queue Length'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Packets Received/sec",
+      "description": "Latest rate of packets received by the DHCP server.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "pps",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Packets/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'DHCP Server' AND pr.CounterName = 'Packets Received/sec'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 7,
+      "title": "DHCP Trends",
+      "type": "row"
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Request Activity Over Time",
+      "description": "DHCP request, discover, and acknowledgment rates over time from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'DHCP Server'\nAND pr.CounterName IN ('Requests/sec', 'Discovers/sec', 'Acks/sec')\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Queue & Packets Over Time",
+      "description": "DHCP active queue length and packets received per second over time from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Packets Received/sec"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "unit",
+                "value": "pps"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'DHCP Server'\nAND pr.CounterName IN ('Active Queue Length', 'Packets Received/sec')\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    }
+  ]
+}
