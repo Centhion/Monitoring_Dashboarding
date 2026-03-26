@@ -2072,16 +2072,14 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 - [x] 6. SCOM Fleet Overview -- site filtering and per-site breakdown -- Medium (completed 2026-03-25)
   - Site variable added, all panels filter by site
   - Per-Site Summary table added: server count, avg CPU, avg memory per site with drill-down links
-- [ ] 7. Role fleet dashboards (IIS Fleet, AD Fleet, DHCP Fleet) -- Complex
-  - Hub view per role with site breakdown
-  - Top N problem servers per role
-  - Drill-down links to server detail
-- [ ] 8. Server Overview -- add site context and cascading filter -- Simple
-  - Show site code in header
-  - Server dropdown filtered by selected site
-- [ ] 9. Cross-links between hub and spoke dashboards -- Simple
-  - Fleet -> Role Fleet -> Server Detail
-  - Consistent URL params (`var-site`, `var-server`)
+- [ ] 7. Role fleet dashboards (IIS Fleet, AD Fleet, DHCP Fleet) -- Deferred
+  - Hub view per role with site breakdown and Top N tables
+  - Lower priority: individual role dashboards already have site filtering
+- [x] 8. Server Overview -- site context and cascading filter -- Simple (completed 2026-03-25)
+  - Site variable added, server dropdown cascades from site
+- [x] 9. Cross-links between all SCOM dashboards -- Simple (completed 2026-03-25)
+  - Standardized 4-link nav bar on all 10 dashboards
+  - Fleet Overview drill-downs pass site context to Server Overview
 
 ### 15G: Additional Role Dashboards (added 2026-03-25, based on production MP discovery)
 
