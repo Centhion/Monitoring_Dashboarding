@@ -1,24 +1,26 @@
 {
-  "annotations": {
-    "list": [
-      {
-        "builtIn": 1,
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
-        "enable": true,
-        "hide": true,
-        "iconColor": "rgba(0, 211, 255, 1)",
-        "name": "Annotations & Alerts",
-        "type": "dashboard"
-      }
-    ]
-  },
+  "id": null,
+  "uid": "scom-server-overview",
+  "title": "SCOM Server Overview",
   "description": "Server performance data from SCOM Data Warehouse. Shows CPU, memory, disk, and network metrics collected by SCOM agents. Select a server to drill into specific host performance.",
+  "tags": [
+    "scom",
+    "servers",
+    "windows"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
   "editable": true,
-  "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
+  "fiscalYearStartMonth": 0,
+  "liveNow": false,
+  "style": "dark",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
   "links": [
     {
       "asDropdown": false,
@@ -57,6 +59,66 @@
       "url": "/d/enterprise-noc"
     }
   ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "site",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __text, SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 ORDER BY 1",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Site",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "server",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 AND me.DisplayName LIKE 'VM-${site:raw}-%' ORDER BY me.DisplayName",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Server",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 1
+      }
+    ]
+  },
   "panels": [
     {
       "id": 1,
@@ -154,8 +216,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawQuery": "SELECT TOP 1 ph.AverageValue AS \"CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND (me.Path LIKE '$server' AND me.ManagedEntityRowId IN (SELECT r.TargetManagedEntityRowId FROM vRelationship r INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId WHERE gme.DisplayName LIKE '$site_group'))\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -163,8 +224,8 @@
     {
       "id": 4,
       "type": "stat",
-      "title": "Memory Available",
-      "description": "Latest available memory in MB from SCOM performance data.",
+      "title": "Memory Used %",
+      "description": "Latest memory utilization percentage from SCOM performance data.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -179,21 +240,23 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "green",
                 "value": null
               },
               {
                 "color": "yellow",
-                "value": 1024
+                "value": 80
               },
               {
-                "color": "green",
-                "value": 4096
+                "color": "red",
+                "value": 90
               }
             ]
           },
-          "unit": "decmbytes",
-          "decimals": 0
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1
         },
         "overrides": []
       },
@@ -226,8 +289,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawQuery": "SELECT TOP 1 ph.AverageValue AS \"Available MB\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Memory' AND pri.CounterName = 'Available MBytes'\nAND (me.Path LIKE '$server' AND me.ManagedEntityRowId IN (SELECT r.TargetManagedEntityRowId FROM vRelationship r INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId WHERE gme.DisplayName LIKE '$site_group'))\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Available MB\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Memory' AND pri.CounterName = 'Available MBytes'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -300,8 +362,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawQuery": "SELECT TOP 1 ph.AverageValue AS \"Free %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = '% Free Space'\nAND (me.Path LIKE '$server' AND me.ManagedEntityRowId IN (SELECT r.TargetManagedEntityRowId FROM vRelationship r INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId WHERE gme.DisplayName LIKE '$site_group'))\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.AverageValue ASC",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Free %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = '% Free Space'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.AverageValue ASC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Free %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'LogicalDisk' AND pr.CounterName = '% Free Space'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.AverageValue ASC",
           "refId": "A"
         }
       ]
@@ -372,8 +433,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawQuery": "SELECT TOP 1 ph.AverageValue AS \"Queue Length\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'System' AND pri.CounterName = 'Processor Queue Length'\nAND (me.Path LIKE '$server' AND me.ManagedEntityRowId IN (SELECT r.TargetManagedEntityRowId FROM vRelationship r INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId WHERE gme.DisplayName LIKE '$site_group'))\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Queue Length\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'System' AND pri.CounterName = 'Processor Queue Length'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Queue Length\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'System' AND pr.CounterName = 'Processor Queue Length'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -384,7 +444,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 8
       },
       "id": 7,
       "title": "Performance Trends",
@@ -394,7 +454,7 @@
       "id": 8,
       "type": "timeseries",
       "title": "CPU & Memory Over Time",
-      "description": "CPU utilization and committed memory percentage trends from SCOM hourly rollups.",
+      "description": "CPU utilization and memory percentage trends from SCOM hourly rollups.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -456,7 +516,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 9
       },
       "options": {
         "legend": {
@@ -481,8 +541,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawQuery": "SELECT\n  ph.DateTime AS time,\n  pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE (\n  (pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total')\n  OR (pri.ObjectName = 'Memory' AND pri.CounterName = '% Committed Bytes In Use')\n)\nAND (me.Path LIKE '$server' AND me.ManagedEntityRowId IN (SELECT r.TargetManagedEntityRowId FROM vRelationship r INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId WHERE gme.DisplayName LIKE '$site_group'))\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE (\n  (pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total')\n  OR (pri.ObjectName = 'Memory' AND pri.CounterName = '% Committed Bytes In Use')\n)\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE (\n  (pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time' AND pri.InstanceName = '_Total')\n  OR (pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed')\n)\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ],
@@ -561,7 +620,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 9
       },
       "options": {
         "legend": {
@@ -586,8 +645,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawQuery": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = '% Free Space'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND (me.Path LIKE '$server' AND me.ManagedEntityRowId IN (SELECT r.TargetManagedEntityRowId FROM vRelationship r INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId WHERE gme.DisplayName LIKE '$site_group'))\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = '% Free Space'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'LogicalDisk' AND pr.CounterName = '% Free Space'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ],
@@ -606,7 +664,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 17
       },
       "id": 10,
       "title": "Disk I/O",
@@ -677,7 +735,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 17
+        "y": 18
       },
       "options": {
         "legend": {
@@ -702,8 +760,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawQuery": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName + ' ' + pri.CounterName AS metric,\n  ph.AverageValue * 1000 AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk'\nAND pri.CounterName IN ('Avg. Disk sec/Read', 'Avg. Disk sec/Write')\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND (me.Path LIKE '$server' AND me.ManagedEntityRowId IN (SELECT r.TargetManagedEntityRowId FROM vRelationship r INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId WHERE gme.DisplayName LIKE '$site_group'))\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName + ' ' + pri.CounterName AS metric,\n  ph.AverageValue * 1000 AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk'\nAND pri.CounterName IN ('Avg. Disk sec/Read', 'Avg. Disk sec/Write')\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName + ' ' + pr.CounterName AS metric,\n  ph.AverageValue * 1000 AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'LogicalDisk'\nAND pr.CounterName IN ('Avg. Disk sec/Read', 'Avg. Disk sec/Write')\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ],
@@ -781,7 +838,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 17
+        "y": 18
       },
       "options": {
         "legend": {
@@ -806,8 +863,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawQuery": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = 'Disk Bytes/sec'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND (me.Path LIKE '$server' AND me.ManagedEntityRowId IN (SELECT r.TargetManagedEntityRowId FROM vRelationship r INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId WHERE gme.DisplayName LIKE '$site_group'))\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = 'Disk Bytes/sec'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'LogicalDisk' AND pr.CounterName = 'Disk Bytes/sec'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ],
@@ -826,7 +882,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 26
       },
       "id": 13,
       "title": "Network",
@@ -897,7 +953,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 27
       },
       "options": {
         "legend": {
@@ -922,8 +978,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawQuery": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Network Interface' AND pri.CounterName = 'Bytes Total/sec'\nAND (me.Path LIKE '$server' AND me.ManagedEntityRowId IN (SELECT r.TargetManagedEntityRowId FROM vRelationship r INNER JOIN vManagedEntity gme ON r.SourceManagedEntityRowId = gme.ManagedEntityRowId WHERE gme.DisplayName LIKE '$site_group'))\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Network Interface' AND pri.CounterName = 'Bytes Total/sec'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.InstanceName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Network Adapter' AND pr.CounterName = 'Bytes Total/sec'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ],
@@ -936,59 +991,5 @@
         }
       ]
     }
-  ],
-  "schemaVersion": 39,
-  "tags": [
-    "scom",
-    "servers",
-    "windows"
-  ],
-  "templating": {
-    "list": [
-      {
-        "name": "site_group",
-        "type": "query",
-        "datasource": {
-          "type": "mssql",
-          "uid": "scom-dw"
-        },
-        "query": {
-          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me INNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId WHERE met.ManagedEntityTypeSystemName = 'System.Group' AND me.DisplayName LIKE '%Servers%' ORDER BY me.DisplayName",
-          "refId": "StandardVariableQuery"
-        },
-        "label": "Site / Group",
-        "refresh": 1,
-        "multi": false,
-        "includeAll": true,
-        "allValue": "%",
-        "sort": 1
-      },
-      {
-        "name": "server",
-        "type": "query",
-        "datasource": {
-          "type": "mssql",
-          "uid": "scom-dw"
-        },
-        "query": {
-          "query": "SELECT DISTINCT me.Path AS __text, me.Path AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 2 ORDER BY me.Path",
-          "refId": "StandardVariableQuery"
-        },
-        "label": "Server",
-        "refresh": 1,
-        "multi": false,
-        "includeAll": false,
-        "sort": 1
-      }
-    ]
-  },
-  "time": {
-    "from": "now-7d",
-    "to": "now"
-  },
-  "timepicker": {},
-  "timezone": "browser",
-  "title": "SCOM Server Overview",
-  "uid": "scom-server-overview",
-  "version": 7
+  ]
 }

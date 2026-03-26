@@ -1,24 +1,26 @@
 {
-  "annotations": {
-    "list": [
-      {
-        "builtIn": 1,
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
-        "enable": true,
-        "hide": true,
-        "iconColor": "rgba(0, 211, 255, 1)",
-        "name": "Annotations & Alerts",
-        "type": "dashboard"
-      }
-    ]
-  },
+  "id": null,
+  "uid": "scom-health-state",
+  "title": "SCOM Health State",
   "description": "Current and historical health state of all SCOM-monitored servers. Green = Healthy, Yellow = Warning, Red = Critical. Data from SCOM health monitors, not performance rules.",
+  "tags": [
+    "scom",
+    "health",
+    "availability"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
   "editable": true,
-  "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
+  "fiscalYearStartMonth": 0,
+  "liveNow": false,
+  "style": "dark",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
   "links": [
     {
       "asDropdown": false,
@@ -51,12 +53,73 @@
       "keepTime": true,
       "tags": [],
       "targetBlank": false,
-      "title": "SCOM Server Overview",
+      "title": "Enterprise NOC",
       "tooltip": "",
       "type": "link",
-      "url": "/d/scom-server-overview"
+      "url": "/d/enterprise-noc"
     }
   ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "site",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __text, SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 ORDER BY 1",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Site",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "server",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 AND me.DisplayName LIKE 'VM-${site:raw}-%' ORDER BY me.DisplayName",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Server",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1
+      }
+    ]
+  },
   "panels": [
     {
       "id": 1,
@@ -142,7 +205,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Healthy\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND sh.NewHealthState = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
+          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Healthy\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.NewHealthState = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
           "refId": "A"
         }
       ]
@@ -206,7 +269,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Warning\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND sh.NewHealthState = 2\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
+          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Warning\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.NewHealthState = 2\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
           "refId": "A"
         }
       ]
@@ -270,7 +333,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Critical\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND sh.NewHealthState = 3\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
+          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Critical\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.NewHealthState = 3\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
           "refId": "A"
         }
       ]
@@ -331,7 +394,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Maintenance\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND sh.InMaintenanceMode = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
+          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Maintenance\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.InMaintenanceMode = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
           "refId": "A"
         }
       ]
@@ -466,7 +529,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  me.Path AS \"Server\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"Health\",\n  CASE sh.InMaintenanceMode WHEN 1 THEN 'Yes' ELSE 'No' END AS \"Maintenance\",\n  sh.DateTime AS \"Last Updated\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nORDER BY sh.NewHealthState DESC, me.Path",
+          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"Health\",\n  CASE sh.InMaintenanceMode WHEN 1 THEN 'Yes' ELSE 'No' END AS \"Maintenance\",\n  sh.DateTime AS \"Last Updated\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nORDER BY sh.NewHealthState DESC, me.DisplayName",
           "refId": "A"
         }
       ]
@@ -615,65 +678,10 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT\n  sh.DateTime AS time,\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' END AS metric,\n  COUNT(DISTINCT me.Path) AS value\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'\nAND $__timeFilter(sh.DateTime)\nGROUP BY sh.DateTime, sh.NewHealthState\nORDER BY sh.DateTime",
+          "rawSql": "SELECT\n  sh.DateTime AS time,\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' END AS metric,\n  COUNT(DISTINCT me.DisplayName) AS value\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(sh.DateTime)\nGROUP BY sh.DateTime, sh.NewHealthState\nORDER BY sh.DateTime",
           "refId": "A"
         }
       ]
     }
-  ],
-  "schemaVersion": 39,
-  "tags": [
-    "scom",
-    "health",
-    "availability"
-  ],
-  "templating": {
-    "list": [
-      {
-        "name": "site_group",
-        "type": "query",
-        "datasource": {
-          "type": "mssql",
-          "uid": "scom-dw"
-        },
-        "query": {
-          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me INNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId WHERE met.ManagedEntityTypeSystemName = 'System.Group' AND me.DisplayName LIKE '%Servers%' ORDER BY me.DisplayName",
-          "refId": "StandardVariableQuery"
-        },
-        "label": "Site / Group",
-        "refresh": 1,
-        "multi": false,
-        "includeAll": true,
-        "allValue": "%",
-        "sort": 1
-      },
-      {
-        "name": "server",
-        "type": "query",
-        "datasource": {
-          "type": "mssql",
-          "uid": "scom-dw"
-        },
-        "query": {
-          "query": "SELECT DISTINCT me.Path AS __text, me.Path AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 2 ORDER BY me.Path",
-          "refId": "StandardVariableQuery"
-        },
-        "label": "Server",
-        "refresh": 1,
-        "multi": false,
-        "includeAll": true,
-        "allValue": "%",
-        "sort": 1
-      }
-    ]
-  },
-  "time": {
-    "from": "now-7d",
-    "to": "now"
-  },
-  "timepicker": {},
-  "timezone": "browser",
-  "title": "SCOM Health State",
-  "uid": "scom-health-state",
-  "version": 7
+  ]
 }

@@ -1,24 +1,26 @@
 {
-  "annotations": {
-    "list": [
-      {
-        "builtIn": 1,
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
-        "enable": true,
-        "hide": true,
-        "iconColor": "rgba(0, 211, 255, 1)",
-        "name": "Annotations & Alerts",
-        "type": "dashboard"
-      }
-    ]
-  },
+  "id": null,
+  "uid": "scom-alerts",
+  "title": "SCOM Alerts",
   "description": "SCOM alert history and active alerts from the Data Warehouse. Filter by severity to focus on critical issues. Active alerts have resolution state != Closed (255).",
+  "tags": [
+    "scom",
+    "alerts",
+    "operations"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
   "editable": true,
-  "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
+  "fiscalYearStartMonth": 0,
+  "liveNow": false,
+  "style": "dark",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
   "links": [
     {
       "asDropdown": false,
@@ -39,10 +41,10 @@
       "keepTime": true,
       "tags": [],
       "targetBlank": false,
-      "title": "SCOM Server Overview",
+      "title": "SCOM Alerts",
       "tooltip": "",
       "type": "link",
-      "url": "/d/scom-server-overview"
+      "url": "/d/scom-alerts"
     },
     {
       "asDropdown": false,
@@ -57,6 +59,105 @@
       "url": "/d/enterprise-noc"
     }
   ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "site",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __text, SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 ORDER BY 1",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Site",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "server",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 AND me.DisplayName LIKE 'VM-${site:raw}-%' ORDER BY me.DisplayName",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Server",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "All"
+        },
+        "description": "Filter alerts by severity level",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Severity",
+        "multi": false,
+        "name": "severity",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "All"
+          },
+          {
+            "selected": false,
+            "text": "Critical",
+            "value": "Critical"
+          },
+          {
+            "selected": false,
+            "text": "Warning",
+            "value": "Warning"
+          },
+          {
+            "selected": false,
+            "text": "Informational",
+            "value": "Informational"
+          }
+        ],
+        "query": "All,Critical,Warning,Informational",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
   "panels": [
     {
       "id": 1,
@@ -143,7 +244,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT COUNT(*) AS \"Critical\" FROM Alert.vAlert WHERE ResolutionState <> 255 AND Severity = 2",
+          "rawSql": "SELECT COUNT(*) AS \"Critical\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255 AND a.Severity = 2\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
           "format": "table"
         }
       ]
@@ -205,7 +306,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT COUNT(*) AS \"Warning\" FROM Alert.vAlert WHERE ResolutionState <> 255 AND Severity = 1",
+          "rawSql": "SELECT COUNT(*) AS \"Warning\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255 AND a.Severity = 1\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
           "format": "table"
         }
       ]
@@ -263,7 +364,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT COUNT(*) AS \"Info\" FROM Alert.vAlert WHERE ResolutionState <> 255 AND Severity = 0",
+          "rawSql": "SELECT COUNT(*) AS \"Info\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255 AND a.Severity = 0\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
           "format": "table"
         }
       ]
@@ -321,7 +422,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT COUNT(*) AS \"Last 24h\" FROM Alert.vAlert WHERE RaisedDateTime >= DATEADD(hour, -24, GETUTCDATE())",
+          "rawSql": "SELECT COUNT(*) AS \"Last 24h\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.RaisedDateTime >= DATEADD(hour, -24, GETUTCDATE())\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
           "format": "table"
         }
       ]
@@ -430,7 +531,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.Path AS \"Server\",\n  a.AlertDescription AS \"Description\",\n  a.RaisedDateTime AS \"Raised\",\n  CASE a.ResolutionState WHEN 0 THEN 'New' WHEN 247 THEN 'Acknowledged' WHEN 248 THEN 'Assigned' WHEN 249 THEN 'Investigating' WHEN 254 THEN 'Resolved' ELSE CAST(a.ResolutionState AS VARCHAR) END AS \"State\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255\n-- severity filter handled by Grafana variable\nORDER BY a.Severity DESC, a.RaisedDateTime DESC",
+          "rawSql": "SELECT\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.DisplayName AS \"Server\",\n  a.AlertDescription AS \"Description\",\n  a.RaisedDateTime AS \"Raised\",\n  CASE a.ResolutionState WHEN 0 THEN 'New' WHEN 247 THEN 'Acknowledged' WHEN 248 THEN 'Assigned' WHEN 249 THEN 'Investigating' WHEN 254 THEN 'Resolved' ELSE CAST(a.ResolutionState AS VARCHAR) END AS \"State\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nORDER BY a.Severity DESC, a.RaisedDateTime DESC",
           "format": "table"
         }
       ]
@@ -563,7 +664,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT\n  DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0) AS time,\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS metric,\n  COUNT(*) AS value\nFROM Alert.vAlert a\nWHERE $__timeFilter(a.RaisedDateTime)\nGROUP BY DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0), a.Severity\nORDER BY time",
+          "rawSql": "SELECT\n  DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0) AS time,\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS metric,\n  COUNT(*) AS value\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE $__timeFilter(a.RaisedDateTime)\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nGROUP BY DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0), a.Severity\nORDER BY time",
           "format": "time_series"
         }
       ]
@@ -672,103 +773,10 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT TOP 50\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.Path AS \"Server\",\n  a.RaisedDateTime AS \"Raised\",\n  a.ResolvedDateTime AS \"Resolved\",\n  DATEDIFF(minute, a.RaisedDateTime, a.ResolvedDateTime) AS \"Duration (min)\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState = 255\nAND a.ResolvedDateTime >= DATEADD(day, -7, GETUTCDATE())\nORDER BY a.ResolvedDateTime DESC",
+          "rawSql": "SELECT TOP 50\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.DisplayName AS \"Server\",\n  a.RaisedDateTime AS \"Raised\",\n  a.ResolvedDateTime AS \"Resolved\",\n  DATEDIFF(minute, a.RaisedDateTime, a.ResolvedDateTime) AS \"Duration (min)\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState = 255\nAND a.ResolvedDateTime >= DATEADD(day, -7, GETUTCDATE())\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nORDER BY a.ResolvedDateTime DESC",
           "format": "table"
         }
       ]
     }
-  ],
-  "schemaVersion": 39,
-  "tags": [
-    "scom",
-    "alerts",
-    "operations"
-  ],
-  "templating": {
-    "list": [
-      {
-        "name": "site_group",
-        "type": "query",
-        "datasource": {
-          "type": "mssql",
-          "uid": "scom-dw"
-        },
-        "query": {
-          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me INNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId WHERE met.ManagedEntityTypeSystemName = 'System.Group' AND me.DisplayName LIKE '%Servers%' ORDER BY me.DisplayName",
-          "refId": "StandardVariableQuery"
-        },
-        "label": "Site / Group",
-        "refresh": 1,
-        "multi": false,
-        "includeAll": true,
-        "allValue": "%",
-        "sort": 1
-      },
-      {
-        "name": "server",
-        "type": "query",
-        "datasource": {
-          "type": "mssql",
-          "uid": "scom-dw"
-        },
-        "query": {
-          "query": "SELECT DISTINCT me.Path AS __text, me.Path AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 2 ORDER BY me.Path",
-          "refId": "StandardVariableQuery"
-        },
-        "label": "Server",
-        "refresh": 1,
-        "multi": false,
-        "includeAll": true,
-        "allValue": "%",
-        "sort": 1
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": "All",
-          "value": "All"
-        },
-        "description": "Filter alerts by severity level",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Severity",
-        "multi": false,
-        "name": "severity",
-        "options": [
-          {
-            "selected": true,
-            "text": "All",
-            "value": "All"
-          },
-          {
-            "selected": false,
-            "text": "Critical",
-            "value": "Critical"
-          },
-          {
-            "selected": false,
-            "text": "Warning",
-            "value": "Warning"
-          },
-          {
-            "selected": false,
-            "text": "Informational",
-            "value": "Informational"
-          }
-        ],
-        "query": "All,Critical,Warning,Informational",
-        "skipUrlSync": false,
-        "type": "custom"
-      }
-    ]
-  },
-  "time": {
-    "from": "now-7d",
-    "to": "now"
-  },
-  "timepicker": {},
-  "timezone": "browser",
-  "title": "SCOM Alerts",
-  "uid": "scom-alerts",
-  "version": 6
+  ]
 }

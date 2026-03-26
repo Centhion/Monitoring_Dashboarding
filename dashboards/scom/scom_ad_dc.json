@@ -1,24 +1,27 @@
 {
-  "annotations": {
-    "list": [
-      {
-        "builtIn": 1,
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
-        "enable": true,
-        "hide": true,
-        "iconColor": "rgba(0, 211, 255, 1)",
-        "name": "Annotations & Alerts",
-        "type": "dashboard"
-      }
-    ]
-  },
+  "id": null,
+  "uid": "scom-ad-dc",
+  "title": "SCOM AD/DC",
   "description": "Active Directory Domain Controller health from SCOM Data Warehouse. Shows LDAP, Kerberos, NTLM, DNS, and replication metrics for a selected DC.",
+  "tags": [
+    "scom",
+    "activedirectory",
+    "dc"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
   "editable": true,
-  "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
+  "fiscalYearStartMonth": 0,
+  "liveNow": false,
+  "refresh": "",
+  "style": "dark",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
   "links": [
     {
       "asDropdown": false,
@@ -57,6 +60,66 @@
       "url": "/d/enterprise-noc"
     }
   ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "site",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __text, SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 ORDER BY 1",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Site",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "server",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 AND me.DisplayName LIKE 'VM-${site:raw}-DC%' ORDER BY me.DisplayName",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Server",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 1
+      }
+    ]
+  },
   "panels": [
     {
       "id": 1,
@@ -90,7 +153,7 @@
       "id": 3,
       "type": "stat",
       "title": "LDAP Searches/sec",
-      "description": "Latest LDAP search rate from SCOM NTDS performance data.",
+      "description": "Latest LDAP search rate from SCOM DirectoryServices performance data.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -144,7 +207,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"LDAP Searches/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'NTDS' AND pri.CounterName = 'LDAP Searches/sec'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"LDAP Searches/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'DirectoryServices' AND pr.CounterName = 'LDAP Searches/sec'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -153,7 +216,7 @@
       "id": 4,
       "type": "stat",
       "title": "Kerberos Auth/sec",
-      "description": "Latest Kerberos authentication rate from SCOM NTDS performance data.",
+      "description": "Latest Kerberos authentication rate from SCOM Security System-Wide Statistics performance data.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -207,7 +270,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Kerberos Auth/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'NTDS' AND pri.CounterName = 'Kerberos Authentications'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Kerberos Auth/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Security System-Wide Statistics' AND pr.CounterName = 'Kerberos Authentications'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -270,7 +333,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"DNS Queries/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'DNS' AND pri.CounterName = 'Total Query Received/sec'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"DNS Queries/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'DNS' AND pr.CounterName = 'Total Query Received/sec'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -341,7 +404,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"NTLM Auth/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'NTDS' AND pri.CounterName = 'NTLM Authentications'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"NTLM Auth/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Security System-Wide Statistics' AND pr.CounterName = 'NTLM Authentications'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -448,7 +511,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'NTDS'\nAND pri.CounterName IN ('Kerberos Authentications', 'NTLM Authentications')\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.ObjectName + ' - ' + pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE (\n  (pr.ObjectName = 'Security System-Wide Statistics' AND pr.CounterName = 'Kerberos Authentications')\n  OR (pr.ObjectName = 'Security System-Wide Statistics' AND pr.CounterName = 'NTLM Authentications')\n)\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ],
@@ -551,7 +614,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'NTDS'\nAND pri.CounterName IN ('LDAP Searches/sec', 'LDAP Successful Binds/sec')\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'DirectoryServices'\nAND pr.CounterName IN ('LDAP Searches/sec', 'LDAP Successful Binds/sec')\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ],
@@ -666,7 +729,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'NTDS'\nAND pri.CounterName IN ('DRA Inbound Bytes Total/sec', 'DRA Outbound Bytes Total/sec')\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'DirectoryServices'\nAND pr.CounterName IN ('DRA Inbound Bytes Total/sec', 'DRA Outbound Bytes Total/sec')\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ],
@@ -769,7 +832,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'DNS'\nAND pri.CounterName IN ('Total Query Received/sec', 'Recursive Queries/sec')\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'DNS'\nAND pr.CounterName IN ('Total Query Received/sec', 'Recursive Queries/sec')\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ],
@@ -782,68 +845,5 @@
         }
       ]
     }
-  ],
-  "schemaVersion": 39,
-  "tags": [
-    "scom",
-    "activedirectory",
-    "dc"
-  ],
-  "templating": {
-    "list": [
-      {
-        "name": "site_group",
-        "type": "query",
-        "datasource": {
-          "type": "mssql",
-          "uid": "scom-dw"
-        },
-        "query": {
-          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me INNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId WHERE met.ManagedEntityTypeSystemName = 'System.Group' AND me.DisplayName LIKE '%Servers%' ORDER BY me.DisplayName",
-          "refId": "StandardVariableQuery"
-        },
-        "label": "Site / Group",
-        "refresh": 1,
-        "multi": false,
-        "includeAll": true,
-        "allValue": "%",
-        "sort": 1
-      },
-      {
-        "name": "server",
-        "type": "query",
-        "datasource": {
-          "type": "mssql",
-          "uid": "scom-dw"
-        },
-        "query": {
-          "query": "SELECT DISTINCT me.Path AS __text, me.Path AS __value FROM vManagedEntity me WHERE me.Path LIKE 'SRV-DC%' AND me.ManagedEntityTypeRowId = 2 ORDER BY me.Path",
-          "refId": "StandardVariableQuery"
-        },
-        "label": "Server",
-        "refresh": 1,
-        "multi": false,
-        "includeAll": false,
-        "sort": 1,
-        "current": {
-          "selected": true,
-          "text": "SRV-DC-01.CMH.alterra.com",
-          "value": "SRV-DC-01.CMH.alterra.com"
-        }
-      }
-    ]
-  },
-  "time": {
-    "from": "now-7d",
-    "to": "now"
-  },
-  "timepicker": {},
-  "timezone": "browser",
-  "title": "SCOM AD/DC",
-  "uid": "scom-ad-dc",
-  "version": 1,
-  "id": null,
-  "liveNow": false,
-  "refresh": "",
-  "style": "dark"
+  ]
 }

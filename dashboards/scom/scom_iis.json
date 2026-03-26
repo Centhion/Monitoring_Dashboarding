@@ -1,24 +1,27 @@
 {
-  "annotations": {
-    "list": [
-      {
-        "builtIn": 1,
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
-        "enable": true,
-        "hide": true,
-        "iconColor": "rgba(0, 211, 255, 1)",
-        "name": "Annotations & Alerts",
-        "type": "dashboard"
-      }
-    ]
-  },
+  "id": null,
+  "uid": "scom-iis",
+  "title": "SCOM IIS",
   "description": "IIS web server performance data from SCOM Data Warehouse. Shows connection counts, request rates, bandwidth, error rates, and ASP.NET application health for a selected IIS server.",
+  "tags": [
+    "scom",
+    "iis",
+    "web"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
   "editable": true,
-  "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
+  "fiscalYearStartMonth": 0,
+  "liveNow": false,
+  "refresh": "",
+  "style": "dark",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
   "links": [
     {
       "asDropdown": false,
@@ -57,6 +60,66 @@
       "url": "/d/enterprise-noc"
     }
   ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "site",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __text, SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 ORDER BY 1",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Site",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "server",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 AND me.DisplayName LIKE 'VM-${site:raw}-IIS%' ORDER BY me.DisplayName",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Server",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 1
+      }
+    ]
+  },
   "panels": [
     {
       "id": 1,
@@ -145,7 +208,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Connections\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Web Service' AND pri.CounterName = 'Current Connections'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Connections\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Web Service' AND pr.CounterName = 'Current Connections'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -209,7 +272,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Req/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Web Service' AND pri.CounterName = 'Total Method Requests/sec'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Req/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Web Service' AND pr.CounterName = 'Total Method Requests/sec'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -272,7 +335,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Bytes/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Web Service' AND pri.CounterName = 'Bytes Total/sec'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Bytes/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Web Service' AND pr.CounterName = 'Bytes Total/sec'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -343,7 +406,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"404/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Web Service' AND pri.CounterName = 'Not Found Errors/sec'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"404/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Web Service' AND pr.CounterName = 'Not Found Errors/sec'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -450,7 +513,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.ObjectName + ' - ' + pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE (\n  (pri.ObjectName = 'Web Service' AND pri.CounterName = 'Total Method Requests/sec' AND pri.InstanceName = '_Total')\n  OR (pri.ObjectName = 'ASP.NET Applications' AND pri.CounterName = 'Requests/Sec' AND pri.InstanceName = '__Total__')\n)\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.ObjectName + ' - ' + pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE (\n  (pr.ObjectName = 'Web Service' AND pr.CounterName = 'Total Method Requests/sec' AND pri.InstanceName = '_Total')\n  OR (pr.ObjectName = 'ASP.NET Applications' AND pr.CounterName = 'Requests/Sec' AND pri.InstanceName = '__Total__')\n)\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ],
@@ -553,7 +616,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  ph.AverageValue AS \"Execution Time (ms)\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'ASP.NET Applications' AND pri.CounterName = 'Request Execution Time'\nAND pri.InstanceName = '__Total__'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  ph.AverageValue AS \"Execution Time (ms)\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'ASP.NET Applications' AND pr.CounterName = 'Request Execution Time'\nAND pri.InstanceName = '__Total__'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ]
@@ -677,7 +740,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Web Service'\nAND pri.CounterName IN ('Current Connections', 'Bytes Total/sec')\nAND pri.InstanceName = '_Total'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Web Service'\nAND pr.CounterName IN ('Current Connections', 'Bytes Total/sec')\nAND pri.InstanceName = '_Total'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ],
@@ -781,7 +844,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  ph.AverageValue AS \"404 Errors/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Web Service' AND pri.CounterName = 'Not Found Errors/sec'\nAND pri.InstanceName = '_Total'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  ph.AverageValue AS \"404 Errors/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Web Service' AND pr.CounterName = 'Not Found Errors/sec'\nAND pri.InstanceName = '_Total'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ]
@@ -889,73 +952,10 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  ph.AverageValue AS \"Application Restarts\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'ASP.NET' AND pri.CounterName = 'Application Restarts'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  ph.AverageValue AS \"Application Restarts\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'ASP.NET' AND pr.CounterName = 'Application Restarts'\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ]
     }
-  ],
-  "schemaVersion": 39,
-  "tags": [
-    "scom",
-    "iis",
-    "web"
-  ],
-  "templating": {
-    "list": [
-      {
-        "name": "site_group",
-        "type": "query",
-        "datasource": {
-          "type": "mssql",
-          "uid": "scom-dw"
-        },
-        "query": {
-          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me INNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId WHERE met.ManagedEntityTypeSystemName = 'System.Group' AND me.DisplayName LIKE '%Servers%' ORDER BY me.DisplayName",
-          "refId": "StandardVariableQuery"
-        },
-        "label": "Site / Group",
-        "refresh": 1,
-        "multi": false,
-        "includeAll": true,
-        "allValue": "%",
-        "sort": 1
-      },
-      {
-        "name": "server",
-        "type": "query",
-        "datasource": {
-          "type": "mssql",
-          "uid": "scom-dw"
-        },
-        "query": {
-          "query": "SELECT DISTINCT me.Path AS __text, me.Path AS __value FROM vManagedEntity me WHERE me.Path LIKE 'SRV-IIS%' AND me.ManagedEntityTypeRowId = 2 ORDER BY me.Path",
-          "refId": "StandardVariableQuery"
-        },
-        "label": "Server",
-        "refresh": 1,
-        "multi": false,
-        "includeAll": false,
-        "sort": 1,
-        "current": {
-          "selected": true,
-          "text": "SRV-IIS-03.CMH.alterra.com",
-          "value": "SRV-IIS-03.CMH.alterra.com"
-        }
-      }
-    ]
-  },
-  "time": {
-    "from": "now-7d",
-    "to": "now"
-  },
-  "timepicker": {},
-  "timezone": "browser",
-  "title": "SCOM IIS",
-  "uid": "scom-iis",
-  "version": 1,
-  "id": null,
-  "liveNow": false,
-  "refresh": "",
-  "style": "dark"
+  ]
 }

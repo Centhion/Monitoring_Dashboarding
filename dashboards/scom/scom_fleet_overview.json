@@ -9,13 +9,14 @@
     "overview"
   ],
   "schemaVersion": 39,
-  "version": 7,
+  "version": 1,
   "timezone": "browser",
   "editable": true,
   "graphTooltip": 1,
   "fiscalYearStartMonth": 0,
   "liveNow": false,
   "refresh": "5m",
+  "style": "dark",
   "time": {
     "from": "now-7d",
     "to": "now"
@@ -23,12 +24,13 @@
   "timepicker": {},
   "links": [
     {
-      "title": "SCOM Server Overview",
+      "title": "SCOM Fleet Overview",
       "type": "link",
       "icon": "dashboard",
-      "url": "/d/scom-server-overview",
-      "tooltip": "Drill into individual server metrics",
-      "targetBlank": false
+      "url": "/d/scom-fleet-overview",
+      "tooltip": "Fleet-wide server health",
+      "targetBlank": false,
+      "keepTime": true
     },
     {
       "title": "SCOM Alerts",
@@ -36,7 +38,8 @@
       "icon": "dashboard",
       "url": "/d/scom-alerts",
       "tooltip": "View SCOM alert details",
-      "targetBlank": false
+      "targetBlank": false,
+      "keepTime": true
     },
     {
       "title": "Enterprise NOC",
@@ -44,7 +47,8 @@
       "icon": "dashboard",
       "url": "/d/enterprise-noc",
       "tooltip": "Enterprise NOC overview",
-      "targetBlank": false
+      "targetBlank": false,
+      "keepTime": true
     }
   ],
   "annotations": {
@@ -60,6 +64,33 @@
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
         "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "site",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __text, SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 ORDER BY 1",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Site",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
       }
     ]
   },
@@ -122,7 +153,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT COUNT(DISTINCT me.Path) AS \"Servers\"\nFROM vManagedEntity me\nINNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId\nWHERE met.ManagedEntityTypeSystemName LIKE '%Computer%'",
+          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Servers\"\nFROM vManagedEntity me\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
           "editorMode": "code"
         }
       ],
@@ -186,7 +217,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT AVG(ph.AverageValue) AS \"CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nWHERE pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND $__timeFilter(ph.DateTime)",
+          "rawSql": "SELECT AVG(ph.AverageValue) AS \"CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ph.DateTime)",
           "editorMode": "code"
         }
       ],
@@ -240,7 +271,7 @@
       "id": 5,
       "type": "stat",
       "title": "Avg Memory Used",
-      "description": "Average committed bytes in use across all servers in the last hour",
+      "description": "Average memory utilization across all servers in the selected time range",
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -259,7 +290,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT AVG(ph.AverageValue) AS \"Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nWHERE pri.ObjectName = 'Memory' AND pri.CounterName = '% Committed Bytes In Use'\nAND $__timeFilter(ph.DateTime)",
+          "rawSql": "SELECT AVG(ph.AverageValue) AS \"Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed'\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ph.DateTime)",
           "editorMode": "code"
         }
       ],
@@ -332,7 +363,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT COUNT(*) AS \"Critical Alerts\"\nFROM Alert.vAlert a\nWHERE a.ResolutionState <> 255 AND a.Severity = 2",
+          "rawSql": "SELECT COUNT(*) AS \"Critical Alerts\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255 AND a.Severity = 2\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
           "editorMode": "code"
         }
       ],
@@ -393,7 +424,7 @@
       "id": 8,
       "type": "table",
       "title": "Top 10 CPU",
-      "description": "Servers with highest average CPU utilization over the last 24 hours",
+      "description": "Servers with highest average CPU utilization over the selected time range",
       "gridPos": {
         "h": 10,
         "w": 8,
@@ -412,7 +443,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  AVG(ph.AverageValue) AS \"Avg CPU %\",\n  MAX(ph.MaxValue) AS \"Peak CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND $__timeFilter(ph.DateTime)\nGROUP BY me.Path\nORDER BY AVG(ph.AverageValue) DESC",
+          "rawSql": "SELECT TOP 10\n  me.DisplayName AS \"Server\",\n  AVG(ph.AverageValue) AS \"Avg CPU %\",\n  MAX(ph.MaxValue) AS \"Peak CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ph.DateTime)\nGROUP BY me.DisplayName\nORDER BY AVG(ph.AverageValue) DESC",
           "editorMode": "code"
         }
       ],
@@ -541,7 +572,7 @@
       "id": 9,
       "type": "table",
       "title": "Top 10 Memory",
-      "description": "Servers with highest average memory utilization over the last 24 hours",
+      "description": "Servers with highest average memory utilization over the selected time range",
       "gridPos": {
         "h": 10,
         "w": 8,
@@ -560,7 +591,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  AVG(ph.AverageValue) AS \"Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Memory' AND pri.CounterName = '% Committed Bytes In Use'\nAND $__timeFilter(ph.DateTime)\nGROUP BY me.Path\nORDER BY AVG(ph.AverageValue) DESC",
+          "rawSql": "SELECT TOP 10\n  me.DisplayName AS \"Server\",\n  AVG(ph.AverageValue) AS \"Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed'\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ph.DateTime)\nGROUP BY me.DisplayName\nORDER BY AVG(ph.AverageValue) DESC",
           "editorMode": "code"
         }
       ],
@@ -673,7 +704,7 @@
       "id": 10,
       "type": "table",
       "title": "Top 10 Lowest Disk",
-      "description": "Disk volumes with the lowest free space percentage over the last 24 hours",
+      "description": "Disk volumes with the lowest free space percentage over the selected time range",
       "gridPos": {
         "h": 10,
         "w": 8,
@@ -692,7 +723,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT TOP 10\n  me.Path AS \"Server\",\n  pri.InstanceName AS \"Drive\",\n  MIN(ph.AverageValue) AS \"Free %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'LogicalDisk' AND pri.CounterName = '% Free Space'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND $__timeFilter(ph.DateTime)\nGROUP BY me.Path, pri.InstanceName\nORDER BY MIN(ph.AverageValue) ASC",
+          "rawSql": "SELECT TOP 10\n  me.DisplayName AS \"Server\",\n  pri.InstanceName AS \"Drive\",\n  MIN(ph.AverageValue) AS \"Free %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'LogicalDisk' AND pr.CounterName = '% Free Space'\nAND pri.InstanceName NOT IN ('_Total', 'HarddiskVolume1')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ph.DateTime)\nGROUP BY me.DisplayName, pri.InstanceName\nORDER BY MIN(ph.AverageValue) ASC",
           "editorMode": "code"
         }
       ],
@@ -839,7 +870,7 @@
             "uid": "scom-dw"
           },
           "format": "time_series",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  AVG(ph.AverageValue) AS \"Fleet Avg CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nWHERE pri.ObjectName = 'Processor' AND pri.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND $__timeFilter(ph.DateTime)\nGROUP BY ph.DateTime\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  AVG(ph.AverageValue) AS \"Fleet Avg CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time' AND pri.InstanceName = '_Total'\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ph.DateTime)\nGROUP BY ph.DateTime\nORDER BY ph.DateTime",
           "editorMode": "code"
         }
       ],
@@ -920,9 +951,5 @@
         }
       }
     }
-  ],
-  "templating": {
-    "list": []
-  },
-  "style": "dark"
+  ]
 }
