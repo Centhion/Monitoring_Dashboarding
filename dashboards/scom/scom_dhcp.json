@@ -884,6 +884,87 @@
           }
         }
       ]
+    },
+    {
+      "id": 13,
+      "type": "row",
+      "title": "DHCP Scope Utilization",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 26}
+    },
+    {
+      "id": 14,
+      "type": "table",
+      "title": "Scope Address Usage",
+      "description": "IP address pool utilization per DHCP scope. High utilization means the scope is running out of available leases.",
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 27},
+      "datasource": {"type": "mssql", "uid": "scom-dw"},
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {"type": "mssql", "uid": "scom-dw"},
+          "format": "table",
+          "rawSql": "SELECT\n  pri_u.InstanceName AS \"Scope\",\n  AVG(used.AverageValue) AS \"Addresses In Use\",\n  AVG(avail.AverageValue) AS \"Addresses Available\",\n  CASE WHEN AVG(used.AverageValue) + AVG(avail.AverageValue) > 0\n    THEN (AVG(used.AverageValue) / (AVG(used.AverageValue) + AVG(avail.AverageValue))) * 100\n    ELSE 0 END AS \"Utilization %\"\nFROM Perf.vPerfHourly used\nINNER JOIN vPerformanceRuleInstance pri_u ON used.PerformanceRuleInstanceRowId = pri_u.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr_u ON pri_u.RuleRowId = pr_u.RuleRowId\nINNER JOIN vManagedEntity me ON used.ManagedEntityRowId = me.ManagedEntityRowId\nINNER JOIN Perf.vPerfHourly avail ON avail.ManagedEntityRowId = me.ManagedEntityRowId AND avail.DateTime = used.DateTime\nINNER JOIN vPerformanceRuleInstance pri_a ON avail.PerformanceRuleInstanceRowId = pri_a.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr_a ON pri_a.RuleRowId = pr_a.RuleRowId\nWHERE pr_u.ObjectName = 'Scopes' AND pr_u.CounterName = 'IPV4Scope-AddressesInUse'\nAND pr_a.ObjectName = 'Scopes' AND pr_a.CounterName = 'IPV4Scope-AddressesAvailable'\nAND pri_u.InstanceName = pri_a.InstanceName\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(used.DateTime)\nGROUP BY pri_u.InstanceName\nORDER BY (AVG(used.AverageValue) / NULLIF(AVG(used.AverageValue) + AVG(avail.AverageValue), 0)) DESC",
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {"type": "auto"},
+            "inspect": false,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{"color": "green", "value": null}]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Scope"},
+            "properties": [{"id": "custom.width", "value": 200}]
+          },
+          {
+            "matcher": {"id": "byName", "options": "Addresses In Use"},
+            "properties": [
+              {"id": "unit", "value": "short"},
+              {"id": "decimals", "value": 0}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "Addresses Available"},
+            "properties": [
+              {"id": "unit", "value": "short"},
+              {"id": "decimals", "value": 0}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "Utilization %"},
+            "properties": [
+              {"id": "unit", "value": "percent"},
+              {"id": "decimals", "value": 1},
+              {"id": "custom.cellOptions", "value": {"type": "color-text"}},
+              {"id": "thresholds", "value": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "yellow", "value": 80},
+                  {"color": "red", "value": 90}
+                ]
+              }}
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {"show": false},
+        "sortBy": [{"displayName": "Utilization %", "desc": true}]
+      }
     }
   ]
 }
