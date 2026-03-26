@@ -2031,12 +2031,18 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 ### 15C: Role-Specific Dashboards (SCOM Data)
 
-- [ ] 9. SCOM SQL Server dashboard -- Medium
-  - SQL-specific counters from SCOM SQL MP (buffer cache, batch requests, etc.)
-  - Requires SQL Server Management Pack installed in SCOM
-- [ ] 10. SCOM IIS dashboard -- Medium
-  - IIS counters from SCOM IIS MP
-- [ ] 11. SCOM AD/DC dashboard -- Medium
+- [x] 9. SCOM SQL Server dashboard -- Medium (completed 2026-03-25)
+  - SQL-specific counters: buffer cache hit ratio, batch requests/sec, page life expectancy, user connections, DB size, log size, lock waits, server memory
+  - Stat summary row + performance trends + database storage + memory panels
+  - Simulator seeded with 8 SQL server counter data (7 days hourly)
+- [x] 10. SCOM IIS dashboard -- Medium (completed 2026-03-25)
+  - IIS counters: current connections, requests/sec, bandwidth, 404 errors, ASP.NET request time, app restarts
+  - Stat summary row + request performance + traffic + application health panels
+  - Simulator seeded with 8 IIS server counter data (7 days hourly)
+- [x] 11. SCOM AD/DC dashboard -- Medium (completed 2026-03-25)
+  - AD counters: LDAP searches/binds, Kerberos/NTLM auth, DRA replication, DNS queries
+  - Stat summary row + authentication + replication panels
+  - Simulator seeded with 8 DC counter data (7 days hourly)
   - AD-specific counters from SCOM AD MP
 
 ### 15D: Migration Path

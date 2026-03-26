@@ -1,0 +1,961 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "IIS web server performance data from SCOM Data Warehouse. Shows connection counts, request rates, bandwidth, error rates, and ASP.NET application health for a selected IIS server.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "SCOM Fleet Overview",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/scom-fleet-overview"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "SCOM Alerts",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/scom-alerts"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Enterprise NOC",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/enterprise-noc"
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "IIS web server performance data from SCOM Data Warehouse. Shows connection counts, request rates, bandwidth, error rates, and ASP.NET application health for a selected IIS server.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "id": 2,
+      "title": "IIS Health",
+      "type": "row"
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Current Connections",
+      "description": "Latest number of active connections to the IIS web service.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Connections\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Web Service' AND pri.CounterName = 'Current Connections'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Requests/sec",
+      "description": "Latest total HTTP method requests per second handled by IIS.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Req/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Web Service' AND pri.CounterName = 'Total Method Requests/sec'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Bandwidth",
+      "description": "Latest total bytes per second transferred by the IIS web service.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "Bps",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Bytes/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Web Service' AND pri.CounterName = 'Bytes Total/sec'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "404 Errors/sec",
+      "description": "Latest rate of HTTP 404 Not Found errors returned by IIS.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"404/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Web Service' AND pri.CounterName = 'Not Found Errors/sec'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 7,
+      "title": "Request Performance",
+      "type": "row"
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Requests Over Time",
+      "description": "IIS total method requests per second and ASP.NET requests per second over time from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.ObjectName + ' - ' + pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE (\n  (pri.ObjectName = 'Web Service' AND pri.CounterName = 'Total Method Requests/sec' AND pri.InstanceName = '_Total')\n  OR (pri.ObjectName = 'ASP.NET Applications' AND pri.CounterName = 'Requests/Sec' AND pri.InstanceName = '__Total__')\n)\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Request Execution Time",
+      "description": "ASP.NET request execution time in milliseconds from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ms",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  ph.AverageValue AS \"Execution Time (ms)\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'ASP.NET Applications' AND pri.CounterName = 'Request Execution Time'\nAND pri.InstanceName = '__Total__'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 10,
+      "title": "Traffic",
+      "type": "row"
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Connections & Bandwidth Over Time",
+      "description": "Active IIS connections and bytes per second throughput over time from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Bytes Total/sec"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "unit",
+                "value": "Bps"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Web Service'\nAND pri.CounterName IN ('Current Connections', 'Bytes Total/sec')\nAND pri.InstanceName = '_Total'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Errors Over Time",
+      "description": "IIS 404 Not Found errors per second over time from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "red",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  ph.AverageValue AS \"404 Errors/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'Web Service' AND pri.CounterName = 'Not Found Errors/sec'\nAND pri.InstanceName = '_Total'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "id": 13,
+      "title": "Application Health",
+      "type": "row"
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Application Restarts Over Time",
+      "description": "ASP.NET application restart count over time from SCOM hourly rollups. Frequent restarts may indicate application pool recycling issues or crashes.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "orange",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  ph.AverageValue AS \"Application Restarts\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'ASP.NET' AND pri.CounterName = 'Application Restarts'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": [
+    "scom",
+    "iis",
+    "web"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "site_group",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me INNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId WHERE met.ManagedEntityTypeSystemName = 'System.Group' AND me.DisplayName LIKE '%Servers%' ORDER BY me.DisplayName",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Site / Group",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1
+      },
+      {
+        "name": "server",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT me.Path AS __text, me.Path AS __value FROM vManagedEntity me WHERE me.Path LIKE 'SRV-IIS%' AND me.ManagedEntityTypeRowId = 2 ORDER BY me.Path",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Server",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "SRV-IIS-03.CMH.alterra.com",
+          "value": "SRV-IIS-03.CMH.alterra.com"
+        }
+      }
+    ]
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "SCOM IIS",
+  "uid": "scom-iis",
+  "version": 1,
+  "id": null,
+  "liveNow": false,
+  "refresh": "",
+  "style": "dark"
+}

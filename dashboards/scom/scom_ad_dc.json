@@ -1,0 +1,849 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Active Directory Domain Controller health from SCOM Data Warehouse. Shows LDAP, Kerberos, NTLM, DNS, and replication metrics for a selected DC.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "SCOM Fleet Overview",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/scom-fleet-overview"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "SCOM Alerts",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/scom-alerts"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Enterprise NOC",
+      "tooltip": "",
+      "type": "link",
+      "url": "/d/enterprise-noc"
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "content": "Active Directory Domain Controller health from SCOM Data Warehouse. Shows LDAP, Kerberos, NTLM, DNS, and replication metrics for a selected DC.",
+        "mode": "markdown"
+      },
+      "transparent": true
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "id": 2,
+      "title": "AD Health",
+      "type": "row"
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "LDAP Searches/sec",
+      "description": "Latest LDAP search rate from SCOM NTDS performance data.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"LDAP Searches/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'NTDS' AND pri.CounterName = 'LDAP Searches/sec'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Kerberos Auth/sec",
+      "description": "Latest Kerberos authentication rate from SCOM NTDS performance data.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Kerberos Auth/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'NTDS' AND pri.CounterName = 'Kerberos Authentications'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "DNS Queries/sec",
+      "description": "Latest total DNS query rate from SCOM DNS performance data.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"DNS Queries/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'DNS' AND pri.CounterName = 'Total Query Received/sec'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "NTLM Auth/sec",
+      "description": "Latest NTLM authentication rate. NTLM should be low in a healthy AD environment; elevated values may indicate legacy clients or misconfigured services.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 30
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 3
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"NTLM Auth/sec\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'NTDS' AND pri.CounterName = 'NTLM Authentications'\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 7,
+      "title": "Authentication",
+      "type": "row"
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Authentication Over Time",
+      "description": "Kerberos and NTLM authentication trends from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'NTDS'\nAND pri.CounterName IN ('Kerberos Authentications', 'NTLM Authentications')\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "LDAP Operations Over Time",
+      "description": "LDAP search and bind rates from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'NTDS'\nAND pri.CounterName IN ('LDAP Searches/sec', 'LDAP Successful Binds/sec')\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 10,
+      "title": "Replication",
+      "type": "row"
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "DRA Replication Over Time",
+      "description": "DRA inbound and outbound replication byte rates from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "Bps",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'NTDS'\nAND pri.CounterName IN ('DRA Inbound Bytes Total/sec', 'DRA Outbound Bytes Total/sec')\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "DNS Over Time",
+      "description": "Total and recursive DNS query rates from SCOM hourly rollups.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pri.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pri.ObjectName = 'DNS'\nAND pri.CounterName IN ('Total Query Received/sec', 'Recursive Queries/sec')\nAND me.Path = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": [
+    "scom",
+    "activedirectory",
+    "dc"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "site_group",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me INNER JOIN vManagedEntityType met ON me.ManagedEntityTypeRowId = met.ManagedEntityTypeRowId WHERE met.ManagedEntityTypeSystemName = 'System.Group' AND me.DisplayName LIKE '%Servers%' ORDER BY me.DisplayName",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Site / Group",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1
+      },
+      {
+        "name": "server",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": {
+          "query": "SELECT DISTINCT me.Path AS __text, me.Path AS __value FROM vManagedEntity me WHERE me.Path LIKE 'SRV-DC%' AND me.ManagedEntityTypeRowId = 2 ORDER BY me.Path",
+          "refId": "StandardVariableQuery"
+        },
+        "label": "Server",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "SRV-DC-01.CMH.alterra.com",
+          "value": "SRV-DC-01.CMH.alterra.com"
+        }
+      }
+    ]
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "SCOM AD/DC",
+  "uid": "scom-ad-dc",
+  "version": 1,
+  "id": null,
+  "liveNow": false,
+  "refresh": "",
+  "style": "dark"
+}
