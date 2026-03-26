@@ -679,3 +679,60 @@ Chronological record of work sessions for context continuity.
 - Commits: dfac108 through 8442895
 
 ---
+
+## Session: 2026-03-26 (continued) -- Chrome Review, Deployment Prep, Documentation
+
+### Completed
+
+- **Chrome review of all 10 SCOM dashboards**: Systematic verification with screenshots. 8 fully passing, IIS partial (ASP.NET counters not seeded -- will work on production), Exchange expected no data (production-only counters).
+- **Variable query fix**: Root cause identified -- Grafana v11.5 MSSQL plugin requires template variable queries as plain SQL strings, NOT `{"query": "...", "refId": "..."}` objects. Fixed across all 10 dashboards. This was causing the warning triangles on Site and Server dropdowns.
+- **Site variable query fix**: Replaced `SUBSTRING/CHARINDEX` (failed on edge cases) with `STUFF/LEFT/CHARINDEX` for robust site code extraction from `VM-<SITE>-<ROLE>` hostname pattern.
+- **Auto-seed container**: Created `scripts/Dockerfile.scom-seed` and `scom-dw-seed` service in docker-compose.yml. SCOM simulator now auto-seeds on `docker compose --profile scom-demo up` -- no manual pymssql step needed.
+- **Documentation overhaul**:
+  - `scripts/validate_dashboards.py`: Added `scom-dw` to valid datasource UIDs. All 29 dashboards pass validation.
+  - `docs/operations/STACK_MANAGEMENT.md`: Full SCOM section with production deployment, demo setup, dashboard inventory, troubleshooting.
+  - `docs/operations/DASHBOARD_GUIDE.md`: All 10 SCOM dashboards documented with descriptions, navigation flow, filter table, glossary.
+  - `docs/PROJECT_PLAN.md`: Phase 15A marked complete, Phase 15 status updated.
+- **Architecture decision**: Reverted standalone `docker-compose.scom.yml` in favor of keeping everything in the main compose file. Made Grafana `depends_on` Prometheus/Loki optional (`required: false`) so Grafana starts even without the full metrics stack. SCOM dashboards work immediately; Alloy dashboards populate when agents deploy.
+- **Commits**: 8442895 through 2744ae1 (7 commits this portion)
+
+### In Progress
+
+- **Production deployment**: Deployment steps documented but blocked on infrastructure questions.
+
+### Blockers
+
+- **Docker host domain join status**: User needs to check if the Denver DC Docker host is domain-joined. Determines authentication path to SCOM DW SQL Server.
+  - If domain-joined: can use Windows Auth with existing `svc-omread` AD account (Kerberos config needed in Grafana container)
+  - If NOT domain-joined (likely): need a SQL auth login (e.g., `grafana-scom-ro`) with db_datareader on OperationsManagerDW
+- **SQL Server login creation**: Cannot proceed with production deployment until auth method is confirmed and login is created.
+- **Network path verification**: Need to confirm Docker host can reach VM-DEN-SQL11 port 1433.
+
+### Decisions
+
+- **Single compose file, not separate SCOM-only file**: Reverted the `docker-compose.scom.yml` approach. The main compose file handles everything via profiles. Adding a second compose file was fragmentation that didn't respect the existing `stack_manage.py` wrapper and deployment patterns.
+- **Grafana dependencies optional**: Changed `depends_on` for Prometheus/Loki to `required: false`. Grafana starts regardless of metrics backend state. SCOM dashboards work immediately on production; Alloy dashboards show "No data" until agents are deployed.
+- **Phased demo strategy**: Phase 1 demo shows live SCOM data ("replace SquaredUp today, $26K saved"). Phase 2 demo shows Alloy stack ("replace SCOM agents with better alerting"). Don't mix live and synthetic in the same demo.
+- **SQL auth for Grafana**: Most likely path since Docker host is probably not domain-joined. Create a purpose-built SQL login (`grafana-scom-ro`) rather than reusing the AD account name `svc-omread`.
+- **Variable queries must be plain strings**: Grafana v11.5 MSSQL plugin limitation. Panel target queries can use object format but template variables cannot. Documented as a known constraint.
+
+### Next Session
+
+1. **Confirm Docker host domain join status** (user action)
+2. **Create SQL login on VM-DEN-SQL11** (user action, needs domain join answer first)
+3. **Verify network path** Docker host -> VM-DEN-SQL11:1433 (user action)
+4. **Test production connection** -- set `.env` values and verify SCOM dashboards populate with real data
+5. **Validate hostname patterns** -- confirm all 1,335 production servers follow `VM-<SITE>-` pattern for site variable extraction
+6. **Fix any counter name mismatches** -- some panels may show "No data" if production counter strings differ slightly from discovery data
+
+### Context
+
+- Stack wrapper: `python3 scripts/stack_manage.py` from project root (reads `.env` from project root, not `deploy/docker/`)
+- `.env` file goes in **project root**, not `deploy/docker/` -- this is how `stack_manage.py` and `_compose_base_cmd()` work
+- `svc-omread` exists in ADUC as an AD service account. Do NOT create a SQL login with the same name to avoid confusion. Use `grafana-scom-ro` or similar for the SQL auth login.
+- The Grafana volume was wiped during this session. Fresh install state: admin/admin login with password change prompt.
+- `docs/INTERNAL_PROPOSAL.md` is still untracked (not committed). Pre-existing file from before these sessions.
+- Dashboard validator passes all 29 dashboards (0 failures, 44 warnings -- all pre-existing grid overlap warnings, none SCOM-related).
+- Production discovery CSVs in `scripts/scom_production_*.csv` -- these are the ground truth for counter names and entity types.
+
+---
