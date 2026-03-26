@@ -2031,10 +2031,10 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 ### 15C: Role-Specific Dashboards (SCOM Data)
 
-- [x] 9. SCOM SQL Server dashboard -- Medium (completed 2026-03-25)
-  - SQL-specific counters: buffer cache hit ratio, batch requests/sec, page life expectancy, user connections, DB size, log size, lock waits, server memory
-  - Stat summary row + performance trends + database storage + memory panels
-  - Simulator seeded with 8 SQL server counter data (7 days hourly)
+- [x] 9. ~~SCOM SQL Server dashboard~~ REMOVED (2026-03-25)
+  - Production discovery showed no SQL Server MP perf counters in OperationsManagerDW
+  - SQL Server monitoring uses Windows OS counters only (CPU/Memory/Disk via Server Overview)
+  - SQL Availability Group status visible via cluster group data
 - [x] 10. SCOM IIS dashboard -- Medium (completed 2026-03-25)
   - IIS counters: current connections, requests/sec, bandwidth, 404 errors, ASP.NET request time, app restarts
   - Stat summary row + request performance + traffic + application health panels
@@ -2054,26 +2054,18 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 **Context**: Production discovery (2026-03-25) revealed schema differences from simulator. Entity type is `Microsoft.Windows.Computer` (not `.Server.Computer`). Counter names stored in separate `vPerformanceRule` table joined via `RuleRowId`. Counter ObjectNames differ from simulator assumptions. No SCOM site groups exist -- site filtering must use hostname parsing (`VM-<SITE>-*`).
 
-- [ ] 1. Fix DW query JOIN path in all dashboards -- Medium
-  - Add `vPerformanceRule` JOIN via `RuleRowId` for ObjectName/CounterName lookup
-  - Current: `vPerfHourly -> vPerformanceRuleInstance (ObjectName, CounterName)`
-  - Production: `vPerfHourly -> vPerformanceRuleInstance -> vPerformanceRule (ObjectName, CounterName)`
-- [ ] 2. Fix entity type in all dashboards -- Simple
-  - Replace `Microsoft.Windows.Server.Computer` with `Microsoft.Windows.Computer`
-- [ ] 3. Fix counter name mappings in all dashboards -- Medium
-  - `Processor` -> `Processor Information` / `% Processor Time` (929 servers)
-  - `Memory` / `% Committed Bytes In Use` -> `Memory` / `PercentMemoryUsed` (929 servers)
-  - `Network Interface` -> `Network Adapter` / `Bytes Total/sec` (1,310 servers)
-  - `NTDS` -> `DirectoryServices` for LDAP/DRA counters (110 servers)
-  - `NTDS` -> `Security System-Wide Statistics` for Kerberos/NTLM (112 servers)
-- [ ] 4. Build site variable from hostname parsing -- Medium
-  - Extract site code from `me.DisplayName` using `SUBSTRING`/`CHARINDEX` on `VM-<SITE>-` pattern
-  - Production sites: BMR, DED, DEN, DEU, DV, MM, SBT, SCHW, SNO, SOL, STR, SUG, SVAM, TRM, WP
-- [ ] 5. Update simulator to match production schema -- Medium
-  - Add `vPerformanceRule` table with `RuleRowId` -> ObjectName/CounterName mapping
-  - Update seed data with production counter names
-  - Use `VM-<SITE>-` hostname pattern with generic site codes
-  - Update `vPerformanceRuleInstance` to use `RuleRowId` reference instead of embedded counter names
+- [x] 1. Fix DW query JOIN path in all dashboards -- Medium (completed 2026-03-25)
+  - All 6 dashboards rebuilt with `vPerfHourly -> vPerformanceRuleInstance -> vPerformanceRule` JOIN path
+- [x] 2. Fix entity type in all dashboards -- Simple (completed 2026-03-25)
+  - Changed to `ManagedEntityTypeRowId = 1` (Microsoft.Windows.Computer)
+- [x] 3. Fix counter name mappings in all dashboards -- Medium (completed 2026-03-25)
+  - All counter references updated to production strings via `pr.ObjectName`/`pr.CounterName`
+- [x] 4. Build site variable from hostname parsing -- Medium (completed 2026-03-25)
+  - Site variable uses `SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4)` to extract site code
+  - Added to all 6 dashboards with cascading server variable
+- [x] 5. Update simulator to match production schema -- Medium (completed 2026-03-25)
+  - Added `vPerformanceRule` table, 44 rules, 47 instances matching production counter names
+  - 72 servers across 9 sites (VM-<SITE>-<ROLE> pattern), 284K perf rows
 
 ### 15F: Hub-and-Spoke Dashboard Architecture (added 2026-03-25)
 
@@ -2094,10 +2086,13 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 ### 15G: Additional Role Dashboards (added 2026-03-25, based on production MP discovery)
 
-- [ ] 10. DHCP Server dashboard -- Medium (46 servers, 14 counters)
-  - Acks/sec, Requests/sec, Queue Length, Discovers/sec, Packets Received/sec
-- [ ] 11. DNS Server dashboard (dedicated, separate from AD) -- Medium (113 servers, 60+ counters)
-  - Total Query Received/sec, Recursive Queries/sec, Dynamic Updates, Zone Transfers
+- [x] 10. DHCP Server dashboard -- Medium (completed 2026-03-25)
+  - Requests/sec, Acks/sec, Queue Length, Discovers/sec, Packets Received/sec
+  - Stat summary + request activity + queue trends
+- [x] 11. DNS Server dashboard -- Medium (completed 2026-03-25)
+  - Total Query Received/sec, Recursive Queries/sec, Dynamic Updates
+  - Stat summary + query volume + dynamic update trends
+  - Runs on DC servers (DNS collocated with AD)
 - [ ] 12. Exchange Server dashboard -- Medium (1 server + 23 services)
   - DB latency (Read/Write), Queue lengths, Messages/sec, Mailbox count/size, ActiveSync
 - [ ] 13. DFS Replication dashboard -- Simple (114 servers)
@@ -2107,9 +2102,8 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 - [ ] 15. SQL Cluster/AG status dashboard -- Medium
   - Availability Group membership and status across sites (from cluster group data)
   - Note: SQL Server MP perf counters NOT available in production DW -- SQL monitoring is via Windows OS counters only
-- [ ] 16. Remove SQL Server perf counter dashboard -- Simple
-  - `scom_sql_server.json` built on simulator-only counters that don't exist in production
-  - Replace with SQL Cluster/AG dashboard (task 15)
+- [x] 16. Remove SQL Server perf counter dashboard -- Simple (completed 2026-03-25)
+  - `scom_sql_server.json` deleted -- counters don't exist in production DW
 
 ### Human Actions Required
 
