@@ -23,40 +23,36 @@
   "timepicker": {},
   "links": [
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": false,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
       "title": "SCOM Fleet Overview",
-      "tooltip": "",
       "type": "link",
-      "url": "/d/scom-fleet-overview"
+      "icon": "dashboard",
+      "url": "/d/scom-fleet-overview",
+      "keepTime": true,
+      "targetBlank": false
     },
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": false,
+      "title": "SCOM Server Overview",
+      "type": "link",
+      "icon": "dashboard",
+      "url": "/d/scom-server-overview",
       "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
+      "targetBlank": false
+    },
+    {
       "title": "SCOM Alerts",
-      "tooltip": "",
       "type": "link",
-      "url": "/d/scom-alerts"
+      "icon": "dashboard",
+      "url": "/d/scom-alerts",
+      "keepTime": true,
+      "targetBlank": false
     },
     {
-      "asDropdown": false,
-      "icon": "external link",
-      "includeVars": false,
-      "keepTime": true,
-      "tags": [],
-      "targetBlank": false,
       "title": "Enterprise NOC",
-      "tooltip": "",
       "type": "link",
-      "url": "/d/enterprise-noc"
+      "icon": "dashboard",
+      "url": "/d/enterprise-noc",
+      "keepTime": true,
+      "targetBlank": false
     }
   ],
   "annotations": {

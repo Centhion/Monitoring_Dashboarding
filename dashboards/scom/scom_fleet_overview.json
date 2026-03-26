@@ -28,36 +28,32 @@
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-fleet-overview",
-      "tooltip": "Fleet-wide server health",
-      "targetBlank": false,
-      "keepTime": true
-    },
-    {
-      "title": "SCOM Alerts",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-alerts",
-      "tooltip": "View SCOM alert details",
-      "targetBlank": false,
-      "keepTime": true
+      "keepTime": true,
+      "targetBlank": false
     },
     {
       "title": "SCOM Server Overview",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-server-overview",
-      "tooltip": "Drill into individual server metrics",
-      "targetBlank": false,
-      "keepTime": true
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "SCOM Alerts",
+      "type": "link",
+      "icon": "dashboard",
+      "url": "/d/scom-alerts",
+      "keepTime": true,
+      "targetBlank": false
     },
     {
       "title": "Enterprise NOC",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/enterprise-noc",
-      "tooltip": "Enterprise NOC overview",
-      "targetBlank": false,
-      "keepTime": true
+      "keepTime": true,
+      "targetBlank": false
     }
   ],
   "annotations": {
@@ -698,7 +694,7 @@
                 "value": [
                   {
                     "title": "View Server Detail",
-                    "url": "/d/scom-server-overview?var-server=${__value.text}",
+                    "url": "/d/scom-server-overview?var-server=${__value.text}&var-site=${site}",
                     "targetBlank": false
                   }
                 ]
@@ -846,7 +842,7 @@
                 "value": [
                   {
                     "title": "View Server Detail",
-                    "url": "/d/scom-server-overview?var-server=${__value.text}",
+                    "url": "/d/scom-server-overview?var-server=${__value.text}&var-site=${site}",
                     "targetBlank": false
                   }
                 ]
@@ -978,7 +974,7 @@
                 "value": [
                   {
                     "title": "View Server Detail",
-                    "url": "/d/scom-server-overview?var-server=${__value.text}",
+                    "url": "/d/scom-server-overview?var-server=${__value.text}&var-site=${site}",
                     "targetBlank": false
                   }
                 ]
