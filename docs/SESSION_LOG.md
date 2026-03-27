@@ -884,3 +884,65 @@ Chronological record of work sessions for context continuity.
 - All 30 commits this mega-session: 10c1179 through ef5c80c
 
 ---
+
+## Session: 2026-03-26 (deployment) -- Production Deployment to Denver DC Docker Host
+
+### Completed
+
+- **Deploy branch created**: `deploy` branch forked from master with 9 dev-only docs removed (DECISIONS, TESTING_CHECKLIST, SQUARED_UP_REFERENCE, CLOUD_MONITORING, BRANCHING_STRATEGY, TEMPLATE_DEEP_DIVE, SSH_AUTHENTICATION, VALIDATION_TOOLING, duplicate DASHBOARD_GUIDE). Master retains all 33 docs. Deploy has 24.
+- **README updated on deploy branch**: Added SCOM dashboard inventory table and tech stack entry for SCOM integration.
+- **SCOM DW TLS encrypt made configurable**: `SCOM_DW_ENCRYPT` env var (defaults to `disable` for simulator, set to `true` for production).
+- **SQL Edge memory limit increased**: 512M -> 2G. Exit code 137 (OOM kill) on the Docker host due to strict Linux cgroup enforcement.
+- **Deployed to Denver DC Docker host**: Stack running at `/opt/docker-apps/poc_monitoring/` with SCOM demo profile. All containers healthy. SCOM dashboards rendering synthetic data. User creating viewer accounts for stakeholder review.
+- **SQL login attempted**: Mixed mode auth is enabled on the SQL Server. User's account couldn't create logins (insufficient permissions). Deferred to DBA.
+
+### Deployment Details
+
+- **Docker host**: Denver DC, x86_64, 16GB RAM, Docker v5.1.1
+- **Deploy method**: Downloaded deploy branch as zip from GitHub (public temporarily), unzipped to `/opt/docker-apps/poc_monitoring/`
+- **Stack command**: `docker compose --profile scom-demo up -d` from `deploy/docker/`
+- **Containers running**: mon-grafana, mon-prometheus, mon-loki, mon-alertmanager, mon-blackbox, mon-scom-dw-sim, mon-scom-dw-seed
+- **Grafana accessible**: `http://<docker-host-ip>:3000`, admin/admin
+- **Traefik integration**: Not done yet. Grafana on port 3000 directly.
+
+### Issues Encountered During Deployment
+
+1. **git clone auth failure**: GitHub removed password auth. Resolved by making repo public temporarily and downloading zip.
+2. **SQL Edge OOM (exit 137)**: Memory limit 512M too tight on Linux host. Fixed to 2G.
+3. **DNS resolution failure**: `scom-dw-sim` hostname not resolving inside Grafana container. Resolved by full rebuild (`down -v` then `up`).
+4. **TLS handshake error**: Grafana MSSQL plugin attempted TLS despite `encrypt: "disable"`. Resolved by full rebuild (cached state).
+5. **SQL login creation failed**: User's admin account lacks sysadmin/securityadmin role. Needs DBA to create `svc-grafana-ro`.
+
+### Blockers
+
+- **SQL login for production SCOM DW**: Need DBA with sysadmin role to create `svc-grafana-ro` SQL login with `db_datareader` on OperationsManagerDW.
+- **DNS on Docker host**: `telnet` fails with name resolution error. Use IP address instead of hostname in `.env` when connecting to production.
+- **Traefik integration**: Need DNS hostname assigned for Grafana, TLS cert added to Traefik.
+- **Make repo private again**: User made it public to clone -- needs to revert.
+
+### Decisions
+
+- **Deploy branch pattern**: Master stays complete (development), deploy branch is slimmed for production. Clone deploy branch to Docker host.
+- **Demo first, production later**: Deploy with simulator data to get stakeholder buy-in. DBA request becomes justified by working demo.
+- **IP address for SQL connection**: Docker host can't resolve SQL Server hostname via DNS. Use IP in `.env`.
+- **No Traefik yet**: Get port 3000 working first, add Traefik reverse proxy as follow-up.
+
+### Next Session
+
+1. **Make GitHub repo private** (user action -- immediate)
+2. **Request DBA to create SQL login** `svc-grafana-ro` with `db_datareader` on OperationsManagerDW
+3. **Connect to production SCOM DW**: Update `.env` with IP, SQL login, `SCOM_DW_ENCRYPT=true`
+4. **Validate production data**: Check site variable populates all 15 sites, fix counter mismatches
+5. **Add Traefik integration**: Get DNS hostname, add labels to Grafana service, TLS cert
+6. **Collect stakeholder feedback** from demo
+
+### Context
+
+- Docker host path: `/opt/docker-apps/poc_monitoring/`
+- Deployed from zip, not git clone -- no `git pull` available. Manual file edits or re-download for updates.
+- Traefik config at `/opt/docker-host/traefik/`. External network: `Frontend`. Pattern: Docker labels for routing.
+- SQL Server has mixed mode auth enabled but user lacks permission to create logins.
+- `svc-omread` exists in ADUC as AD account but has no SQL Server login mapped to it.
+- Repo is currently PUBLIC on GitHub -- must be made private again.
+
+---
