@@ -8,13 +8,21 @@ How to start, stop, restart, and manage the monitoring stack using `stack_manage
 
 Run all commands from the repository root on the Docker host.
 
-### Start the Stack
+### Start the Stack (Production)
 
 ```bash
 python3 scripts/stack_manage.py
 ```
 
-This starts all containers, waits for health checks, and verifies the full stack is operational. Output shows each component's status as it comes up.
+This starts the core stack (Grafana, Prometheus, Loki, Alertmanager), waits for health checks, and verifies everything is operational. SCOM dashboards connect to the production DW configured in `.env`. Prometheus/Loki dashboards populate when Alloy agents are deployed.
+
+### Start the Stack (SCOM Demo)
+
+```bash
+python3 scripts/stack_manage.py --scom-demo
+```
+
+Starts the core stack plus the SCOM DW simulator (Azure SQL Edge) and auto-seed container. All SCOM dashboards render synthetic data immediately -- no production access needed. The seed takes ~8 minutes on first run to populate 411K rows across 9 sites.
 
 ### Check Status
 
