@@ -1,7 +1,7 @@
 -- =============================================================================
 -- SCOM Data Warehouse Discovery Queries
 -- =============================================================================
--- Run these against the production SCOM DW (OperationsManagerDW on VM-DEN-SQL11)
+-- Run these against your production SCOM DW (OperationsManagerDW)
 -- to discover entity types, counter names, groups, and management packs.
 --
 -- Results are used to validate/adjust Grafana dashboard queries before deployment.
