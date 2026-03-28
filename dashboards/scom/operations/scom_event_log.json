@@ -219,7 +219,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT COUNT(*) AS \"Errors\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE el.EventLevelName = 'Error'\nAND elc.LoggingComputerName = '${server:raw}'\nAND $__timeFilter(e.DateTime)",
+          "rawSql": "SELECT COUNT(*) AS \"Errors\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE el.EventLevelName = 'Error'\nAND ('${server:raw}' = '$__all' OR elc.LoggingComputerName = '${server:raw}')\nAND elc.LoggingComputerName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(e.DateTime)",
           "format": "table"
         }
       ]
@@ -277,7 +277,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT COUNT(*) AS \"Warnings\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE el.EventLevelName = 'Warning'\nAND elc.LoggingComputerName = '${server:raw}'\nAND $__timeFilter(e.DateTime)",
+          "rawSql": "SELECT COUNT(*) AS \"Warnings\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE el.EventLevelName = 'Warning'\nAND ('${server:raw}' = '$__all' OR elc.LoggingComputerName = '${server:raw}')\nAND elc.LoggingComputerName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(e.DateTime)",
           "format": "table"
         }
       ]
@@ -335,7 +335,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT COUNT(*) AS \"Information\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE el.EventLevelName = 'Information'\nAND elc.LoggingComputerName = '${server:raw}'\nAND $__timeFilter(e.DateTime)",
+          "rawSql": "SELECT COUNT(*) AS \"Information\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE el.EventLevelName = 'Information'\nAND ('${server:raw}' = '$__all' OR elc.LoggingComputerName = '${server:raw}')\nAND elc.LoggingComputerName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(e.DateTime)",
           "format": "table"
         }
       ]
@@ -468,7 +468,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT\n  DATEADD(hour, DATEDIFF(hour, 0, e.DateTime), 0) AS time,\n  el.EventLevelName AS metric,\n  COUNT(*) AS value\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE elc.LoggingComputerName = '${server:raw}'\nAND ('${event_level:raw}' = 'All' OR el.EventLevelName = '${event_level:raw}')\nAND $__timeFilter(e.DateTime)\nGROUP BY DATEADD(hour, DATEDIFF(hour, 0, e.DateTime), 0), el.EventLevelName\nORDER BY time",
+          "rawSql": "SELECT\n  DATEADD(hour, DATEDIFF(hour, 0, e.DateTime), 0) AS time,\n  el.EventLevelName AS metric,\n  COUNT(*) AS value\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE ('${server:raw}' = '$__all' OR elc.LoggingComputerName = '${server:raw}')\nAND elc.LoggingComputerName LIKE 'VM-' + '${site:raw}' + '-%'\nAND ('${event_level:raw}' = 'All' OR el.EventLevelName = '${event_level:raw}')\nAND $__timeFilter(e.DateTime)\nGROUP BY DATEADD(hour, DATEDIFF(hour, 0, e.DateTime), 0), el.EventLevelName\nORDER BY time",
           "format": "time_series"
         }
       ]
@@ -617,7 +617,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT TOP 200\n  e.DateTime AS \"Time\",\n  el.EventLevelName AS \"Level\",\n  ep.EventPublisherName AS \"Source\",\n  ec.EventChannelName AS \"Channel\",\n  e.EventDisplayNumber AS \"Event ID\",\n  e.RawDescription AS \"Description\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventPublisher ep ON e.EventPublisherRowId = ep.EventPublisherRowId\nINNER JOIN dbo.vEventChannel ec ON e.EventChannelRowId = ec.EventChannelRowId\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE elc.LoggingComputerName = '${server:raw}'\nAND ('${event_level:raw}' = 'All' OR el.EventLevelName = '${event_level:raw}')\nAND $__timeFilter(e.DateTime)\nORDER BY e.DateTime DESC",
+          "rawSql": "SELECT TOP 200\n  e.DateTime AS \"Time\",\n  el.EventLevelName AS \"Level\",\n  ep.EventPublisherName AS \"Source\",\n  ec.EventChannelName AS \"Channel\",\n  e.EventDisplayNumber AS \"Event ID\",\n  e.RawDescription AS \"Description\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventPublisher ep ON e.EventPublisherRowId = ep.EventPublisherRowId\nINNER JOIN dbo.vEventChannel ec ON e.EventChannelRowId = ec.EventChannelRowId\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE ('${server:raw}' = '$__all' OR elc.LoggingComputerName = '${server:raw}')\nAND elc.LoggingComputerName LIKE 'VM-' + '${site:raw}' + '-%'\nAND ('${event_level:raw}' = 'All' OR el.EventLevelName = '${event_level:raw}')\nAND $__timeFilter(e.DateTime)\nORDER BY e.DateTime DESC",
           "format": "table"
         }
       ]

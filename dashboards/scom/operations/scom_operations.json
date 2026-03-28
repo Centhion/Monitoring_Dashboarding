@@ -681,7 +681,7 @@
     },
     {
       "id": 10,
-      "type": "table",
+      "type": "bargauge",
       "title": "Top Alerted Servers",
       "description": "Servers generating the most alerts, with critical and warning breakdown",
       "gridPos": {
@@ -708,13 +708,8 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false,
-            "filterable": true
+          "color": {
+            "mode": "thresholds"
           },
           "mappings": [],
           "thresholds": {
@@ -723,86 +718,36 @@
               {
                 "color": "green",
                 "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Server"
-            },
-            "properties": [
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "View server incident detail",
-                    "url": "/d/scom-incident?var-server=${__value.text}&var-site=${site}",
-                    "targetBlank": false
-                  }
-                ]
               },
               {
-                "id": "custom.width",
-                "value": 200
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 10
               }
             ]
           },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Alerts"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
-                    },
-                    {
-                      "color": "yellow",
-                      "value": 3
-                    },
-                    {
-                      "color": "red",
-                      "value": 10
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        ]
+          "unit": "short"
+        },
+        "overrides": []
       },
       "options": {
-        "showHeader": true,
-        "cellHeight": "sm",
-        "footer": {
-          "show": false,
-          "reducer": [
-            "sum"
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
           ],
-          "countRows": false,
-          "fields": ""
+          "fields": "/^Alerts$/",
+          "values": true
         },
-        "sortBy": [
-          {
-            "displayName": "Alerts",
-            "desc": true
-          }
-        ]
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 10,
+        "namePlacement": "auto",
+        "valueMode": "text"
       }
     },
     {
@@ -916,7 +861,7 @@
     },
     {
       "id": 12,
-      "type": "table",
+      "type": "bargauge",
       "title": "Top Event Error Sources",
       "description": "Event log publishers generating the most errors, with server spread",
       "gridPos": {
@@ -943,13 +888,8 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false,
-            "filterable": true
+          "color": {
+            "mode": "thresholds"
           },
           "mappings": [],
           "thresholds": {
@@ -958,29 +898,36 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 100
               }
             ]
-          }
+          },
+          "unit": "short"
         },
         "overrides": []
       },
       "options": {
-        "showHeader": true,
-        "cellHeight": "sm",
-        "footer": {
-          "show": false,
-          "reducer": [
-            "sum"
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
           ],
-          "countRows": false,
-          "fields": ""
+          "fields": "/^Errors$/",
+          "values": true
         },
-        "sortBy": [
-          {
-            "displayName": "Errors",
-            "desc": true
-          }
-        ]
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 10,
+        "namePlacement": "auto",
+        "valueMode": "text"
       }
     },
     {

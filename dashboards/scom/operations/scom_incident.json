@@ -210,7 +210,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"Health\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName = '${server:raw}'\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
+          "rawSql": "SELECT CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"Health\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
           "refId": "A"
         }
       ]
@@ -279,7 +279,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT COUNT(*) AS \"Alerts\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName = '${server:raw}'\nAND a.ResolutionState <> 255",
+          "rawSql": "SELECT COUNT(*) AS \"Alerts\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND a.ResolutionState <> 255",
           "refId": "A"
         }
       ]
@@ -352,7 +352,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"CPU %\"\nFROM Perf.vPerfRaw ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time'\nAND me.DisplayName = '${server:raw}'\nORDER BY ph.DateTime DESC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"CPU %\"\nFROM Perf.vPerfRaw ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time'\nAND ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nORDER BY ph.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -425,7 +425,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Memory %\"\nFROM Perf.vPerfRaw ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed'\nAND me.DisplayName = '${server:raw}'\nORDER BY ph.DateTime DESC",
+          "rawSql": "SELECT TOP 1 ph.AverageValue AS \"Memory %\"\nFROM Perf.vPerfRaw ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed'\nAND ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nORDER BY ph.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -494,7 +494,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT COUNT(*) AS \"Errors\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE el.EventLevelName = 'Error'\nAND elc.LoggingComputerName = '${server:raw}'\nAND $__timeFilter(e.DateTime)",
+          "rawSql": "SELECT COUNT(*) AS \"Errors\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE el.EventLevelName = 'Error'\nAND ('${server:raw}' = '$__all' OR elc.LoggingComputerName = '${server:raw}')\nAND elc.LoggingComputerName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(e.DateTime)",
           "refId": "A"
         }
       ]
@@ -571,7 +571,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT CASE WHEN COUNT(*) > 0 THEN 'YES' ELSE 'No' END AS \"Maintenance\"\nFROM dbo.vMaintenanceMode mm\nINNER JOIN vManagedEntity me ON mm.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName = '${server:raw}'\nAND mm.StartDateTime <= GETUTCDATE()\nAND (mm.EndDateTime IS NULL OR mm.EndDateTime >= GETUTCDATE())",
+          "rawSql": "SELECT CASE WHEN COUNT(*) > 0 THEN 'YES' ELSE 'No' END AS \"Maintenance\"\nFROM dbo.vMaintenanceMode mm\nINNER JOIN vManagedEntity me ON mm.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND mm.StartDateTime <= GETUTCDATE()\nAND (mm.EndDateTime IS NULL OR mm.EndDateTime >= GETUTCDATE())",
           "refId": "A"
         }
       ]
@@ -687,7 +687,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfRaw ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE (\n  (pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time')\n  OR (pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed')\n)\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfRaw ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE (\n  (pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time')\n  OR (pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed')\n)\nAND ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ],
@@ -788,7 +788,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.ObjectName + ' - ' + pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfRaw ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE (\n  (pr.ObjectName = 'LogicalDisk' AND pr.CounterName = '% Free Space' AND pri.InstanceName = 'C:')\n  OR (pr.ObjectName = 'System' AND pr.CounterName = 'Processor Queue Length')\n)\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.ObjectName + ' - ' + pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfRaw ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE (\n  (pr.ObjectName = 'LogicalDisk' AND pr.CounterName = '% Free Space' AND pri.InstanceName = 'C:')\n  OR (pr.ObjectName = 'System' AND pr.CounterName = 'Processor Queue Length')\n)\nAND ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
           "refId": "A"
         }
       ],
@@ -963,7 +963,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  a.RaisedDateTime AS \"Raised\",\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  CASE a.ResolutionState WHEN 0 THEN 'Active' WHEN 255 THEN 'Closed' ELSE 'Other' END AS \"Status\",\n  a.AlertDescription AS \"Description\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName = '${server:raw}'\nAND $__timeFilter(a.RaisedDateTime)\nORDER BY a.RaisedDateTime DESC",
+          "rawSql": "SELECT\n  a.RaisedDateTime AS \"Raised\",\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  CASE a.ResolutionState WHEN 0 THEN 'Active' WHEN 255 THEN 'Closed' ELSE 'Other' END AS \"Status\",\n  a.AlertDescription AS \"Description\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(a.RaisedDateTime)\nORDER BY a.RaisedDateTime DESC",
           "refId": "A"
         }
       ]
@@ -1074,7 +1074,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT TOP 50\n  e.DateTime AS \"Time\",\n  el.EventLevelName AS \"Level\",\n  ep.EventPublisherName AS \"Source\",\n  e.EventDisplayNumber AS \"Event ID\",\n  e.RawDescription AS \"Description\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventPublisher ep ON e.EventPublisherRowId = ep.EventPublisherRowId\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE elc.LoggingComputerName = '${server:raw}'\nAND el.EventLevelId <= 2\nAND $__timeFilter(e.DateTime)\nORDER BY e.DateTime DESC",
+          "rawSql": "SELECT TOP 50\n  e.DateTime AS \"Time\",\n  el.EventLevelName AS \"Level\",\n  ep.EventPublisherName AS \"Source\",\n  e.EventDisplayNumber AS \"Event ID\",\n  e.RawDescription AS \"Description\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventPublisher ep ON e.EventPublisherRowId = ep.EventPublisherRowId\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE ('${server:raw}' = '$__all' OR elc.LoggingComputerName = '${server:raw}')\nAND elc.LoggingComputerName LIKE 'VM-' + '${site:raw}' + '-%'\nAND el.EventLevelId <= 2\nAND $__timeFilter(e.DateTime)\nORDER BY e.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -1239,7 +1239,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  sh.DateTime AS \"Time\",\n  CASE sh.OldHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"From\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"To\",\n  CASE sh.InMaintenanceMode WHEN 1 THEN 'Yes' ELSE 'No' END AS \"Maintenance\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName = '${server:raw}'\nAND $__timeFilter(sh.DateTime)\nORDER BY sh.DateTime DESC",
+          "rawSql": "SELECT\n  sh.DateTime AS \"Time\",\n  CASE sh.OldHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"From\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"To\",\n  CASE sh.InMaintenanceMode WHEN 1 THEN 'Yes' ELSE 'No' END AS \"Maintenance\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(sh.DateTime)\nORDER BY sh.DateTime DESC",
           "refId": "A"
         }
       ]
@@ -1338,7 +1338,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ars.StateSetDateTime AS \"Time\",\n  a.AlertName AS \"Alert\",\n  CASE ars.ResolutionState WHEN 0 THEN 'New' WHEN 255 THEN 'Closed' ELSE CAST(ars.ResolutionState AS VARCHAR) END AS \"State\",\n  ars.StateSetByUserId AS \"By\",\n  ars.TimeInStateSeconds / 60 AS \"Duration (min)\"\nFROM Alert.vAlertResolutionState ars\nINNER JOIN Alert.vAlert a ON ars.AlertGuid = a.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName = '${server:raw}'\nAND $__timeFilter(ars.StateSetDateTime)\nORDER BY ars.StateSetDateTime DESC",
+          "rawSql": "SELECT\n  ars.StateSetDateTime AS \"Time\",\n  a.AlertName AS \"Alert\",\n  CASE ars.ResolutionState WHEN 0 THEN 'New' WHEN 255 THEN 'Closed' ELSE CAST(ars.ResolutionState AS VARCHAR) END AS \"State\",\n  ars.StateSetByUserId AS \"By\",\n  ars.TimeInStateSeconds / 60 AS \"Duration (min)\"\nFROM Alert.vAlertResolutionState ars\nINNER JOIN Alert.vAlert a ON ars.AlertGuid = a.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ars.StateSetDateTime)\nORDER BY ars.StateSetDateTime DESC",
           "refId": "A"
         }
       ]
