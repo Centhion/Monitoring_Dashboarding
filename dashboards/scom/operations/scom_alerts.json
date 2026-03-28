@@ -179,115 +179,94 @@
     },
     {
       "id": 3,
-      "type": "stat",
-      "title": "Active Critical",
+      "type": "piechart",
+      "title": "Active Alerts by Severity",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
       },
       "gridPos": {
-        "h": 3,
-        "w": 6,
+        "h": 5,
+        "w": 12,
         "x": 0,
         "y": 3
       },
       "fieldConfig": {
         "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
+          "color": {
+            "mode": "fixed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Critical"
+            },
+            "properties": [
               {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
               }
             ]
           },
-          "color": {
-            "mode": "thresholds"
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Warning"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Info"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
           }
-        },
-        "overrides": []
+        ]
       },
       "options": {
         "reduceOptions": {
-          "values": false,
           "calcs": [
             "lastNotNull"
           ],
-          "fields": ""
+          "values": true,
+          "fields": "/^Count$/"
         },
-        "orientation": "auto",
-        "textMode": "auto",
-        "wideLayout": true,
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "mssql",
-            "uid": "scom-dw"
-          },
-          "rawSql": "SELECT COUNT(*) AS \"Critical\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255 AND a.Severity = 2\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
-          "format": "table"
+        "pieType": "donut",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
         }
-      ]
-    },
-    {
-      "id": 4,
-      "type": "stat",
-      "title": "Active Warning",
-      "datasource": {
-        "type": "mssql",
-        "uid": "scom-dw"
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 6,
-        "x": 6,
-        "y": 3
-      },
-      "fieldConfig": {
-        "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 1
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "wideLayout": true,
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
       },
       "targets": [
         {
@@ -296,65 +275,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT COUNT(*) AS \"Warning\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255 AND a.Severity = 1\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
-          "format": "table"
-        }
-      ]
-    },
-    {
-      "id": 5,
-      "type": "stat",
-      "title": "Active Informational",
-      "datasource": {
-        "type": "mssql",
-        "uid": "scom-dw"
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 6,
-        "x": 12,
-        "y": 3
-      },
-      "fieldConfig": {
-        "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "wideLayout": true,
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "mssql",
-            "uid": "scom-dw"
-          },
-          "rawSql": "SELECT COUNT(*) AS \"Info\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255 AND a.Severity = 0\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
+          "rawSql": "SELECT\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' WHEN 0 THEN 'Info' END AS \"Severity\",\n  COUNT(*) AS \"Count\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nGROUP BY a.Severity\nORDER BY a.Severity DESC",
           "format": "table"
         }
       ]
@@ -368,9 +289,9 @@
         "uid": "scom-dw"
       },
       "gridPos": {
-        "h": 3,
-        "w": 6,
-        "x": 18,
+        "h": 5,
+        "w": 12,
+        "x": 12,
         "y": 3
       },
       "fieldConfig": {
@@ -426,7 +347,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 8
       }
     },
     {
@@ -441,7 +362,7 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 9
       },
       "fieldConfig": {
         "defaults": {
@@ -535,7 +456,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 21
       }
     },
     {
@@ -550,7 +471,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 22
       },
       "fieldConfig": {
         "defaults": {
@@ -668,7 +589,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 30
       }
     },
     {
@@ -683,7 +604,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 31
       },
       "fieldConfig": {
         "defaults": {
@@ -777,7 +698,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 37
+        "y": 39
       }
     },
     {
@@ -792,7 +713,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 38
+        "y": 40
       },
       "fieldConfig": {
         "defaults": {
@@ -945,7 +866,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 38
+        "y": 40
       },
       "fieldConfig": {
         "defaults": {

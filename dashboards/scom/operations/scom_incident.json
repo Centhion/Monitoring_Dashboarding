@@ -1093,9 +1093,9 @@
     },
     {
       "id": 15,
-      "type": "table",
-      "title": "Health State Changes",
-      "description": "History of health state transitions for this server, showing when state changed and whether maintenance mode was active.",
+      "type": "state-timeline",
+      "title": "Health State Timeline",
+      "description": "Visual timeline of health state transitions for this server, showing state duration at a glance.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -1105,14 +1105,33 @@
           "color": {
             "mode": "thresholds"
           },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          },
-          "mappings": [],
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "Healthy": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "Healthy"
+                },
+                "Warning": {
+                  "color": "yellow",
+                  "index": 1,
+                  "text": "Warning"
+                },
+                "Critical": {
+                  "color": "red",
+                  "index": 2,
+                  "text": "Critical"
+                },
+                "Unknown": {
+                  "color": "semi-dark-gray",
+                  "index": 3,
+                  "text": "Unknown"
+                }
+              }
+            }
+          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1123,96 +1142,7 @@
             ]
           }
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "From"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "Healthy": {
-                        "color": "green",
-                        "index": 0,
-                        "text": "Healthy"
-                      },
-                      "Warning": {
-                        "color": "yellow",
-                        "index": 1,
-                        "text": "Warning"
-                      },
-                      "Critical": {
-                        "color": "red",
-                        "index": 2,
-                        "text": "Critical"
-                      },
-                      "Unknown": {
-                        "color": "purple",
-                        "index": 3,
-                        "text": "Unknown"
-                      }
-                    }
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "To"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "Healthy": {
-                        "color": "green",
-                        "index": 0,
-                        "text": "Healthy"
-                      },
-                      "Warning": {
-                        "color": "yellow",
-                        "index": 1,
-                        "text": "Warning"
-                      },
-                      "Critical": {
-                        "color": "red",
-                        "index": 2,
-                        "text": "Critical"
-                      },
-                      "Unknown": {
-                        "color": "purple",
-                        "index": 3,
-                        "text": "Unknown"
-                      }
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -1221,15 +1151,19 @@
         "y": 22
       },
       "options": {
-        "showHeader": true,
-        "cellHeight": "sm",
-        "footer": {
-          "show": false,
-          "reducer": [
-            "sum"
-          ]
+        "showValue": "auto",
+        "mergeValues": true,
+        "alignValue": "left",
+        "rowHeight": 0.9,
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
         },
-        "sortBy": []
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       },
       "targets": [
         {
@@ -1239,7 +1173,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  sh.DateTime AS \"Time\",\n  CASE sh.OldHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"From\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"To\",\n  CASE sh.InMaintenanceMode WHEN 1 THEN 'Yes' ELSE 'No' END AS \"Maintenance\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(sh.DateTime)\nORDER BY sh.DateTime DESC",
+          "rawSql": "SELECT\n  sh.DateTime AS time,\n  'Health' AS metric,\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS value\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(sh.DateTime)\nORDER BY sh.DateTime",
           "refId": "A"
         }
       ]
