@@ -1,0 +1,636 @@
+{
+  "id": null,
+  "uid": "scom-event-log",
+  "title": "SCOM Event Log",
+  "description": "Event log viewer for investigating server events from the SCOM Data Warehouse. Filter by server and event level to narrow down root cause.",
+  "tags": [
+    "scom",
+    "events",
+    "troubleshooting"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "fiscalYearStartMonth": 0,
+  "liveNow": false,
+  "style": "dark",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "links": [
+    {
+      "title": "SCOM Fleet Overview",
+      "type": "link",
+      "icon": "dashboard",
+      "url": "/d/scom-fleet-overview",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "SCOM Site Overview",
+      "type": "link",
+      "icon": "dashboard",
+      "url": "/d/scom-site-overview",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "SCOM Server Overview",
+      "type": "link",
+      "icon": "dashboard",
+      "url": "/d/scom-server-overview",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "SCOM Alerts",
+      "type": "link",
+      "icon": "dashboard",
+      "url": "/d/scom-alerts",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "SCOM Event Log",
+      "type": "link",
+      "icon": "dashboard",
+      "url": "/d/scom-event-log",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "Enterprise NOC",
+      "type": "link",
+      "icon": "dashboard",
+      "url": "/d/enterprise-noc",
+      "keepTime": true,
+      "targetBlank": false
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "site",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": "SELECT DISTINCT LEFT(STUFF(me.DisplayName, 1, 3, ''), CHARINDEX('-', STUFF(me.DisplayName, 1, 3, '')) - 1) AS __text, LEFT(STUFF(me.DisplayName, 1, 3, ''), CHARINDEX('-', STUFF(me.DisplayName, 1, 3, '')) - 1) AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 AND me.DisplayName LIKE 'VM-%' ORDER BY 1",
+        "label": "Site",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "server",
+        "type": "query",
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 AND me.DisplayName LIKE 'VM-${site:raw}-%' ORDER BY me.DisplayName",
+        "label": "Server",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 1
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "Error",
+          "value": "Error"
+        },
+        "description": "Filter events by level",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Event Level",
+        "multi": false,
+        "name": "event_level",
+        "options": [
+          {
+            "selected": false,
+            "text": "All",
+            "value": "All"
+          },
+          {
+            "selected": true,
+            "text": "Error",
+            "value": "Error"
+          },
+          {
+            "selected": false,
+            "text": "Warning",
+            "value": "Warning"
+          },
+          {
+            "selected": false,
+            "text": "Information",
+            "value": "Information"
+          }
+        ],
+        "query": "All,Error,Warning,Information",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Event Summary",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Error Events",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "rawSql": "SELECT COUNT(*) AS \"Errors\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE el.EventLevelName = 'Error'\nAND elc.LoggingComputerName = '${server:raw}'\nAND $__timeFilter(e.DateTime)",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Warning Events",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "rawSql": "SELECT COUNT(*) AS \"Warnings\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE el.EventLevelName = 'Warning'\nAND elc.LoggingComputerName = '${server:raw}'\nAND $__timeFilter(e.DateTime)",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Info Events",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "rawSql": "SELECT COUNT(*) AS \"Information\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE el.EventLevelName = 'Information'\nAND elc.LoggingComputerName = '${server:raw}'\nAND $__timeFilter(e.DateTime)",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "title": "Event Timeline",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Events Over Time",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "lineInterpolation": "linear",
+            "barAlignment": 0,
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "never",
+            "pointSize": 5,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Error"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Warning"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Information"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "rawSql": "SELECT\n  DATEADD(hour, DATEDIFF(hour, 0, e.DateTime), 0) AS time,\n  el.EventLevelName AS metric,\n  COUNT(*) AS value\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE elc.LoggingComputerName = '${server:raw}'\nAND ('${event_level:raw}' = 'All' OR el.EventLevelName = '${event_level:raw}')\nAND $__timeFilter(e.DateTime)\nGROUP BY DATEADD(hour, DATEDIFF(hour, 0, e.DateTime), 0), el.EventLevelName\nORDER BY time",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "row",
+      "title": "Event Detail",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      }
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Event Log",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Level"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Error": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "Error"
+                      },
+                      "Warning": {
+                        "color": "yellow",
+                        "index": 1,
+                        "text": "Warning"
+                      },
+                      "Information": {
+                        "color": "blue",
+                        "index": 2,
+                        "text": "Information"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.filterable",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Source"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Event ID"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "Time",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "rawSql": "SELECT TOP 200\n  e.DateTime AS \"Time\",\n  el.EventLevelName AS \"Level\",\n  ep.EventPublisherName AS \"Source\",\n  ec.EventChannelName AS \"Channel\",\n  e.EventDisplayNumber AS \"Event ID\",\n  e.RawDescription AS \"Description\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventPublisher ep ON e.EventPublisherRowId = ep.EventPublisherRowId\nINNER JOIN dbo.vEventChannel ec ON e.EventChannelRowId = ec.EventChannelRowId\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE elc.LoggingComputerName = '${server:raw}'\nAND ('${event_level:raw}' = 'All' OR el.EventLevelName = '${event_level:raw}')\nAND $__timeFilter(e.DateTime)\nORDER BY e.DateTime DESC",
+          "format": "table"
+        }
+      ]
+    }
+  ]
+}

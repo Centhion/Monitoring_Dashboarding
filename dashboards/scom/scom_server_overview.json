@@ -55,6 +55,14 @@
       "targetBlank": false
     },
     {
+      "title": "SCOM Event Log",
+      "type": "link",
+      "icon": "dashboard",
+      "url": "/d/scom-event-log",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
       "title": "Enterprise NOC",
       "type": "link",
       "icon": "dashboard",
@@ -1225,6 +1233,374 @@
           "options": {
             "format": "multi"
           }
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 18,
+      "title": "Recent Performance (5-min granularity)",
+      "type": "row"
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "CPU & Memory (5-min)",
+      "description": "High-resolution CPU and memory utilization from SCOM raw performance data (5-minute intervals).",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 45
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfRaw ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ((pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time' AND pri.InstanceName = '_Total')\n   OR (pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed'))\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "Disk & Network (5-min)",
+      "description": "High-resolution disk free space and network throughput from SCOM raw performance data (5-minute intervals).",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 45
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  pr.ObjectName + ' - ' + pr.CounterName AS metric,\n  ph.AverageValue AS value\nFROM Perf.vPerfRaw ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ((pr.ObjectName = 'LogicalDisk' AND pr.CounterName = '% Free Space' AND pri.InstanceName = 'C:')\n   OR (pr.ObjectName = 'Network Adapter' AND pr.CounterName = 'Bytes Total/sec'))\nAND me.DisplayName = '${server:raw}'\nAND $__timeFilter(ph.DateTime)\nORDER BY ph.DateTime",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 53
+      },
+      "id": 21,
+      "title": "Maintenance History",
+      "type": "row"
+    },
+    {
+      "id": 22,
+      "type": "table",
+      "title": "Maintenance Mode History",
+      "description": "Historical maintenance mode entries for the selected server, including planned vs unplanned classification and operator comments.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Start"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "End"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Set By"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Type"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Planned": {
+                        "color": "blue",
+                        "index": 0,
+                        "text": "Planned"
+                      },
+                      "Unplanned": {
+                        "color": "yellow",
+                        "index": 1,
+                        "text": "Unplanned"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 54
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ]
+        },
+        "sortBy": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  mm.StartDateTime AS \"Start\",\n  mm.EndDateTime AS \"End\",\n  mmh.Comment AS \"Reason\",\n  mmh.UserId AS \"Set By\",\n  CASE mm.PlannedMaintenanceInd WHEN 1 THEN 'Planned' ELSE 'Unplanned' END AS \"Type\"\nFROM dbo.vMaintenanceMode mm\nINNER JOIN vManagedEntity me ON mm.ManagedEntityRowId = me.ManagedEntityRowId\nLEFT JOIN dbo.vMaintenanceModeHistory mmh ON mm.MaintenanceModeRowId = mmh.MaintenanceModeRowId\nWHERE me.DisplayName = '${server:raw}'\nORDER BY mm.StartDateTime DESC",
+          "refId": "A"
         }
       ]
     }
