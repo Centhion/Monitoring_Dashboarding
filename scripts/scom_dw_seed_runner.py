@@ -571,11 +571,269 @@ def main():
         )
     conn.commit()
 
+    # =========================================================================
+    # Seed troubleshooting tables (Phase 15I)
+    # =========================================================================
+
+    # --- Perf.vPerfRaw (5-minute granularity, last 7 days) ---
+    # Same schema as vPerfHourly but higher resolution
+    try:
+        cursor.execute("IF OBJECT_ID('Perf.vPerfRaw') IS NULL CREATE TABLE Perf.vPerfRaw (DateTime DATETIME, PerformanceRuleInstanceRowId INT, ManagedEntityRowId INT, SampleCount INT, AverageValue FLOAT, MinValue FLOAT, MaxValue FLOAT, StandardDeviation FLOAT)")
+        cursor.execute("IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_PerfRaw_DT') CREATE INDEX IX_PerfRaw_DT ON Perf.vPerfRaw (DateTime)")
+    except Exception:
+        pass
+
+    cursor.execute("SELECT COUNT(*) FROM Perf.vPerfRaw")
+    if cursor.fetchone()[0] == 0:
+        print("  Seeding Perf.vPerfRaw (5-min granularity)...")
+        batch = []
+        raw_total = 0
+        # Seed 3 days at 5-min intervals (864 intervals) for key counters only
+        # Using a subset of counters to keep row count manageable
+        key_instances = list(instance_map.items())[:8]  # CPU, memory, disk, network
+        for interval in range(864):
+            dt = (now - timedelta(minutes=interval * 5)).strftime("%Y-%m-%d %H:%M:%S")
+            for (obj, ctr, inst), pri_id in key_instances:
+                for sid, _ in random.sample(all_servers, min(20, len(all_servers))):
+                    val = gen_value(ctr)
+                    batch.append((dt, pri_id, sid, 1, val, val * 0.8, val * 1.2, 1.0))
+                    raw_total += 1
+                    if len(batch) >= 2000:
+                        cursor.executemany(
+                            "INSERT INTO Perf.vPerfRaw (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                            batch
+                        )
+                        conn.commit()
+                        batch = []
+        if batch:
+            cursor.executemany(
+                "INSERT INTO Perf.vPerfRaw (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                batch
+            )
+            conn.commit()
+        print(f"  Perf.vPerfRaw: {raw_total:,} rows")
+
+    # --- Event tables ---
+    try:
+        cursor.execute("IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Event') EXEC('CREATE SCHEMA Event')")
+    except Exception:
+        pass
+
+    event_tables = {
+        "EventPublisher": "CREATE TABLE dbo.EventPublisher (EventPublisherRowId INT PRIMARY KEY IDENTITY(1,1), EventPublisherName NVARCHAR(256))",
+        "EventChannel": "CREATE TABLE dbo.EventChannel (EventChannelRowId INT PRIMARY KEY IDENTITY(1,1), EventChannelName NVARCHAR(256))",
+        "EventLevel": "CREATE TABLE dbo.EventLevel (EventLevelId INT PRIMARY KEY, EventLevelName NVARCHAR(50))",
+        "EventLoggingComputer": "CREATE TABLE dbo.EventLoggingComputer (LoggingComputerRowId INT PRIMARY KEY IDENTITY(1,1), LoggingComputerName NVARCHAR(256))",
+        "vEventPublisher": "CREATE VIEW dbo.vEventPublisher AS SELECT * FROM dbo.EventPublisher",
+        "vEventChannel": "CREATE VIEW dbo.vEventChannel AS SELECT * FROM dbo.EventChannel",
+        "vEventLevel": "CREATE VIEW dbo.vEventLevel AS SELECT * FROM dbo.EventLevel",
+        "vEventLoggingComputer": "CREATE VIEW dbo.vEventLoggingComputer AS SELECT * FROM dbo.EventLoggingComputer",
+    }
+    for name, ddl in event_tables.items():
+        try:
+            if "VIEW" in ddl:
+                cursor.execute(f"IF OBJECT_ID('dbo.{name}') IS NULL EXEC('{ddl.replace(chr(39), chr(39)+chr(39))}')")
+            else:
+                cursor.execute(f"IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = '{name}') {ddl}")
+        except Exception:
+            pass
+
+    try:
+        cursor.execute("""IF OBJECT_ID('Event.vEvent') IS NULL CREATE TABLE Event.vEvent (
+            EventOriginId UNIQUEIDENTIFIER DEFAULT NEWID(),
+            DateTime DATETIME,
+            EventPublisherRowId INT,
+            EventChannelRowId INT,
+            EventCategoryRowId INT DEFAULT 1,
+            EventLevelId INT,
+            LoggingComputerRowId INT,
+            EventNumber INT,
+            EventDisplayNumber INT,
+            UserNameRowId INT DEFAULT 1,
+            RawDescription NVARCHAR(MAX),
+            EventDataHash UNIQUEIDENTIFIER DEFAULT NEWID()
+        )""")
+    except Exception:
+        pass
+
+    # Seed event lookup data
+    cursor.execute("SELECT COUNT(*) FROM dbo.EventPublisher")
+    if cursor.fetchone()[0] == 0:
+        print("  Seeding event lookup tables...")
+        publishers = ["Microsoft-Windows-Security-Auditing", "Service Control Manager",
+                      "Microsoft-Windows-DNS-Server-Service", "MSSQLSERVER",
+                      "Application Error", "Windows Error Reporting", "NTFS",
+                      "Microsoft-Windows-DistributedCOM", "Microsoft-Windows-GroupPolicy"]
+        for p in publishers:
+            cursor.execute("INSERT INTO dbo.EventPublisher (EventPublisherName) VALUES (%s)", (p,))
+
+        channels = ["Application", "System", "Security", "Setup"]
+        for c in channels:
+            cursor.execute("INSERT INTO dbo.EventChannel (EventChannelName) VALUES (%s)", (c,))
+
+        levels = [(1, "Error"), (2, "Warning"), (3, "Information"), (4, "Verbose")]
+        for lid, lname in levels:
+            try:
+                cursor.execute("INSERT INTO dbo.EventLevel (EventLevelId, EventLevelName) VALUES (%s, %s)", (lid, lname))
+            except Exception:
+                pass
+
+        # Create logging computer entries matching our servers
+        for sid, name in all_servers:
+            cursor.execute("INSERT INTO dbo.EventLoggingComputer (LoggingComputerName) VALUES (%s)", (name,))
+        conn.commit()
+
+    # Seed events (7 days)
+    cursor.execute("SELECT COUNT(*) FROM Event.vEvent")
+    if cursor.fetchone()[0] == 0:
+        print("  Seeding events...")
+        cursor.execute("SELECT LoggingComputerRowId, LoggingComputerName FROM dbo.EventLoggingComputer")
+        computers = cursor.fetchall()
+
+        event_descriptions = [
+            "The service was stopped.",
+            "The service was started successfully.",
+            "The driver detected a controller error.",
+            "The previous system shutdown was unexpected.",
+            "The certificate received from the remote server has expired.",
+            "The server was unable to allocate from the system nonpaged pool.",
+            "A timeout was reached while waiting for a transaction response.",
+            "Login failed for user. Reason: password expired.",
+            "Disk space is critically low on volume C:.",
+            "The DNS server timed out attempting a recursive query.",
+        ]
+
+        batch = []
+        evt_total = 0
+        for hour in range(168):
+            dt_base = now - timedelta(hours=hour)
+            # Generate 2-10 events per hour per subset of servers
+            for comp_id, comp_name in random.sample(computers, min(15, len(computers))):
+                num_events = random.randint(1, 5)
+                for _ in range(num_events):
+                    dt = (dt_base + timedelta(minutes=random.randint(0, 59))).strftime("%Y-%m-%d %H:%M:%S")
+                    level = random.choices([1, 2, 3], weights=[10, 20, 70])[0]
+                    pub_id = random.randint(1, 9)
+                    chan_id = random.choice([1, 2])  # Application or System
+                    evt_num = random.choice([7036, 7045, 1014, 6008, 36882, 2004, 5014, 18456, 2013, 4015])
+                    desc = random.choice(event_descriptions)
+                    batch.append((dt, pub_id, chan_id, level, comp_id, evt_num, evt_num, desc))
+                    evt_total += 1
+                    if len(batch) >= 2000:
+                        cursor.executemany(
+                            "INSERT INTO Event.vEvent (DateTime, EventPublisherRowId, EventChannelRowId, EventLevelId, LoggingComputerRowId, EventNumber, EventDisplayNumber, RawDescription) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                            batch
+                        )
+                        conn.commit()
+                        batch = []
+        if batch:
+            cursor.executemany(
+                "INSERT INTO Event.vEvent (DateTime, EventPublisherRowId, EventChannelRowId, EventLevelId, LoggingComputerRowId, EventNumber, EventDisplayNumber, RawDescription) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                batch
+            )
+            conn.commit()
+        print(f"  Events: {evt_total:,} rows")
+
+    # --- Alert Resolution State ---
+    try:
+        cursor.execute("""IF OBJECT_ID('Alert.vAlertResolutionState') IS NULL CREATE TABLE Alert.vAlertResolutionState (
+            AlertGuid UNIQUEIDENTIFIER,
+            ResolutionState INT,
+            TimeInStateSeconds INT,
+            TimeFromRaisedSeconds INT,
+            StateSetDateTime DATETIME,
+            StateSetByUserId NVARCHAR(256),
+            DWCreatedDateTime DATETIME DEFAULT GETUTCDATE()
+        )""")
+    except Exception:
+        pass
+
+    cursor.execute("SELECT COUNT(*) FROM Alert.vAlertResolutionState")
+    if cursor.fetchone()[0] == 0:
+        print("  Seeding alert resolution states...")
+        cursor.execute("SELECT AlertGuid, RaisedDateTime, ResolutionState FROM Alert.vAlert")
+        alerts = cursor.fetchall()
+        users = ["System", "svc-scom", "admin_user1", "admin_user2", "noc_operator"]
+        for guid, raised, res_state in alerts:
+            # Initial state (New)
+            cursor.execute(
+                "INSERT INTO Alert.vAlertResolutionState (AlertGuid, ResolutionState, TimeInStateSeconds, TimeFromRaisedSeconds, StateSetDateTime, StateSetByUserId) VALUES (%s, 0, %s, 0, %s, 'System')",
+                (guid, random.randint(60, 86400), raised.strftime("%Y-%m-%d %H:%M:%S"))
+            )
+            # If resolved, add closed state
+            if res_state == 255:
+                closed_dt = raised + timedelta(minutes=random.randint(10, 480))
+                cursor.execute(
+                    "INSERT INTO Alert.vAlertResolutionState (AlertGuid, ResolutionState, TimeInStateSeconds, TimeFromRaisedSeconds, StateSetDateTime, StateSetByUserId) VALUES (%s, 255, 0, %s, %s, %s)",
+                    (guid, int((closed_dt - raised).total_seconds()), closed_dt.strftime("%Y-%m-%d %H:%M:%S"), random.choice(users))
+                )
+        conn.commit()
+
+    # --- Maintenance Mode ---
+    try:
+        cursor.execute("""IF OBJECT_ID('dbo.vMaintenanceMode') IS NULL CREATE TABLE dbo.vMaintenanceMode (
+            MaintenanceModeRowId INT PRIMARY KEY IDENTITY(1,1),
+            ManagedEntityRowId INT,
+            StartDateTime DATETIME,
+            EndDateTime DATETIME,
+            PlannedMaintenanceInd BIT,
+            DWLastModifiedDateTime DATETIME DEFAULT GETUTCDATE()
+        )""")
+        cursor.execute("""IF OBJECT_ID('dbo.vMaintenanceModeHistory') IS NULL CREATE TABLE dbo.vMaintenanceModeHistory (
+            MaintenanceModeHistoryRowId INT PRIMARY KEY IDENTITY(1,1),
+            MaintenanceModeRowId INT,
+            ScheduledEndDateTime DATETIME,
+            PlannedMaintenanceInd BIT,
+            ReasonCode INT,
+            Comment NVARCHAR(MAX),
+            UserId NVARCHAR(256),
+            DBLastModifiedDateTime DATETIME DEFAULT GETUTCDATE(),
+            DWCreatedDateTime DATETIME DEFAULT GETUTCDATE()
+        )""")
+    except Exception:
+        pass
+
+    cursor.execute("SELECT COUNT(*) FROM dbo.vMaintenanceMode")
+    if cursor.fetchone()[0] == 0:
+        print("  Seeding maintenance mode history...")
+        maint_reasons = [
+            "Disabling alerts for Windows updates",
+            "Planned hardware maintenance",
+            "Application deployment in progress",
+            "Monthly patching cycle",
+            "Network maintenance window",
+        ]
+        maint_users = ["admin_user1", "admin_user2", "svc-scom", "noc_operator"]
+        for _ in range(25):
+            sid, name = random.choice(all_servers)
+            days_ago = random.randint(1, 30)
+            duration_hours = random.choice([1, 2, 4, 8])
+            start = now - timedelta(days=days_ago)
+            end = start + timedelta(hours=duration_hours)
+            planned = random.choice([0, 1, 1, 1])
+            cursor.execute(
+                "INSERT INTO dbo.vMaintenanceMode (ManagedEntityRowId, StartDateTime, EndDateTime, PlannedMaintenanceInd) VALUES (%s, %s, %s, %s)",
+                (sid, start.strftime("%Y-%m-%d %H:%M:%S"), end.strftime("%Y-%m-%d %H:%M:%S"), planned)
+            )
+            cursor.execute("SELECT SCOPE_IDENTITY()")
+            mm_id = int(cursor.fetchone()[0])
+            cursor.execute(
+                "INSERT INTO dbo.vMaintenanceModeHistory (MaintenanceModeRowId, ScheduledEndDateTime, PlannedMaintenanceInd, ReasonCode, Comment, UserId) VALUES (%s, %s, %s, %s, %s, %s)",
+                (mm_id, end.strftime("%Y-%m-%d %H:%M:%S"), planned, random.randint(1, 10), random.choice(maint_reasons), random.choice(maint_users))
+            )
+        conn.commit()
+
     # Final counts
     print("\n  Final counts:")
-    for tbl in ["vManagedEntity", "vPerformanceRule", "vPerformanceRuleInstance", "Perf.vPerfHourly", "State.vStateHourly", "Alert.vAlert"]:
-        cursor.execute(f"SELECT COUNT(*) FROM {tbl}")
-        print(f"    {tbl}: {cursor.fetchone()[0]:,}")
+    for tbl in ["vManagedEntity", "vPerformanceRule", "vPerformanceRuleInstance",
+                "Perf.vPerfHourly", "Perf.vPerfRaw", "State.vStateHourly",
+                "Alert.vAlert", "Alert.vAlertResolutionState",
+                "Event.vEvent", "dbo.vMaintenanceMode"]:
+        try:
+            cursor.execute(f"SELECT COUNT(*) FROM {tbl}")
+            print(f"    {tbl}: {cursor.fetchone()[0]:,}")
+        except Exception:
+            print(f"    {tbl}: (not created)")
 
     conn.close()
     print("\nSCOM DW Simulator seeded successfully (production-aligned schema)!")
