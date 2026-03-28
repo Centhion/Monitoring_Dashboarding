@@ -24,7 +24,7 @@
   "timepicker": {},
   "links": [
     {
-      "title": "SCOM Fleet Overview",
+      "title": "Fleet Overview",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-fleet-overview",
@@ -32,23 +32,7 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Site Overview",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-site-overview",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Server Overview",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-server-overview",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Alerts",
+      "title": "Alerts",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-alerts",
@@ -56,15 +40,7 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Event Log",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-event-log",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Incident",
+      "title": "Incident",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-incident",
@@ -72,18 +48,10 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Operations",
+      "title": "Operations",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-operations",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "Enterprise NOC",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/enterprise-noc",
       "keepTime": true,
       "targetBlank": false
     }
@@ -202,14 +170,14 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
+        "h": 3,
         "w": 6,
         "x": 0,
         "y": 3
       },
       "options": {
         "colorMode": "background",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
@@ -219,7 +187,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name",
+        "textMode": "value",
         "wideLayout": true
       },
       "targets": [
@@ -266,13 +234,13 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
+        "h": 3,
         "w": 6,
         "x": 6,
         "y": 3
       },
       "options": {
-        "colorMode": "background",
+        "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -283,7 +251,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name",
+        "textMode": "value",
         "wideLayout": true
       },
       "targets": [
@@ -329,13 +297,13 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
+        "h": 3,
         "w": 6,
         "x": 12,
         "y": 3
       },
       "options": {
-        "colorMode": "background",
+        "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -346,7 +314,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name",
+        "textMode": "value",
         "wideLayout": true
       },
       "targets": [
@@ -400,7 +368,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
+        "h": 3,
         "w": 6,
         "x": 18,
         "y": 3
@@ -417,7 +385,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name",
+        "textMode": "value",
         "wideLayout": true
       },
       "targets": [
@@ -439,7 +407,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 6
       },
       "id": 7,
       "title": "Request Performance",
@@ -510,7 +478,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 9
+        "y": 7
       },
       "options": {
         "legend": {
@@ -613,7 +581,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 9
+        "y": 7
       },
       "options": {
         "legend": {
@@ -649,7 +617,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 15
       },
       "id": 10,
       "title": "Traffic",
@@ -737,7 +705,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 18
+        "y": 16
       },
       "options": {
         "legend": {
@@ -841,7 +809,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 18
+        "y": 16
       },
       "options": {
         "legend": {
@@ -877,7 +845,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 24
       },
       "id": 13,
       "title": "Application Health",
@@ -949,7 +917,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 25
       },
       "options": {
         "legend": {

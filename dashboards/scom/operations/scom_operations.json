@@ -23,7 +23,7 @@
   "timepicker": {},
   "links": [
     {
-      "title": "SCOM Fleet Overview",
+      "title": "Fleet Overview",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-fleet-overview",
@@ -31,15 +31,7 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Site Overview",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-site-overview",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Alerts",
+      "title": "Alerts",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-alerts",
@@ -47,15 +39,7 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Event Log",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-event-log",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Incident",
+      "title": "Incident",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-incident",
@@ -63,18 +47,10 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Operations",
+      "title": "Operations",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-operations",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "Enterprise NOC",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/enterprise-noc",
       "keepTime": true,
       "targetBlank": false
     }
@@ -139,7 +115,7 @@
       "title": "Daily Alert Average",
       "description": "Average number of alerts raised per day over the selected time range",
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 0,
         "y": 1
@@ -201,7 +177,7 @@
         "wideLayout": true,
         "showPercentChange": false,
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto"
       }
     },
@@ -211,7 +187,7 @@
       "title": "Mean Time to Resolution",
       "description": "Average time from alert raised to resolved (minutes)",
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 6,
         "y": 1
@@ -273,7 +249,7 @@
         "wideLayout": true,
         "showPercentChange": false,
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto"
       }
     },
@@ -283,7 +259,7 @@
       "title": "Active Alerts",
       "description": "Count of currently unresolved alerts across all severities",
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 12,
         "y": 1
@@ -343,7 +319,7 @@
         "textMode": "auto",
         "wideLayout": true,
         "showPercentChange": false,
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
       }
@@ -354,7 +330,7 @@
       "title": "Servers in Maintenance",
       "description": "Count of distinct servers currently in SCOM maintenance mode",
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 18,
         "y": 1
@@ -407,7 +383,7 @@
         "textMode": "auto",
         "wideLayout": true,
         "showPercentChange": false,
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
       }
@@ -421,7 +397,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 4
       },
       "panels": []
     },
@@ -434,7 +410,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 6
+        "y": 5
       },
       "datasource": {
         "type": "mssql",
@@ -474,7 +450,7 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -574,7 +550,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 6
+        "y": 5
       },
       "datasource": {
         "type": "mssql",
@@ -614,7 +590,7 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -699,7 +675,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 13
       },
       "panels": []
     },
@@ -712,7 +688,7 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 15
+        "y": 14
       },
       "datasource": {
         "type": "mssql",
@@ -838,7 +814,7 @@
         "h": 10,
         "w": 8,
         "x": 8,
-        "y": 15
+        "y": 14
       },
       "datasource": {
         "type": "mssql",
@@ -947,7 +923,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 15
+        "y": 14
       },
       "datasource": {
         "type": "mssql",
@@ -1016,7 +992,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 24
       },
       "panels": []
     },
@@ -1029,7 +1005,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 26
+        "y": 25
       },
       "datasource": {
         "type": "mssql",
@@ -1157,7 +1133,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 26
+        "y": 25
       },
       "datasource": {
         "type": "mssql",

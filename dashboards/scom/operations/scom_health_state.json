@@ -23,7 +23,7 @@
   "timepicker": {},
   "links": [
     {
-      "title": "SCOM Fleet Overview",
+      "title": "Fleet Overview",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-fleet-overview",
@@ -31,23 +31,7 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Site Overview",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-site-overview",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Server Overview",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-server-overview",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Alerts",
+      "title": "Alerts",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-alerts",
@@ -55,15 +39,7 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Event Log",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-event-log",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Incident",
+      "title": "Incident",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-incident",
@@ -71,18 +47,10 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Operations",
+      "title": "Operations",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-operations",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "Enterprise NOC",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/enterprise-noc",
       "keepTime": true,
       "targetBlank": false
     }
@@ -180,7 +148,7 @@
         "uid": "scom-dw"
       },
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 0,
         "y": 3
@@ -241,7 +209,7 @@
         "uid": "scom-dw"
       },
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 6,
         "y": 3
@@ -305,7 +273,7 @@
         "uid": "scom-dw"
       },
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 12,
         "y": 3
@@ -369,7 +337,7 @@
         "uid": "scom-dw"
       },
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 18,
         "y": 3
@@ -430,7 +398,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 6
       },
       "panels": []
     },
@@ -446,7 +414,7 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 7
       },
       "fieldConfig": {
         "defaults": {
@@ -565,7 +533,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 19
       },
       "panels": []
     },
@@ -581,7 +549,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 20
       },
       "fieldConfig": {
         "defaults": {
@@ -594,15 +562,15 @@
             "axisColorMode": "text",
             "axisLabel": "Server Count",
             "axisPlacement": "auto",
-            "fillOpacity": 80,
+            "fillOpacity": 15,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"

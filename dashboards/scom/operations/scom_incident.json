@@ -23,7 +23,7 @@
   "timepicker": {},
   "links": [
     {
-      "title": "SCOM Fleet Overview",
+      "title": "Fleet Overview",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-fleet-overview",
@@ -31,23 +31,7 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Site Overview",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-site-overview",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Server Overview",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-server-overview",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Alerts",
+      "title": "Alerts",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-alerts",
@@ -55,15 +39,7 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Event Log",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-event-log",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Incident",
+      "title": "Incident",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-incident",
@@ -71,18 +47,10 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Operations",
+      "title": "Operations",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-operations",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "Enterprise NOC",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/enterprise-noc",
       "keepTime": true,
       "targetBlank": false
     }
@@ -136,8 +104,14 @@
         "label": "Server",
         "refresh": 1,
         "multi": false,
-        "includeAll": false,
-        "sort": 1
+        "includeAll": true,
+        "sort": 1,
+        "allValue": "%",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
       }
     ]
   },
@@ -356,8 +330,8 @@
         "y": 1
       },
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
+        "colorMode": "value",
+        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
@@ -429,8 +403,8 @@
         "y": 1
       },
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
+        "colorMode": "value",
+        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
@@ -498,8 +472,8 @@
         "y": 1
       },
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
+        "colorMode": "value",
+        "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
@@ -1241,7 +1215,7 @@
         ]
       },
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 12,
         "x": 0,
         "y": 22
@@ -1340,7 +1314,7 @@
         ]
       },
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 12,
         "x": 12,
         "y": 22

@@ -23,7 +23,7 @@
   "timepicker": {},
   "links": [
     {
-      "title": "SCOM Fleet Overview",
+      "title": "Fleet Overview",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-fleet-overview",
@@ -31,23 +31,7 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Site Overview",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-site-overview",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Server Overview",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-server-overview",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Alerts",
+      "title": "Alerts",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-alerts",
@@ -55,15 +39,7 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Event Log",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-event-log",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Incident",
+      "title": "Incident",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-incident",
@@ -71,18 +47,10 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Operations",
+      "title": "Operations",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-operations",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "Enterprise NOC",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/enterprise-noc",
       "keepTime": true,
       "targetBlank": false
     }
@@ -146,7 +114,7 @@
       "title": "Total Servers",
       "description": "Count of distinct Windows Computer managed entities at this site",
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 0,
         "y": 1
@@ -199,7 +167,7 @@
         "textMode": "auto",
         "wideLayout": true,
         "showPercentChange": false,
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
       }
@@ -210,7 +178,7 @@
       "title": "Healthy",
       "description": "Servers in healthy state at last reported interval",
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 6,
         "y": 1
@@ -263,7 +231,7 @@
         "textMode": "auto",
         "wideLayout": true,
         "showPercentChange": false,
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
       }
@@ -274,7 +242,7 @@
       "title": "Warning",
       "description": "Servers in warning state at last reported interval",
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 12,
         "y": 1
@@ -327,7 +295,7 @@
         "textMode": "auto",
         "wideLayout": true,
         "showPercentChange": false,
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
       }
@@ -338,7 +306,7 @@
       "title": "Critical",
       "description": "Servers in critical state at last reported interval",
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 18,
         "y": 1
@@ -391,7 +359,7 @@
         "textMode": "auto",
         "wideLayout": true,
         "showPercentChange": false,
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
       }
@@ -405,7 +373,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 4
       },
       "panels": []
     },
@@ -415,10 +383,10 @@
       "title": "Site Alerts",
       "description": "Unresolved alerts for servers at this site, ordered by severity",
       "gridPos": {
-        "h": 6,
+        "h": 8,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 5
       },
       "datasource": {
         "type": "mssql",
@@ -544,7 +512,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 13
       },
       "panels": []
     },
@@ -557,7 +525,7 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 14
       },
       "datasource": {
         "type": "mssql",

@@ -24,7 +24,7 @@
   "timepicker": {},
   "links": [
     {
-      "title": "SCOM Fleet Overview",
+      "title": "Fleet Overview",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-fleet-overview",
@@ -32,23 +32,7 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Site Overview",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-site-overview",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Server Overview",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-server-overview",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Alerts",
+      "title": "Alerts",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-alerts",
@@ -56,15 +40,7 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Event Log",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/scom-event-log",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "SCOM Incident",
+      "title": "Incident",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-incident",
@@ -72,18 +48,10 @@
       "targetBlank": false
     },
     {
-      "title": "SCOM Operations",
+      "title": "Operations",
       "type": "link",
       "icon": "dashboard",
       "url": "/d/scom-operations",
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "Enterprise NOC",
-      "type": "link",
-      "icon": "dashboard",
-      "url": "/d/enterprise-noc",
       "keepTime": true,
       "targetBlank": false
     }
@@ -170,7 +138,7 @@
       "title": "Total Servers",
       "description": "Count of distinct Windows Computer managed entities",
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 0,
         "y": 3
@@ -223,7 +191,7 @@
         "textMode": "auto",
         "wideLayout": true,
         "showPercentChange": false,
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
       }
@@ -234,7 +202,7 @@
       "title": "Avg CPU",
       "description": "Average processor utilization across all servers in the selected time range",
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 6,
         "y": 3
@@ -297,7 +265,7 @@
         "wideLayout": true,
         "showPercentChange": false,
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto"
       }
     },
@@ -307,7 +275,7 @@
       "title": "Avg Memory Used",
       "description": "Average memory utilization across all servers in the selected time range",
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 12,
         "y": 3
@@ -370,7 +338,7 @@
         "wideLayout": true,
         "showPercentChange": false,
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "justifyMode": "auto"
       }
     },
@@ -380,7 +348,7 @@
       "title": "Active Critical Alerts",
       "description": "Count of unresolved severity-2 (critical) alerts",
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 6,
         "x": 18,
         "y": 3
@@ -436,7 +404,7 @@
         "textMode": "auto",
         "wideLayout": true,
         "showPercentChange": false,
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
       }
@@ -450,7 +418,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 6
       },
       "panels": []
     },
@@ -463,7 +431,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 7
       },
       "datasource": {
         "type": "mssql",
@@ -651,7 +619,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 15
       },
       "panels": []
     },
@@ -664,7 +632,7 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 17
+        "y": 16
       },
       "datasource": {
         "type": "mssql",
@@ -812,7 +780,7 @@
         "h": 10,
         "w": 8,
         "x": 8,
-        "y": 17
+        "y": 16
       },
       "datasource": {
         "type": "mssql",
@@ -944,7 +912,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 17
+        "y": 16
       },
       "datasource": {
         "type": "mssql",
@@ -1078,7 +1046,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 26
       },
       "panels": []
     },
@@ -1091,7 +1059,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 27
       },
       "datasource": {
         "type": "mssql",
@@ -1122,7 +1090,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 10,
+            "fillOpacity": 15,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -1136,7 +1104,7 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
