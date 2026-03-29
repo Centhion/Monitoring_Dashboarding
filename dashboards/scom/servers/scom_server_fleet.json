@@ -524,6 +524,16 @@
               {
                 "id": "custom.width",
                 "value": 80
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Investigate",
+                    "url": "/d/scom-incident?var-server=${__data.fields.Server}&var-site=${__data.fields.Site}",
+                    "targetBlank": false
+                  }
+                ]
               }
             ]
           },
@@ -716,6 +726,16 @@
                     }
                   ]
                 }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "View Alerts",
+                    "url": "/d/scom-alerts?var-server=${__data.fields.Server}&var-site=${__data.fields.Site}",
+                    "targetBlank": false
+                  }
+                ]
               }
             ]
           }

@@ -1237,6 +1237,24 @@
                 "value": "dateTimeAsIso"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Server"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "View Server",
+                    "url": "/d/scom-server-overview?var-server=${__value.text}&var-site=${site}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
           }
         ]
       },

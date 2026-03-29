@@ -393,7 +393,14 @@
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
-      }
+      },
+      "links": [
+        {
+          "title": "View Alerts",
+          "url": "/d/scom-alerts?var-site=${site}",
+          "targetBlank": false
+        }
+      ]
     },
     {
       "id": 20,
