@@ -857,6 +857,183 @@
           }
         }
       ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 13,
+      "title": "Mailbox Statistics",
+      "type": "row"
+    },
+    {
+      "id": 14,
+      "type": "table",
+      "title": "Mailbox Database Summary",
+      "description": "Exchange mailbox database sizes and mailbox counts from the SCOM Exchange 2013 management pack views. Column names are conventional for the Exchange MP schema -- if they differ in production the panel will show an error that can be diagnosed against the actual view definition.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  mdb.DatabaseName AS \"Database\",\n  mdb.DatabaseSizeMB AS \"Size (MB)\",\n  mdb.AvailableSpaceMB AS \"Available (MB)\",\n  mdb.MailboxCount AS \"Mailboxes\"\nFROM Exchange2013.vMailboxDatabase mdb\nORDER BY mdb.DatabaseSizeMB DESC",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Size (MB)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "deckbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Available (MB)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "deckbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "Size (MB)",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "Total Mailboxes",
+      "description": "Total mailbox count across all Exchange databases from the SCOM Exchange 2013 management pack.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT SUM(MailboxCount) AS \"Mailboxes\" FROM Exchange2013.vMailboxDatabase",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      }
     }
   ]
 }

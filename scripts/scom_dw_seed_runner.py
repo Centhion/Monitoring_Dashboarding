@@ -823,12 +823,201 @@ def main():
             )
         conn.commit()
 
+    # =========================================================================
+    # Seed additional tables (Alert Detail, Health Monitors, Agent Outages,
+    # Daily Perf, State Raw, Exchange Mailbox)
+    # =========================================================================
+
+    # --- Alert.vAlertDetail (repeat counts and context) ---
+    try:
+        cursor.execute("""IF OBJECT_ID('Alert.vAlertDetail') IS NULL CREATE TABLE Alert.vAlertDetail (
+            AlertGuid UNIQUEIDENTIFIER,
+            RepeatCount INT DEFAULT 0,
+            DBLastModifiedDateTime DATETIME DEFAULT GETUTCDATE(),
+            DWCreatedDateTime DATETIME DEFAULT GETUTCDATE()
+        )""")
+    except Exception:
+        pass
+
+    cursor.execute("SELECT COUNT(*) FROM Alert.vAlertDetail")
+    if cursor.fetchone()[0] == 0:
+        print("  Seeding alert details...")
+        cursor.execute("SELECT AlertGuid FROM Alert.vAlert")
+        for (guid,) in cursor.fetchall():
+            cursor.execute(
+                "INSERT INTO Alert.vAlertDetail (AlertGuid, RepeatCount) VALUES (%s, %s)",
+                (guid, random.randint(0, 25))
+            )
+        conn.commit()
+
+    # --- dbo.vMonitor (monitor definitions) ---
+    try:
+        cursor.execute("""IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'vMonitor' AND schema_id = SCHEMA_ID('dbo'))
+            CREATE TABLE dbo.vMonitor (
+                MonitorRowId INT PRIMARY KEY IDENTITY(1,1),
+                MonitorDefaultName NVARCHAR(256),
+                MonitorSystemName NVARCHAR(256)
+            )""")
+    except Exception:
+        pass
+
+    cursor.execute("SELECT COUNT(*) FROM dbo.vMonitor")
+    if cursor.fetchone()[0] == 0:
+        print("  Seeding monitors...")
+        monitors = [
+            "System.Health.AvailabilityState", "System.Health.PerformanceState",
+            "System.Health.ConfigurationState", "System.Health.SecurityState",
+            "Microsoft.Windows.Server.Computer.PerformanceRollup",
+            "Microsoft.Windows.Server.Computer.AvailabilityRollup",
+            "Microsoft.Windows.LogicalDisk.FreeSpaceMonitor",
+            "Microsoft.Windows.Server.MemoryUsageMonitor",
+            "Microsoft.Windows.Server.CPUUsageMonitor",
+            "Microsoft.Windows.DNSServer.ServiceMonitor",
+        ]
+        for m in monitors:
+            name = m.split('.')[-1]
+            cursor.execute("INSERT INTO dbo.vMonitor (MonitorDefaultName, MonitorSystemName) VALUES (%s, %s)", (name, m))
+        conn.commit()
+
+    # --- vManagedEntityMonitor (which monitors are on which entities) ---
+    try:
+        cursor.execute("""IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'vManagedEntityMonitor')
+            CREATE TABLE dbo.vManagedEntityMonitor (
+                ManagedEntityMonitorRowId INT PRIMARY KEY IDENTITY(1,1),
+                ManagedEntityRowId INT,
+                MonitorRowId INT,
+                DWCreatedDateTime DATETIME DEFAULT GETUTCDATE()
+            )""")
+    except Exception:
+        pass
+
+    cursor.execute("SELECT COUNT(*) FROM dbo.vManagedEntityMonitor")
+    if cursor.fetchone()[0] == 0:
+        print("  Seeding entity-monitor mappings...")
+        cursor.execute("SELECT MonitorRowId FROM dbo.vMonitor")
+        monitor_ids = [r[0] for r in cursor.fetchall()]
+        for sid, _ in all_servers:
+            for mid in monitor_ids:
+                cursor.execute("INSERT INTO dbo.vManagedEntityMonitor (ManagedEntityRowId, MonitorRowId) VALUES (%s, %s)", (sid, mid))
+        conn.commit()
+
+    # --- dbo.vHealthServiceOutage (agent outages) ---
+    try:
+        cursor.execute("""IF OBJECT_ID('dbo.vHealthServiceOutage') IS NULL CREATE TABLE dbo.vHealthServiceOutage (
+            HealthServiceOutageRowId INT PRIMARY KEY IDENTITY(1,1),
+            ManagedEntityRowId INT,
+            OutageStartDateTime DATETIME,
+            OutageEndDateTime DATETIME
+        )""")
+    except Exception:
+        pass
+
+    cursor.execute("SELECT COUNT(*) FROM dbo.vHealthServiceOutage")
+    if cursor.fetchone()[0] == 0:
+        print("  Seeding agent outages...")
+        for _ in range(15):
+            sid, name = random.choice(all_servers)
+            days_ago = random.randint(1, 14)
+            duration_min = random.randint(5, 180)
+            start = now - timedelta(days=days_ago)
+            end = start + timedelta(minutes=duration_min)
+            cursor.execute(
+                "INSERT INTO dbo.vHealthServiceOutage (ManagedEntityRowId, OutageStartDateTime, OutageEndDateTime) VALUES (%s, %s, %s)",
+                (sid, start.strftime("%Y-%m-%d %H:%M:%S"), end.strftime("%Y-%m-%d %H:%M:%S"))
+            )
+        conn.commit()
+
+    # --- Perf.vPerfDaily (daily aggregation for long-term trends) ---
+    try:
+        cursor.execute("""IF OBJECT_ID('Perf.vPerfDaily') IS NULL CREATE TABLE Perf.vPerfDaily (
+            DateTime DATETIME, PerformanceRuleInstanceRowId INT, ManagedEntityRowId INT,
+            SampleCount INT, AverageValue FLOAT, MinValue FLOAT, MaxValue FLOAT, StandardDeviation FLOAT
+        )""")
+    except Exception:
+        pass
+
+    cursor.execute("SELECT COUNT(*) FROM Perf.vPerfDaily")
+    if cursor.fetchone()[0] == 0:
+        print("  Seeding Perf.vPerfDaily (30 days)...")
+        batch = []
+        daily_total = 0
+        key_instances = list(instance_map.items())[:4]  # CPU, memory only
+        for day in range(30):
+            dt = (now - timedelta(days=day)).strftime("%Y-%m-%d 00:00:00")
+            for (obj, ctr, inst), pri_id in key_instances:
+                for sid, _ in all_servers:
+                    val = gen_value(ctr)
+                    batch.append((dt, pri_id, sid, 288, val, val * 0.5, val * 1.5, 2.0))
+                    daily_total += 1
+                    if len(batch) >= 2000:
+                        cursor.executemany(
+                            "INSERT INTO Perf.vPerfDaily VALUES (%s,%s,%s,%s,%s,%s,%s,%s)", batch)
+                        conn.commit()
+                        batch = []
+        if batch:
+            cursor.executemany("INSERT INTO Perf.vPerfDaily VALUES (%s,%s,%s,%s,%s,%s,%s,%s)", batch)
+            conn.commit()
+        print(f"  Perf.vPerfDaily: {daily_total:,} rows")
+
+    # --- State.vStateRaw (precise state changes) ---
+    try:
+        cursor.execute("""IF OBJECT_ID('State.vStateRaw') IS NULL CREATE TABLE State.vStateRaw (
+            DateTime DATETIME, ManagedEntityRowId INT, MonitorRowId INT,
+            OldHealthState INT, NewHealthState INT, InMaintenanceMode BIT
+        )""")
+    except Exception:
+        pass
+
+    cursor.execute("SELECT COUNT(*) FROM State.vStateRaw")
+    if cursor.fetchone()[0] == 0:
+        print("  Seeding State.vStateRaw...")
+        batch = []
+        for sid, _ in all_servers:
+            # Generate 5-15 state changes per server over 7 days
+            for _ in range(random.randint(5, 15)):
+                dt = (now - timedelta(hours=random.randint(1, 168))).strftime("%Y-%m-%d %H:%M:%S")
+                old_state = random.choice([1, 1, 1, 2])
+                new_state = random.choice([1, 1, 1, 2, 3]) if old_state == 1 else 1
+                batch.append((dt, sid, 1, old_state, new_state, 0))
+        cursor.executemany(
+            "INSERT INTO State.vStateRaw VALUES (%s,%s,%s,%s,%s,%s)", batch)
+        conn.commit()
+        print(f"  State.vStateRaw: {len(batch)} rows")
+
+    # --- Exchange2013.vMailboxDatabase ---
+    try:
+        cursor.execute("IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Exchange2013') EXEC('CREATE SCHEMA Exchange2013')")
+    except Exception:
+        pass
+    try:
+        cursor.execute("""IF OBJECT_ID('Exchange2013.vMailboxDatabase') IS NULL CREATE TABLE Exchange2013.vMailboxDatabase (
+            DatabaseName NVARCHAR(256),
+            DatabaseSizeMB FLOAT,
+            AvailableSpaceMB FLOAT,
+            MailboxCount INT
+        )""")
+    except Exception:
+        pass
+
+    cursor.execute("SELECT COUNT(*) FROM Exchange2013.vMailboxDatabase")
+    if cursor.fetchone()[0] == 0:
+        print("  Seeding Exchange mailbox databases...")
+        for db_name in ["DB01", "DB02", "DB03"]:
+            cursor.execute(
+                "INSERT INTO Exchange2013.vMailboxDatabase VALUES (%s, %s, %s, %s)",
+                (db_name, random.uniform(5000, 50000), random.uniform(1000, 10000), random.randint(50, 500))
+            )
+        conn.commit()
+
     # Final counts
     print("\n  Final counts:")
     for tbl in ["vManagedEntity", "vPerformanceRule", "vPerformanceRuleInstance",
-                "Perf.vPerfHourly", "Perf.vPerfRaw", "State.vStateHourly",
-                "Alert.vAlert", "Alert.vAlertResolutionState",
-                "Event.vEvent", "dbo.vMaintenanceMode"]:
+                "Perf.vPerfHourly", "Perf.vPerfRaw", "Perf.vPerfDaily",
+                "State.vStateHourly", "State.vStateRaw",
+                "Alert.vAlert", "Alert.vAlertDetail", "Alert.vAlertResolutionState",
+                "Event.vEvent", "dbo.vMaintenanceMode", "dbo.vHealthServiceOutage",
+                "dbo.vMonitor", "dbo.vManagedEntityMonitor",
+                "Exchange2013.vMailboxDatabase"]:
         try:
             cursor.execute(f"SELECT COUNT(*) FROM {tbl}")
             print(f"    {tbl}: {cursor.fetchone()[0]:,}")

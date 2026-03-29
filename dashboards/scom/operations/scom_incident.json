@@ -935,6 +935,44 @@
           {
             "matcher": {
               "id": "byName",
+              "options": "Repeats"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 5
+                    },
+                    {
+                      "color": "red",
+                      "value": 20
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
               "options": "Description"
             },
             "properties": [
@@ -971,7 +1009,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  a.RaisedDateTime AS \"Raised\",\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  CASE a.ResolutionState WHEN 0 THEN 'Active' WHEN 255 THEN 'Closed' ELSE 'Other' END AS \"Status\",\n  a.AlertDescription AS \"Description\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(a.RaisedDateTime)\nORDER BY a.RaisedDateTime DESC",
+          "rawSql": "SELECT TOP 20\n  a.RaisedDateTime AS \"Raised\",\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  CASE a.ResolutionState WHEN 0 THEN 'Active' WHEN 255 THEN 'Closed' ELSE 'Other' END AS \"Status\",\n  ad.RepeatCount AS \"Repeats\",\n  a.AlertDescription AS \"Description\"\nFROM Alert.vAlert a\nLEFT JOIN Alert.vAlertDetail ad ON a.AlertGuid = ad.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(a.RaisedDateTime)\nORDER BY a.RaisedDateTime DESC",
           "refId": "A"
         }
       ]
@@ -1181,7 +1219,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  sh.DateTime AS time,\n  'Health' AS metric,\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS value\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(sh.DateTime)\nORDER BY sh.DateTime",
+          "rawSql": "SELECT\n  sh.DateTime AS time,\n  'Health' AS metric,\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS value\nFROM State.vStateRaw sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(sh.DateTime)\nORDER BY sh.DateTime",
           "refId": "A"
         }
       ]
@@ -1281,6 +1319,117 @@
           "editorMode": "code",
           "format": "table",
           "rawSql": "SELECT\n  ars.StateSetDateTime AS \"Time\",\n  a.AlertName AS \"Alert\",\n  CASE ars.ResolutionState WHEN 0 THEN 'New' WHEN 255 THEN 'Closed' ELSE CAST(ars.ResolutionState AS VARCHAR) END AS \"State\",\n  ars.StateSetByUserId AS \"By\",\n  ars.TimeInStateSeconds / 60 AS \"Duration (min)\"\nFROM Alert.vAlertResolutionState ars\nINNER JOIN Alert.vAlert a ON ars.AlertGuid = a.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ars.StateSetDateTime)\nORDER BY ars.StateSetDateTime DESC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "type": "table",
+      "title": "Failed Health Monitors",
+      "description": "Shows which SCOM monitors are in Warning or Critical state for this server, with the most recent state change time.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Warning": {
+                        "color": "yellow",
+                        "index": 0,
+                        "text": "Warning"
+                      },
+                      "Critical": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "Critical"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Monitor"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 300
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ]
+        },
+        "sortBy": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  m.MonitorDefaultName AS \"Monitor\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' END AS \"State\",\n  sh.DateTime AS \"Last Changed\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntityMonitor mem ON sh.ManagedEntityRowId = mem.ManagedEntityRowId AND sh.MonitorRowId = mem.MonitorRowId\nINNER JOIN dbo.vMonitor m ON mem.MonitorRowId = m.MonitorRowId\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName = '${server:raw}'\nAND sh.NewHealthState > 1\nAND sh.DateTime = (SELECT MAX(s2.DateTime) FROM State.vStateHourly s2 WHERE s2.ManagedEntityRowId = sh.ManagedEntityRowId AND s2.MonitorRowId = sh.MonitorRowId)\nORDER BY sh.NewHealthState DESC, m.MonitorDefaultName",
           "refId": "A"
         }
       ]

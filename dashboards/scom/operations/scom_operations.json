@@ -675,6 +675,225 @@
       }
     },
     {
+      "id": 16,
+      "type": "row",
+      "title": "Long-Term Performance Trends",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "panels": []
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "Fleet CPU Trend (Daily)",
+      "description": "Daily average CPU utilization across the fleet from SCOM Data Warehouse daily rollups (Perf.vPerfDaily). Useful for spotting long-term capacity trends.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "format": "time_series",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  AVG(ph.AverageValue) AS \"Fleet Avg CPU %\"\nFROM Perf.vPerfDaily ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time'\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ph.DateTime)\nGROUP BY ph.DateTime\nORDER BY ph.DateTime",
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "Fleet Memory Trend (Daily)",
+      "description": "Daily average memory utilization across the fleet from SCOM Data Warehouse daily rollups (Perf.vPerfDaily). Useful for spotting long-term capacity trends.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "format": "time_series",
+          "rawSql": "SELECT\n  ph.DateTime AS time,\n  AVG(ph.AverageValue) AS \"Fleet Avg Memory %\"\nFROM Perf.vPerfDaily ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed'\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ph.DateTime)\nGROUP BY ph.DateTime\nORDER BY ph.DateTime",
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        }
+      }
+    },
+    {
       "id": 9,
       "type": "row",
       "title": "Problem Areas",
@@ -683,7 +902,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 22
       },
       "panels": []
     },
@@ -696,7 +915,7 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 14
+        "y": 23
       },
       "datasource": {
         "type": "mssql",
@@ -767,7 +986,7 @@
         "h": 10,
         "w": 8,
         "x": 8,
-        "y": 14
+        "y": 23
       },
       "datasource": {
         "type": "mssql",
@@ -837,7 +1056,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 14
+        "y": 23
       },
       "datasource": {
         "type": "mssql",
@@ -908,7 +1127,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 33
       },
       "panels": []
     },
@@ -921,7 +1140,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 25
+        "y": 34
       },
       "datasource": {
         "type": "mssql",
@@ -1049,7 +1268,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 25
+        "y": 34
       },
       "datasource": {
         "type": "mssql",

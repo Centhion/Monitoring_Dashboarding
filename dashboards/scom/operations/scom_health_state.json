@@ -680,6 +680,153 @@
           "refId": "A"
         }
       ]
+    },
+    {
+      "id": 11,
+      "type": "row",
+      "title": "Agent Outage History",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "panels": []
+    },
+    {
+      "id": 12,
+      "type": "table",
+      "title": "SCOM Agent Outages",
+      "description": "Health service outage history showing when SCOM agents lost connectivity. Duration calculated from outage start to end (or current time if still active).",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Server"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Server Overview",
+                    "url": "/d/scom-server-overview?var-server=${__data.fields.Server:raw}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Duration (min)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 30
+                    },
+                    {
+                      "color": "red",
+                      "value": 120
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "Outage Start",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  hso.OutageStartDateTime AS \"Outage Start\",\n  hso.OutageEndDateTime AS \"Outage End\",\n  DATEDIFF(minute, hso.OutageStartDateTime, ISNULL(hso.OutageEndDateTime, GETUTCDATE())) AS \"Duration (min)\"\nFROM dbo.vHealthServiceOutage hso\nINNER JOIN vManagedEntity me ON hso.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND $__timeFilter(hso.OutageStartDateTime)\nORDER BY hso.OutageStartDateTime DESC",
+          "refId": "A"
+        }
+      ]
     }
   ]
 }
