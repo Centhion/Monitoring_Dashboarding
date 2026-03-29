@@ -946,3 +946,100 @@ Chronological record of work sessions for context continuity.
 - Repo is currently PUBLIC on GitHub -- must be made private again.
 
 ---
+
+## Session: 2026-03-28 -- Visual Polish, Dashboard Consolidation, Full DW Leverage
+
+### Completed
+
+**Visual Polish Sprint (Tasks 0-8):**
+- Task 0: Restructured dashboards into Operations/ (7) and Servers/ (8) subfolders with separate Grafana provisioning providers
+- Task 1: Incident + Event Log now default to Server=All (fleet view first, narrow to investigate)
+- Task 2: Nav links reduced from 8 to 5 (Fleet Overview, Server Fleet, Alerts, Incident, Operations) -- single row
+- Task 3: Fixed redundant stat labels (textMode: value) across 26 stat panels
+- Task 4: Upgraded visualization types -- donut pie chart for alert severity, state timeline for health state, horizontal bar gauges for top alerted servers / most common alerts / top error sources
+- Task 5: Stat panels compacted to h=3, tables expanded to h=8
+- Task 6: Consistent time series style (fillOpacity 15, lineWidth 2, smooth interpolation), stat colorMode standardized (background for status, value for metrics)
+- Task 7: Incident Investigation polish -- state timeline, compact stats, threshold lines, shared crosshair
+- Task 8: Operations Analytics polish -- 3 bar gauges in Problem Areas row
+
+**Server Fleet Dashboard (new):**
+- Role-based fleet view with Site and Role filters
+- Health summary stats (Total/Healthy/Warning/Critical)
+- Full server inventory table: Server, Site, Health, Maintenance, CPU%, Memory%, Disk Free%, Alerts
+- Fleet CPU and Memory trends
+- Drill-down links to Server Overview
+
+**Dashboard Consolidation Attempt + Revert:**
+- Tried Option C: consolidated 7 server dashboards into 2 (Server Fleet + Server Detail)
+- Server Detail showed blank role-specific rows for non-matching server roles -- worse UX than separate dashboards
+- Reverted: restored all 6 role dashboards, kept Server Fleet as the new addition
+
+**Full DW Table Leverage:**
+- Alert.vAlertDetail: repeat count on Incident alert table
+- State.vStateRaw: precise state change timestamps on Incident state timeline
+- dbo.vMonitor + vManagedEntityMonitor: failed health monitors table on Incident
+- dbo.vHealthServiceOutage: SCOM agent outage history on Health State
+- Perf.vPerfDaily: 30-day daily CPU/memory trends on Operations Analytics
+- Exchange2013.vMailboxDatabase: mailbox database summary on Exchange
+- Seed runner updated with all new tables (17 of 28 discovered tables now seeded)
+
+**TLS Fix:**
+- Grafana does not expand env vars in jsonData -- hardcoded encrypt="disable" for simulator
+- Production deployment must manually change to "true"
+
+### Final Dashboard Inventory
+
+```
+SCOM Operations/ (7 dashboards)
+  Fleet Overview       13 panels  Fleet-wide health, per-site summary, top problems
+  Site Overview         9 panels  Per-resort health, alerts, server inventory
+  Operations Analytics 18 panels  MTTR, trends, top problems, daily perf, maintenance
+  Alerts               13 panels  Donut pie chart, active/resolved, resolution history
+  Health State         12 panels  Health summary, server table, state timeline, agent outages
+  Event Log             8 panels  Event viewer, level filter, timeline
+  Incident             17 panels  Unified troubleshooting, correlated events/alerts, state timeline, failed monitors
+
+SCOM Servers/ (8 dashboards)
+  Server Fleet         10 panels  Role filter, all servers ranked by health
+  Server Overview      22 panels  Single server OS metrics, raw perf, maintenance
+  AD/DC                18 panels  LDAP, Kerberos, DRA, FSMO, DNS
+  IIS                  14 panels  Connections, requests, bandwidth, errors
+  DHCP                 14 panels  Requests, acks, queue, scopes
+  DNS                   8 panels  Queries, recursive, dynamic updates
+  DFS                   8 panels  Staging, conflicts, bandwidth
+  Exchange             15 panels  Mail flow, queue, DB latency, mailbox stats
+
+Total: 15 dashboards, 199 panels
+```
+
+### Decisions
+
+- **Keep role dashboards separate**: Option C consolidation produced blank rows for non-matching roles. Separate dashboards mean every panel has data for its target audience.
+- **Server Fleet as new entry point**: Solves the "flat dropdown" problem without removing role dashboards. Operators filter by role, see all servers ranked, click to drill down.
+- **5 nav links**: Fleet Overview, Server Fleet, Alerts, Incident, Operations. Covers the primary navigation paths. Role dashboards accessed via Server Fleet drill-down.
+- **Grafana jsonData does not expand env vars**: Must hardcode `encrypt` value. Production deployment requires manual edit of `scom_dw.yml`.
+- **17 of 28 DW tables used**: Remaining 11 are either duplicate aggregation levels (vStateDaily), complex XML parsing (vManagedEntityProperty), or low-value for operators (vAlertParameter).
+
+### Blockers
+
+- **SQL login for production**: Need DBA with sysadmin role
+- **Traefik integration**: DNS hostname, TLS cert
+- **GitHub repo visibility**: May still be public -- user needs to make private
+
+### Next Session
+
+1. Deploy updated dashboards to Docker host (re-download zip since no git clone)
+2. Get DBA to create SQL login for production SCOM DW connection
+3. Test with production data -- validate counter names, site extraction, query performance
+4. Add Traefik reverse proxy integration
+
+### Context
+
+- Local Docker stack: `cd deploy/docker && docker compose --profile scom-demo up -d`
+- Seed takes ~10 minutes for all 17 tables (~570K total rows)
+- Docker host deployment at `/opt/docker-apps/poc_monitoring/` is running older version -- needs re-download
+- `encrypt` in `scom_dw.yml` is hardcoded to `"disable"` -- change to `"true"` for production
+- Grafana v11.5.2 has `dashboardScene` cold-start issue -- panels show "Loading plugin panel..." on fresh volume, resolves after refresh
+- State timeline and pie chart visualizations confirmed working in Grafana v11.5.2
+
+---
