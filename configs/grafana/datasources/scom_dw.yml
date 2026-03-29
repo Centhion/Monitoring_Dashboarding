@@ -40,5 +40,5 @@ datasources:
       maxOpenConns: 10
       # Connection timeout in seconds
       connMaxLifetime: 14400
-      # Encrypt connection -- "disable" for simulator, "true" for production (via .env)
-      encrypt: "${SCOM_DW_ENCRYPT:-disable}"
+      # Encrypt connection -- change to "true" for production SQL Server
+      encrypt: "disable"
