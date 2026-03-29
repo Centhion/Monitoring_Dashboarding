@@ -31,6 +31,14 @@
       "targetBlank": false
     },
     {
+      "title": "Server Fleet",
+      "type": "link",
+      "icon": "dashboard",
+      "url": "/d/scom-server-fleet",
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
       "title": "Alerts",
       "type": "link",
       "icon": "dashboard",
@@ -483,7 +491,7 @@
                 "value": [
                   {
                     "title": "Server Overview",
-                    "url": "/d/scom-server-overview?var-server=${__data.fields.Server:raw}",
+                    "url": "/d/scom-server-detail?var-server=${__data.fields.Server:raw}",
                     "targetBlank": false
                   }
                 ]
