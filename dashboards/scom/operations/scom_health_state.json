@@ -491,7 +491,7 @@
                 "value": [
                   {
                     "title": "Server Overview",
-                    "url": "/d/scom-server-detail?var-server=${__data.fields.Server:raw}",
+                    "url": "/d/scom-server-overview?var-server=${__data.fields.Server:raw}",
                     "targetBlank": false
                   }
                 ]

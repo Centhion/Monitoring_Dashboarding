@@ -460,7 +460,7 @@
                 "value": [
                   {
                     "title": "View Server Detail",
-                    "url": "/d/scom-server-detail?var-server=${__value.text}&var-site=${site}",
+                    "url": "/d/scom-server-overview?var-server=${__value.text}&var-site=${site}",
                     "targetBlank": false
                   }
                 ]
