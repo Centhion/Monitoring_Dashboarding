@@ -210,7 +210,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"Health\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
+          "rawSql": "SELECT TOP 1 CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"Health\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nORDER BY sh.DateTime DESC",
           "refId": "A"
         }
       ]

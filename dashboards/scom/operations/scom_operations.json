@@ -752,7 +752,7 @@
     },
     {
       "id": 11,
-      "type": "table",
+      "type": "bargauge",
       "title": "Most Common Alerts",
       "description": "Alert names generating the highest volume, with server spread and max severity",
       "gridPos": {
@@ -779,84 +779,45 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false,
-            "filterable": true
+          "color": {
+            "mode": "continuous-GrYlRd"
           },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Max Severity"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
               },
               {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "Critical": {
-                        "color": "red",
-                        "index": 0,
-                        "text": "Critical"
-                      },
-                      "Warning": {
-                        "color": "yellow",
-                        "index": 1,
-                        "text": "Warning"
-                      },
-                      "Info": {
-                        "color": "blue",
-                        "index": 2,
-                        "text": "Info"
-                      }
-                    }
-                  }
-                ]
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 10
               }
             ]
-          }
-        ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
       },
       "options": {
-        "showHeader": true,
-        "cellHeight": "sm",
-        "footer": {
-          "show": false,
-          "reducer": [
-            "sum"
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
           ],
-          "countRows": false,
-          "fields": ""
+          "fields": "/^Count$/",
+          "values": true
         },
-        "sortBy": [
-          {
-            "displayName": "Count",
-            "desc": true
-          }
-        ]
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 10,
+        "namePlacement": "auto",
+        "valueMode": "text"
       }
     },
     {

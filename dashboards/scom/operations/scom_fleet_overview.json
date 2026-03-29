@@ -98,28 +98,6 @@
   },
   "panels": [
     {
-      "id": 1,
-      "type": "text",
-      "title": "",
-      "description": "",
-      "transparent": true,
-      "gridPos": {
-        "h": 2,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "Fleet-wide server health from SCOM Data Warehouse. Shows top problem servers by CPU, memory, and disk. Click a server name to drill into detailed view.",
-        "code": {
-          "language": "plaintext",
-          "showLineNumbers": false,
-          "showMiniMap": false
-        }
-      }
-    },
-    {
       "id": 2,
       "type": "row",
       "title": "Fleet Summary",
@@ -128,7 +106,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 2
+        "y": 0
       },
       "panels": []
     },
@@ -141,7 +119,7 @@
         "h": 3,
         "w": 6,
         "x": 0,
-        "y": 3
+        "y": 1
       },
       "datasource": {
         "type": "mssql",
@@ -205,7 +183,7 @@
         "h": 3,
         "w": 6,
         "x": 6,
-        "y": 3
+        "y": 1
       },
       "datasource": {
         "type": "mssql",
@@ -278,7 +256,7 @@
         "h": 3,
         "w": 6,
         "x": 12,
-        "y": 3
+        "y": 1
       },
       "datasource": {
         "type": "mssql",
@@ -351,7 +329,7 @@
         "h": 3,
         "w": 6,
         "x": 18,
-        "y": 3
+        "y": 1
       },
       "datasource": {
         "type": "mssql",
@@ -418,7 +396,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 4
       },
       "panels": []
     },
@@ -431,7 +409,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 5
       },
       "datasource": {
         "type": "mssql",
@@ -619,7 +597,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 13
       },
       "panels": []
     },
@@ -632,7 +610,7 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 16
+        "y": 14
       },
       "datasource": {
         "type": "mssql",
@@ -780,7 +758,7 @@
         "h": 10,
         "w": 8,
         "x": 8,
-        "y": 16
+        "y": 14
       },
       "datasource": {
         "type": "mssql",
@@ -912,7 +890,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 16
+        "y": 14
       },
       "datasource": {
         "type": "mssql",
@@ -1046,7 +1024,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 24
       },
       "panels": []
     },
@@ -1059,7 +1037,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 25
       },
       "datasource": {
         "type": "mssql",
