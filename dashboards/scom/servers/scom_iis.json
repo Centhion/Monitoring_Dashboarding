@@ -109,7 +109,7 @@
           "type": "mssql",
           "uid": "scom-dw"
         },
-        "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 AND me.DisplayName LIKE 'VM-${site:raw}-IIS%' ORDER BY me.DisplayName",
+        "query": "SELECT DISTINCT me.DisplayName AS __text, me.DisplayName AS __value FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId = 1 AND me.DisplayName LIKE 'VM-%-IIS%' AND ('${site:raw}' = '%' OR me.DisplayName LIKE 'VM-${site:raw}-IIS%') ORDER BY me.DisplayName",
         "label": "Server",
         "refresh": 1,
         "multi": false,
