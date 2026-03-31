@@ -88,13 +88,9 @@ Keep README.md and ARCHITECTURE.md current with impactful changes.
 - Architectural decisions
 - Skip: internal helpers, generated files, minor refactors
 
-**Enforcement**: The `/commit` workflow runs `skills/doc_sync_check.py` which:
-- Auto-detects project type (Flutter, Python, Node.js, Go, etc.)
-- Scans appropriate directories for new files
-- Checks dependencies against ARCHITECTURE.md
-- Reports findings for human review before commit
+**Enforcement**: The `/commit` workflow runs `skills/doc_sync_check.py` which auto-detects project type, scans for new files, and checks dependencies against ARCHITECTURE.md.
 
-**Workflow**: Code → `/commit` (runs doc check) → Review/update docs → Commit → `/handoff`
+**Workflow**: Code -> `/commit` (runs doc check) -> Review/update docs -> Commit -> `/handoff`
 
 ### Professionalism & Style (Strict)
 - **NO EMOJIS**: Do not use emojis in comments, commit messages, or documentation.
@@ -140,46 +136,6 @@ Keep README.md and ARCHITECTURE.md current with impactful changes.
 
 ---
 
-## Configuration Files
-
-This template uses Anthropic's recommended configuration structure:
-
-| File | Purpose | Shared? |
-|------|---------|---------|
-| `.claude/CLAUDE.md` | Main agent instructions | Yes (committed) |
-| `.claude/settings.json` | Permissions and hooks | Yes (committed) |
-| `.claude/settings.local.json` | Personal overrides | No (gitignored) |
-| `.claude/rules/*.md` | Modular guidelines | Yes (committed) |
-| `.claude/commands/*.md` | Slash command definitions | Yes (committed) |
-| `.claude/agents/general/*.md` | Universal sub-agent prompts | Yes (committed) |
-| `.claude/agents/project/*.md` | Project-specific sub-agents | Yes (committed) |
-| `.mcp.json` | MCP server configuration | Yes (committed) |
-| `CLAUDE.local.md` | Personal project notes | No (gitignored) |
-
-### Extended Thinking
-
-The template enables Extended Thinking by default (`alwaysThinkingEnabled: true` in `.claude/settings.json`). This provides deeper reasoning for complex tasks.
-
-**When to disable**: If you need faster responses for simple tasks, set to `false` in `.claude/settings.local.json`:
-```json
-{
-  "alwaysThinkingEnabled": false
-}
-```
-
-**When to keep enabled**: Architecture decisions, security reviews, complex refactoring, multi-step planning.
-
-### Personal Overrides
-
-Create `CLAUDE.local.md` in the project root for personal preferences that should not be shared with the team. This file is automatically gitignored.
-
-Example uses:
-- Personal coding style preferences
-- Local environment notes
-- Testing shortcuts
-
----
-
 ## Robustness
 
 - **Check Skills First**: Before writing a new script, check `.claude/skills/` for existing capabilities.
@@ -189,65 +145,9 @@ Example uses:
 
 ---
 
-## Skills
-
-Skills provide focused, automatic capabilities that enhance Claude's behavior. They complement agents by handling straightforward guidance and constraints.
-
-**Available Skills**:
-- `code-review-skill` - Focused code review with read-only access
-- `commit-message-skill` - Generate conventional commit messages
-- `architecture-review-skill` - Validate architectural documentation
-
-See `.claude/skills/README.md` for full documentation.
-
-### Skills vs. Agents Decision Guide
-
-**Use Skills When**:
-- Providing automatic guidance or constraints
-- Task is straightforward and procedural
-- No complex delegation or autonomous research needed
-- Want behavior to feel "built-in" rather than spawned
-- Tool restrictions improve safety (allowed-tools)
-
-**Use Agents When**:
-- Complex, multi-step analysis required
-- Need autonomous research and exploration
-- Task benefits from isolated context
-- Requires chaining multiple operations
-- Output needs human review before proceeding
-
-**Example Hybrid Workflow**:
-1. Skill: `code-review-skill` provides automatic guidance when reviewing code (read-only)
-2. Agent: `security-review` spawns for deep security analysis after auth changes (autonomous)
-3. Skill: `commit-message-skill` formats the commit message (automatic)
-4. Agent: `pre-commit-check` validates staged changes (research + validation)
-
-Skills handle the automatic, procedural parts. Agents handle the complex, analytical parts.
-
----
-
 ## Agent Workflows (Automatic)
 
 Sub-agents are spawned automatically based on these triggers. Do not ask for permission - execute them as part of the workflow. See `.claude/agents/README.md` for full documentation.
-
-### How Agent Spawning Works
-
-Claude spawns agents using the Task tool with the appropriate subagent_type:
-
-```
-Task(
-  subagent_type="Explore",  # or "general-purpose" or "Plan"
-  description="Short description",
-  prompt="[Agent prompt from .claude/agents/general/agent-name.md]"
-)
-```
-
-**Agent Type Selection**:
-- **Explore**: Fast codebase discovery, file searches, pattern matching (use thoroughness: quick/medium/very thorough)
-- **general-purpose**: Complex multi-step autonomous tasks requiring decision-making
-- **Plan**: Architecture design and implementation planning
-
-Agents work autonomously and return structured results. Claude synthesizes results and reports findings to the user.
 
 ### Security Review Trigger
 After editing files matching these patterns, spawn the security-review agent:
@@ -310,39 +210,6 @@ Use agent prompt from: `.claude/agents/general/documentation-sync.md`
 
 ### Codebase Exploration
 When asked about code structure, "how does X work", or unfamiliar parts of the codebase, prefer spawning an Explore agent over manual grep/glob commands. This provides more thorough analysis.
-
----
-
-## Integrated Review Flow
-
-During `/commit`, the following happens automatically:
-
-1. **Pre-commit check agent** scans staged files for issues
-2. **Changelog tracker agent** reports:
-   - Auto-applied changes to PROJECT_PLAN.md
-   - Staged changes requiring approval
-3. **Documentation sync agent** proposes updates to README.md/ARCHITECTURE.md
-4. **User reviews** staged changes before commit proceeds
-
-Example output:
-```
-CODE CHANGES:
-- src/auth.py (new)
-- src/config.py (modified)
-
-PROJECT_PLAN.md (auto-applied):
-- Marked "Implement auth" complete
-- Added note: "Using JWT for stateless auth"
-
-PENDING APPROVAL:
-- PROJECT_PLAN.md: Mark Phase 1 complete
-- README.md: Add authentication to Features
-- ARCHITECTURE.md: Document auth middleware
-
-Apply pending changes? [Y/n/review]
-```
-
-User can approve all, skip, or review individually. Code commits regardless; documentation updates are optional but recommended.
 
 ---
 
