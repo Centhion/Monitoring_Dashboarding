@@ -203,7 +203,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Healthy\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.NewHealthState = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
+          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Healthy\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.NewHealthState = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-${site:raw}-%'",
           "refId": "A"
         }
       ]
@@ -267,7 +267,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Warning\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.NewHealthState = 2\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
+          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Warning\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.NewHealthState = 2\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-${site:raw}-%'",
           "refId": "A"
         }
       ]
@@ -331,7 +331,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Critical\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.NewHealthState = 3\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
+          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Critical\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.NewHealthState = 3\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-${site:raw}-%'",
           "refId": "A"
         }
       ]
@@ -392,7 +392,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Maintenance\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.InMaintenanceMode = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
+          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Maintenance\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.InMaintenanceMode = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-${site:raw}-%'",
           "refId": "A"
         }
       ]
@@ -527,7 +527,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"Health\",\n  CASE sh.InMaintenanceMode WHEN 1 THEN 'Yes' ELSE 'No' END AS \"Maintenance\",\n  sh.DateTime AS \"Last Updated\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nORDER BY sh.NewHealthState DESC, me.DisplayName",
+          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"Health\",\n  CASE sh.InMaintenanceMode WHEN 1 THEN 'Yes' ELSE 'No' END AS \"Maintenance\",\n  sh.DateTime AS \"Last Updated\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nORDER BY sh.NewHealthState DESC, me.DisplayName",
           "refId": "A"
         }
       ]
@@ -676,7 +676,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT\n  sh.DateTime AS time,\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' END AS metric,\n  COUNT(DISTINCT me.DisplayName) AS value\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(sh.DateTime)\nGROUP BY sh.DateTime, sh.NewHealthState\nORDER BY sh.DateTime",
+          "rawSql": "SELECT\n  sh.DateTime AS time,\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' END AS metric,\n  COUNT(DISTINCT me.DisplayName) AS value\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND $__timeFilter(sh.DateTime)\nGROUP BY sh.DateTime, sh.NewHealthState\nORDER BY sh.DateTime",
           "refId": "A"
         }
       ]
@@ -828,7 +828,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  hso.OutageStartDateTime AS \"Outage Start\",\n  hso.OutageEndDateTime AS \"Outage End\",\n  DATEDIFF(minute, hso.OutageStartDateTime, ISNULL(hso.OutageEndDateTime, GETUTCDATE())) AS \"Duration (min)\"\nFROM dbo.vHealthServiceOutage hso\nINNER JOIN vManagedEntity me ON hso.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND $__timeFilter(hso.OutageStartDateTime)\nORDER BY hso.OutageStartDateTime DESC",
+          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  hso.OutageStartDateTime AS \"Outage Start\",\n  hso.OutageEndDateTime AS \"Outage End\",\n  DATEDIFF(minute, hso.OutageStartDateTime, ISNULL(hso.OutageEndDateTime, GETUTCDATE())) AS \"Duration (min)\"\nFROM dbo.vHealthServiceOutage hso\nINNER JOIN vManagedEntity me ON hso.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName LIKE 'VM-${site:raw}-%'\nAND ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND $__timeFilter(hso.OutageStartDateTime)\nORDER BY hso.OutageStartDateTime DESC",
           "refId": "A"
         }
       ]

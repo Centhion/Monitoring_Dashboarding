@@ -154,7 +154,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Servers\"\nFROM vManagedEntity me\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')",
+          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Servers\"\nFROM vManagedEntity me\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')",
           "editorMode": "code"
         }
       ],
@@ -218,7 +218,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Healthy\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')\nAND sh.NewHealthState = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
+          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Healthy\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')\nAND sh.NewHealthState = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
           "editorMode": "code"
         }
       ],
@@ -282,7 +282,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Warning\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')\nAND sh.NewHealthState = 2\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
+          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Warning\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')\nAND sh.NewHealthState = 2\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
           "editorMode": "code"
         }
       ],
@@ -346,7 +346,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Critical\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')\nAND sh.NewHealthState = 3\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
+          "rawSql": "SELECT COUNT(DISTINCT me.DisplayName) AS \"Critical\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')\nAND sh.NewHealthState = 3\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)",
           "editorMode": "code"
         }
       ],
@@ -423,7 +423,7 @@
             "uid": "scom-dw"
           },
           "format": "table",
-          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS \"Site\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"Health\",\n  CASE sh.InMaintenanceMode WHEN 1 THEN 'Yes' ELSE 'No' END AS \"Maint\",\n  cpu.AverageValue AS \"CPU %\",\n  mem.AverageValue AS \"Memory %\",\n  disk.AverageValue AS \"Disk Free %\",\n  alerts.cnt AS \"Alerts\"\nFROM vManagedEntity me\nLEFT JOIN (\n  SELECT ManagedEntityRowId, NewHealthState, InMaintenanceMode\n  FROM State.vStateHourly WHERE DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\n) sh ON me.ManagedEntityRowId = sh.ManagedEntityRowId\nLEFT JOIN (\n  SELECT ph.ManagedEntityRowId, AVG(ph.AverageValue) AS AverageValue\n  FROM Perf.vPerfHourly ph\n  INNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\n  INNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\n  WHERE pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time'\n  AND $__timeFilter(ph.DateTime)\n  GROUP BY ph.ManagedEntityRowId\n) cpu ON me.ManagedEntityRowId = cpu.ManagedEntityRowId\nLEFT JOIN (\n  SELECT ph.ManagedEntityRowId, AVG(ph.AverageValue) AS AverageValue\n  FROM Perf.vPerfHourly ph\n  INNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\n  INNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\n  WHERE pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed'\n  AND $__timeFilter(ph.DateTime)\n  GROUP BY ph.ManagedEntityRowId\n) mem ON me.ManagedEntityRowId = mem.ManagedEntityRowId\nLEFT JOIN (\n  SELECT ph.ManagedEntityRowId, AVG(ph.AverageValue) AS AverageValue\n  FROM Perf.vPerfHourly ph\n  INNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\n  INNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\n  WHERE pr.ObjectName = 'LogicalDisk' AND pr.CounterName = '% Free Space' AND pri.InstanceName = 'C:'\n  AND $__timeFilter(ph.DateTime)\n  GROUP BY ph.ManagedEntityRowId\n) disk ON me.ManagedEntityRowId = disk.ManagedEntityRowId\nLEFT JOIN (\n  SELECT a.ManagedEntityRowId, COUNT(*) AS cnt\n  FROM Alert.vAlert a WHERE a.ResolutionState <> 255\n  GROUP BY a.ManagedEntityRowId\n) alerts ON me.ManagedEntityRowId = alerts.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')\nORDER BY sh.NewHealthState DESC, me.DisplayName",
+          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS \"Site\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"Health\",\n  CASE sh.InMaintenanceMode WHEN 1 THEN 'Yes' ELSE 'No' END AS \"Maint\",\n  cpu.AverageValue AS \"CPU %\",\n  mem.AverageValue AS \"Memory %\",\n  disk.AverageValue AS \"Disk Free %\",\n  alerts.cnt AS \"Alerts\"\nFROM vManagedEntity me\nLEFT JOIN (\n  SELECT ManagedEntityRowId, NewHealthState, InMaintenanceMode\n  FROM State.vStateHourly WHERE DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\n) sh ON me.ManagedEntityRowId = sh.ManagedEntityRowId\nLEFT JOIN (\n  SELECT ph.ManagedEntityRowId, AVG(ph.AverageValue) AS AverageValue\n  FROM Perf.vPerfHourly ph\n  INNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\n  INNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\n  WHERE pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time'\n  AND $__timeFilter(ph.DateTime)\n  GROUP BY ph.ManagedEntityRowId\n) cpu ON me.ManagedEntityRowId = cpu.ManagedEntityRowId\nLEFT JOIN (\n  SELECT ph.ManagedEntityRowId, AVG(ph.AverageValue) AS AverageValue\n  FROM Perf.vPerfHourly ph\n  INNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\n  INNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\n  WHERE pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed'\n  AND $__timeFilter(ph.DateTime)\n  GROUP BY ph.ManagedEntityRowId\n) mem ON me.ManagedEntityRowId = mem.ManagedEntityRowId\nLEFT JOIN (\n  SELECT ph.ManagedEntityRowId, AVG(ph.AverageValue) AS AverageValue\n  FROM Perf.vPerfHourly ph\n  INNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\n  INNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\n  WHERE pr.ObjectName = 'LogicalDisk' AND pr.CounterName = '% Free Space' AND pri.InstanceName = 'C:'\n  AND $__timeFilter(ph.DateTime)\n  GROUP BY ph.ManagedEntityRowId\n) disk ON me.ManagedEntityRowId = disk.ManagedEntityRowId\nLEFT JOIN (\n  SELECT a.ManagedEntityRowId, COUNT(*) AS cnt\n  FROM Alert.vAlert a WHERE a.ResolutionState <> 255\n  GROUP BY a.ManagedEntityRowId\n) alerts ON me.ManagedEntityRowId = alerts.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')\nORDER BY sh.NewHealthState DESC, me.DisplayName",
           "editorMode": "code"
         }
       ],
@@ -781,7 +781,7 @@
             "uid": "scom-dw"
           },
           "format": "time_series",
-          "rawSql": "SELECT ph.DateTime AS time, AVG(ph.AverageValue) AS \"Avg CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time'\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')\nAND $__timeFilter(ph.DateTime)\nGROUP BY ph.DateTime ORDER BY ph.DateTime",
+          "rawSql": "SELECT ph.DateTime AS time, AVG(ph.AverageValue) AS \"Avg CPU %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Processor Information' AND pr.CounterName = '% Processor Time'\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')\nAND $__timeFilter(ph.DateTime)\nGROUP BY ph.DateTime ORDER BY ph.DateTime",
           "editorMode": "code"
         }
       ],
@@ -885,7 +885,7 @@
             "uid": "scom-dw"
           },
           "format": "time_series",
-          "rawSql": "SELECT ph.DateTime AS time, AVG(ph.AverageValue) AS \"Avg Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed'\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')\nAND $__timeFilter(ph.DateTime)\nGROUP BY ph.DateTime ORDER BY ph.DateTime",
+          "rawSql": "SELECT ph.DateTime AS time, AVG(ph.AverageValue) AS \"Avg Memory %\"\nFROM Perf.vPerfHourly ph\nINNER JOIN vPerformanceRuleInstance pri ON ph.PerformanceRuleInstanceRowId = pri.PerformanceRuleInstanceRowId\nINNER JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId\nINNER JOIN vManagedEntity me ON ph.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE pr.ObjectName = 'Memory' AND pr.CounterName = 'PercentMemoryUsed'\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND ('${role:raw}' = 'All' OR me.DisplayName LIKE 'VM-%-${role:raw}%')\nAND $__timeFilter(ph.DateTime)\nGROUP BY ph.DateTime ORDER BY ph.DateTime",
           "editorMode": "code"
         }
       ],

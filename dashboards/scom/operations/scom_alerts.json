@@ -283,7 +283,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' WHEN 0 THEN 'Info' END AS \"Severity\",\n  COUNT(*) AS \"Count\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nGROUP BY a.Severity\nORDER BY a.Severity DESC",
+          "rawSql": "SELECT\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' WHEN 0 THEN 'Info' END AS \"Severity\",\n  COUNT(*) AS \"Count\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nGROUP BY a.Severity\nORDER BY a.Severity DESC",
           "format": "table"
         }
       ]
@@ -341,7 +341,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT COUNT(*) AS \"Last 24h\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.RaisedDateTime >= DATEADD(hour, -24, GETUTCDATE())\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'",
+          "rawSql": "SELECT COUNT(*) AS \"Last 24h\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.RaisedDateTime >= DATEADD(hour, -24, GETUTCDATE())\nAND me.DisplayName LIKE 'VM-${site:raw}-%'",
           "format": "table"
         }
       ]
@@ -475,7 +475,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.DisplayName AS \"Server\",\n  a.AlertDescription AS \"Description\",\n  a.RaisedDateTime AS \"Raised\",\n  CASE a.ResolutionState WHEN 0 THEN 'New' WHEN 247 THEN 'Acknowledged' WHEN 248 THEN 'Assigned' WHEN 249 THEN 'Investigating' WHEN 254 THEN 'Resolved' ELSE CAST(a.ResolutionState AS VARCHAR) END AS \"State\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nORDER BY a.Severity DESC, a.RaisedDateTime DESC",
+          "rawSql": "SELECT\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.DisplayName AS \"Server\",\n  a.AlertDescription AS \"Description\",\n  a.RaisedDateTime AS \"Raised\",\n  CASE a.ResolutionState WHEN 0 THEN 'New' WHEN 247 THEN 'Acknowledged' WHEN 248 THEN 'Assigned' WHEN 249 THEN 'Investigating' WHEN 254 THEN 'Resolved' ELSE CAST(a.ResolutionState AS VARCHAR) END AS \"State\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nORDER BY a.Severity DESC, a.RaisedDateTime DESC",
           "format": "table"
         }
       ]
@@ -608,7 +608,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT\n  DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0) AS time,\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS metric,\n  COUNT(*) AS value\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE $__timeFilter(a.RaisedDateTime)\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nGROUP BY DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0), a.Severity\nORDER BY time",
+          "rawSql": "SELECT\n  DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0) AS time,\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS metric,\n  COUNT(*) AS value\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE $__timeFilter(a.RaisedDateTime)\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nGROUP BY DATEADD(hour, DATEDIFF(hour, 0, a.RaisedDateTime), 0), a.Severity\nORDER BY time",
           "format": "time_series"
         }
       ]
@@ -717,7 +717,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT TOP 50\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.DisplayName AS \"Server\",\n  a.RaisedDateTime AS \"Raised\",\n  a.ResolvedDateTime AS \"Resolved\",\n  DATEDIFF(minute, a.RaisedDateTime, a.ResolvedDateTime) AS \"Duration (min)\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState = 255\nAND a.ResolvedDateTime >= DATEADD(day, -7, GETUTCDATE())\nAND me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nORDER BY a.ResolvedDateTime DESC",
+          "rawSql": "SELECT TOP 50\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.DisplayName AS \"Server\",\n  a.RaisedDateTime AS \"Raised\",\n  a.ResolvedDateTime AS \"Resolved\",\n  DATEDIFF(minute, a.RaisedDateTime, a.ResolvedDateTime) AS \"Duration (min)\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState = 255\nAND a.ResolvedDateTime >= DATEADD(day, -7, GETUTCDATE())\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nORDER BY a.ResolvedDateTime DESC",
           "format": "table"
         }
       ]
@@ -900,7 +900,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT TOP 50\n  a.AlertName AS \"Alert\",\n  me.DisplayName AS \"Server\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  ars.StateSetDateTime AS \"State Changed\",\n  CASE ars.ResolutionState WHEN 0 THEN 'New' WHEN 255 THEN 'Closed' ELSE CAST(ars.ResolutionState AS VARCHAR) END AS \"State\",\n  ars.StateSetByUserId AS \"Changed By\",\n  ars.TimeInStateSeconds / 60 AS \"Duration (min)\"\nFROM Alert.vAlertResolutionState ars\nINNER JOIN Alert.vAlert a ON ars.AlertGuid = a.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(ars.StateSetDateTime)\nORDER BY ars.StateSetDateTime DESC",
+          "rawSql": "SELECT TOP 50\n  a.AlertName AS \"Alert\",\n  me.DisplayName AS \"Server\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  ars.StateSetDateTime AS \"State Changed\",\n  CASE ars.ResolutionState WHEN 0 THEN 'New' WHEN 255 THEN 'Closed' ELSE CAST(ars.ResolutionState AS VARCHAR) END AS \"State\",\n  ars.StateSetByUserId AS \"Changed By\",\n  ars.TimeInStateSeconds / 60 AS \"Duration (min)\"\nFROM Alert.vAlertResolutionState ars\nINNER JOIN Alert.vAlert a ON ars.AlertGuid = a.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName LIKE 'VM-${site:raw}-%'\nAND $__timeFilter(ars.StateSetDateTime)\nORDER BY ars.StateSetDateTime DESC",
           "format": "table"
         }
       ]
@@ -1057,7 +1057,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  COUNT(*) AS \"Alert Count\",\n  SUM(CASE WHEN a.Severity = 2 THEN 1 ELSE 0 END) AS \"Critical\",\n  SUM(CASE WHEN a.Severity = 1 THEN 1 ELSE 0 END) AS \"Warning\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName LIKE 'VM-' + '${site:raw}' + '-%'\nAND $__timeFilter(a.RaisedDateTime)\nGROUP BY me.DisplayName\nORDER BY COUNT(*) DESC",
+          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  COUNT(*) AS \"Alert Count\",\n  SUM(CASE WHEN a.Severity = 2 THEN 1 ELSE 0 END) AS \"Critical\",\n  SUM(CASE WHEN a.Severity = 1 THEN 1 ELSE 0 END) AS \"Warning\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName LIKE 'VM-${site:raw}-%'\nAND $__timeFilter(a.RaisedDateTime)\nGROUP BY me.DisplayName\nORDER BY COUNT(*) DESC",
           "format": "table"
         }
       ]
