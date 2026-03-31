@@ -1251,6 +1251,11 @@
                     "title": "View Server",
                     "url": "/d/scom-server-overview?var-server=${__value.text}&var-site=${site}",
                     "targetBlank": false
+                  },
+                  {
+                    "title": "Investigate",
+                    "url": "/d/scom-incident?var-server=${__value.text}&var-site=${site}",
+                    "targetBlank": false
                   }
                 ]
               }

@@ -490,6 +490,11 @@
                     "title": "View Server Detail",
                     "url": "/d/scom-server-overview?var-server=${__value.text}&var-site=${site}",
                     "targetBlank": false
+                  },
+                  {
+                    "title": "Investigate",
+                    "url": "/d/scom-incident?var-server=${__value.text}&var-site=${site}",
+                    "targetBlank": false
                   }
                 ]
               }
@@ -500,18 +505,7 @@
               "id": "byName",
               "options": "Alert"
             },
-            "properties": [
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "Investigate",
-                    "url": "/d/scom-incident?var-server=${__data.fields.Server}&var-site=${site}",
-                    "targetBlank": false
-                  }
-                ]
-              }
-            ]
+            "properties": []
           }
         ]
       },
@@ -604,6 +598,11 @@
                     "title": "View Server Detail",
                     "url": "/d/scom-server-overview?var-server=${__value.text}&var-site=${site}",
                     "targetBlank": false
+                  },
+                  {
+                    "title": "Investigate",
+                    "url": "/d/scom-incident?var-server=${__value.text}&var-site=${site}",
+                    "targetBlank": false
                   }
                 ]
               },
@@ -652,16 +651,6 @@
                         "index": 3
                       }
                     }
-                  }
-                ]
-              },
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "Investigate",
-                    "url": "/d/scom-incident?var-server=${__data.fields.Server}&var-site=${site}",
-                    "targetBlank": false
                   }
                 ]
               }
