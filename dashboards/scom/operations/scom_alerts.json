@@ -9,7 +9,7 @@
     "operations"
   ],
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "timezone": "browser",
   "editable": true,
   "graphTooltip": 1,
@@ -291,7 +291,7 @@
     {
       "id": 6,
       "type": "stat",
-      "title": "Alerts Raised (24h)",
+      "title": "Alerts Raised (Time Range)",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -341,7 +341,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT COUNT(*) AS \"Last 24h\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.RaisedDateTime >= DATEADD(hour, -24, GETUTCDATE())\nAND me.DisplayName LIKE 'VM-${site:raw}-%'",
+          "rawSql": "SELECT COUNT(*) AS \"Last 24h\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE $__timeFilter(a.RaisedDateTime)\nAND me.DisplayName LIKE 'VM-${site:raw}-%'",
           "format": "table"
         }
       ]
@@ -717,7 +717,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT TOP 50\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.DisplayName AS \"Server\",\n  a.RaisedDateTime AS \"Raised\",\n  a.ResolvedDateTime AS \"Resolved\",\n  DATEDIFF(minute, a.RaisedDateTime, a.ResolvedDateTime) AS \"Duration (min)\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState = 255\nAND a.ResolvedDateTime >= DATEADD(day, -7, GETUTCDATE())\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nORDER BY a.ResolvedDateTime DESC",
+          "rawSql": "SELECT TOP 50\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  me.DisplayName AS \"Server\",\n  a.RaisedDateTime AS \"Raised\",\n  a.ResolvedDateTime AS \"Resolved\",\n  DATEDIFF(minute, a.RaisedDateTime, a.ResolvedDateTime) AS \"Duration (min)\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState = 255\nAND $__timeFilter(a.ResolvedDateTime)\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nORDER BY a.ResolvedDateTime DESC",
           "format": "table"
         }
       ]

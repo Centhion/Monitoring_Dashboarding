@@ -1980,7 +1980,7 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 **Goal**: Replace SquaredUp immediately by connecting Grafana to the existing SCOM Data Warehouse SQL database. No new agents required. Team sees the same SCOM-collected data in Grafana dashboards instead of SquaredUp.
 
-**Status**: In Progress (15A-15G complete, dashboard bugs fixed 2026-03-31, pending production deployment)
+**Status**: In Progress (15A-15I complete, child-entity alert blindness fixed 2026-03-31, pending production deployment)
 
 **Context**: SquaredUp costs $26K/year and reads from the SCOM Data Warehouse to render dashboards. Grafana can do exactly the same thing via the Microsoft SQL Server datasource. This eliminates SquaredUp while keeping SCOM agents and alerting intact. Alloy agent deployment (Phase 14) happens later as a separate migration.
 
@@ -2124,6 +2124,32 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
   - Fixed "Failed Health Monitors" wildcard handling (= vs LIKE, handles server=All correctly)
   - Expanded Failed Health Monitors to full-width with Server column and drill-down link
   - Added "Open (min)" column to surface how long each alert has been unresolved
+
+### 15I: Child-Entity Alert Blindness and Date Filter Fixes (added 2026-03-31)
+
+**Context**: SCOM raises alerts against child managed entities (e.g., `VM-alpha-fs1 - Logical Disk C:`, `VM-alpha-fs1 - Service: Spooler`). These have their own `ManagedEntityRowId` values distinct from the parent server. Alert queries using exact-match `me.DisplayName = '${server:raw}'` silently miss all child-entity alerts. The symptom: `State.vStateHourly` shows the server as Critical, but alert panels return 0 rows. Site-level dashboards are NOT affected -- their LIKE filters (`LIKE 'VM-${site:raw}-%'`) incidentally capture child entities whose DisplayNames always start with the parent server name.
+
+**Fix approach**: `me.DisplayName LIKE '${server:raw} -%'` captures child entities based on SCOM's universal naming convention where child objects are always named `<ParentDisplayName> - <ComponentType>`. This eliminates the need for `vRelationship` direction queries or `FullName` format queries against production.
+
+- [x] 22. Fix BUG-001 child-entity alert blindness in `scom_incident.json` (v3) -- Medium (completed 2026-03-31)
+  - 5 alert contexts updated: annotation "Alert Raised" + panels 3, 12, 16, 17, 19
+  - WHERE extended to `(me.DisplayName = '${server:raw}' OR me.DisplayName LIKE '${server:raw} -%')`
+  - Panels 2 (Health State), 7 (In Maintenance), 15 (Health State Timeline) intentionally NOT changed -- these must use server-entity-only matching to avoid multiple rows per server
+  - Simulator-validated: panel returned 2 alerts (server + child entity) vs 1 before fix
+- [x] 23. Fix BUG-001 child-entity alert blindness in `scom_server_fleet.json` (v2) -- Medium (completed 2026-03-31)
+  - Alert count subquery in "All Servers" table (panel 7) replaced with CASE WHEN rollup pattern
+  - Child entity alerts (TypeRowId != 1) roll up to parent server row via DisplayName LIKE join
+  - Simulator-validated: VM-FOXTROT-FS1 alert count increased from 1 to 2 after child entity injection
+- [x] 24. Fix BUG-003 hardcoded date ranges in `scom_alerts.json` (v2) -- Simple (completed 2026-03-31)
+  - Panel 6 "Alerts Raised (24h)" -- renamed to "Alerts Raised (Time Range)" -- `DATEADD(hour, -24, ...)` replaced with `$__timeFilter(a.RaisedDateTime)`
+  - Panel 12 "Recently Resolved" -- `DATEADD(day, -7, ...)` replaced with `$__timeFilter(a.ResolvedDateTime)`
+  - Both panels now respond to dashboard time picker
+- [x] 25. Simulator regression testing -- all fixes validated (completed 2026-03-31)
+  - server=All path confirmed: no regression (4 alerts returned across FOXTROT site)
+  - Child entity injection confirmed: `VM-FOXTROT-FS1 - Logical Disk C:` alert surfaces in incident dashboard
+  - Time filter confirmed: 3-day vs 7-day window returns different row counts for resolved alerts
+
+**DB Queries Status**: Originally planned 2 mandatory production queries (`vRelationship` direction, `FullName` format). The DisplayName LIKE approach eliminates both. They are now **contingency-only** -- needed only if production SCOM violates the child-entity naming convention (`<ParentDisplayName> - <ComponentType>`), which is standard across all SCOM management packs.
 
 ### Human Actions Required
 

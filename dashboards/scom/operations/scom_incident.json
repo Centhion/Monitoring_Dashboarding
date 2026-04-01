@@ -9,7 +9,7 @@
     "incident"
   ],
   "schemaVersion": 39,
-  "version": 2,
+  "version": 3,
   "timezone": "browser",
   "editable": true,
   "graphTooltip": 2,
@@ -87,7 +87,7 @@
         "iconColor": "red",
         "name": "Alert Raised",
         "rawQuery": true,
-        "rawSql": "SELECT\n  a.RaisedDateTime AS time,\n  a.AlertName AS text,\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS tags\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND $__timeFilter(a.RaisedDateTime)\nAND a.Severity >= 1\nORDER BY a.RaisedDateTime",
+        "rawSql": "SELECT\n  a.RaisedDateTime AS time,\n  a.AlertName AS text,\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS tags\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}' OR me.DisplayName LIKE '${server:raw} -%')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND $__timeFilter(a.RaisedDateTime)\nAND a.Severity >= 1\nORDER BY a.RaisedDateTime",
         "type": "dashboard"
       }
     ]
@@ -300,7 +300,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT COUNT(*) AS \"Alerts\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND a.ResolutionState <> 255",
+          "rawSql": "SELECT COUNT(*) AS \"Alerts\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}' OR me.DisplayName LIKE '${server:raw} -%')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND a.ResolutionState <> 255",
           "refId": "A"
         }
       ]
@@ -861,7 +861,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  CASE a.ResolutionState WHEN 0 THEN 'New' WHEN 247 THEN 'Acknowledged' WHEN 248 THEN 'Assigned' WHEN 249 THEN 'Investigating' WHEN 254 THEN 'Resolved' ELSE CAST(a.ResolutionState AS VARCHAR) END AS \"State\",\n  me.DisplayName AS \"Server\",\n  a.RaisedDateTime AS \"Raised\",\n  DATEDIFF(minute, a.RaisedDateTime, GETUTCDATE()) AS \"Open (min)\",\n  ad.RepeatCount AS \"Repeats\",\n  a.AlertDescription AS \"Description\"\nFROM Alert.vAlert a\nLEFT JOIN Alert.vAlertDetail ad ON a.AlertGuid = ad.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND a.ResolutionState <> 255\nORDER BY a.Severity DESC, a.RaisedDateTime ASC",
+          "rawSql": "SELECT\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  CASE a.ResolutionState WHEN 0 THEN 'New' WHEN 247 THEN 'Acknowledged' WHEN 248 THEN 'Assigned' WHEN 249 THEN 'Investigating' WHEN 254 THEN 'Resolved' ELSE CAST(a.ResolutionState AS VARCHAR) END AS \"State\",\n  me.DisplayName AS \"Server\",\n  a.RaisedDateTime AS \"Raised\",\n  DATEDIFF(minute, a.RaisedDateTime, GETUTCDATE()) AS \"Open (min)\",\n  ad.RepeatCount AS \"Repeats\",\n  a.AlertDescription AS \"Description\"\nFROM Alert.vAlert a\nLEFT JOIN Alert.vAlertDetail ad ON a.AlertGuid = ad.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}' OR me.DisplayName LIKE '${server:raw} -%')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND a.ResolutionState <> 255\nORDER BY a.Severity DESC, a.RaisedDateTime ASC",
           "refId": "A"
         }
       ]
@@ -1291,7 +1291,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT TOP 20\n  a.RaisedDateTime AS \"Raised\",\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  CASE a.ResolutionState WHEN 0 THEN 'Active' WHEN 255 THEN 'Closed' ELSE 'Other' END AS \"Status\",\n  ad.RepeatCount AS \"Repeats\",\n  a.AlertDescription AS \"Description\"\nFROM Alert.vAlert a\nLEFT JOIN Alert.vAlertDetail ad ON a.AlertGuid = ad.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND (a.ResolutionState <> 255 OR $__timeFilter(a.RaisedDateTime))\nORDER BY a.ResolutionState ASC, a.Severity DESC, a.RaisedDateTime DESC",
+          "rawSql": "SELECT TOP 20\n  a.RaisedDateTime AS \"Raised\",\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  CASE a.ResolutionState WHEN 0 THEN 'Active' WHEN 255 THEN 'Closed' ELSE 'Other' END AS \"Status\",\n  ad.RepeatCount AS \"Repeats\",\n  a.AlertDescription AS \"Description\"\nFROM Alert.vAlert a\nLEFT JOIN Alert.vAlertDetail ad ON a.AlertGuid = ad.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}' OR me.DisplayName LIKE '${server:raw} -%')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND (a.ResolutionState <> 255 OR $__timeFilter(a.RaisedDateTime))\nORDER BY a.ResolutionState ASC, a.Severity DESC, a.RaisedDateTime DESC",
           "refId": "A"
         }
       ]
@@ -1600,7 +1600,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ars.StateSetDateTime AS \"Time\",\n  a.AlertName AS \"Alert\",\n  CASE ars.ResolutionState WHEN 0 THEN 'New' WHEN 255 THEN 'Closed' ELSE CAST(ars.ResolutionState AS VARCHAR) END AS \"State\",\n  ars.StateSetByUserId AS \"By\",\n  ars.TimeInStateSeconds / 60 AS \"Duration (min)\"\nFROM Alert.vAlertResolutionState ars\nINNER JOIN Alert.vAlert a ON ars.AlertGuid = a.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND $__timeFilter(ars.StateSetDateTime)\nORDER BY ars.StateSetDateTime DESC",
+          "rawSql": "SELECT\n  ars.StateSetDateTime AS \"Time\",\n  a.AlertName AS \"Alert\",\n  CASE ars.ResolutionState WHEN 0 THEN 'New' WHEN 255 THEN 'Closed' ELSE CAST(ars.ResolutionState AS VARCHAR) END AS \"State\",\n  ars.StateSetByUserId AS \"By\",\n  ars.TimeInStateSeconds / 60 AS \"Duration (min)\"\nFROM Alert.vAlertResolutionState ars\nINNER JOIN Alert.vAlert a ON ars.AlertGuid = a.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}' OR me.DisplayName LIKE '${server:raw} -%')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND $__timeFilter(ars.StateSetDateTime)\nORDER BY ars.StateSetDateTime DESC",
           "refId": "A"
         }
       ]
@@ -1734,7 +1734,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  m.MonitorDefaultName AS \"Monitor\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' END AS \"State\",\n  sh.DateTime AS \"Last Changed\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntityMonitor mem ON sh.ManagedEntityRowId = mem.ManagedEntityRowId AND sh.MonitorRowId = mem.MonitorRowId\nINNER JOIN dbo.vMonitor m ON mem.MonitorRowId = m.MonitorRowId\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND sh.NewHealthState > 1\nAND sh.DateTime = (SELECT MAX(s2.DateTime) FROM State.vStateHourly s2 WHERE s2.ManagedEntityRowId = sh.ManagedEntityRowId AND s2.MonitorRowId = sh.MonitorRowId)\nORDER BY sh.NewHealthState DESC, m.MonitorDefaultName",
+          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  m.MonitorDefaultName AS \"Monitor\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' END AS \"State\",\n  sh.DateTime AS \"Last Changed\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntityMonitor mem ON sh.ManagedEntityRowId = mem.ManagedEntityRowId AND sh.MonitorRowId = mem.MonitorRowId\nINNER JOIN dbo.vMonitor m ON mem.MonitorRowId = m.MonitorRowId\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}' OR me.DisplayName LIKE '${server:raw} -%')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND sh.NewHealthState > 1\nAND sh.DateTime = (SELECT MAX(s2.DateTime) FROM State.vStateHourly s2 WHERE s2.ManagedEntityRowId = sh.ManagedEntityRowId AND s2.MonitorRowId = sh.MonitorRowId)\nORDER BY sh.NewHealthState DESC, m.MonitorDefaultName",
           "refId": "A"
         }
       ]
