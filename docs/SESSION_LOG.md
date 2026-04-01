@@ -1043,3 +1043,70 @@ Total: 15 dashboards, 199 panels
 - State timeline and pie chart visualizations confirmed working in Grafana v11.5.2
 
 ---
+
+## Session: 2026-03-31 14:30
+
+### Completed
+
+**Chrome-based verification and bug fixes for SCOM dashboards before production deployment.**
+
+- **Bug Fix: Stat panels returning strings showed "No data"** (commit 058fe49)
+  - Root cause: Grafana stat panel `reduceOptions.fields` defaults to "Numeric Fields" -- string values from CASE expressions were silently filtered out
+  - Fixed Health State panel (`fields: ""` -> `fields: "/.*/"`) on Incident Investigation
+  - Fixed In Maintenance panel (same change) on Incident Investigation
+  - Only 2 panels across all dashboards had this issue (both in scom_incident.json)
+
+- **Bug Fix: Health State Timeline showed "Data does not have a time field"** (commit 058fe49)
+  - Root cause: Query used `State.vStateRaw` which only had seed data from March 29 (outside 24h range)
+  - Changed to `State.vStateHourly` which has current hourly data through today
+  - Renamed column alias from `time` to `"Time"` for proper time field detection
+  - State-timeline now renders colored Healthy/Critical/Warning bands correctly
+
+- **Bug Fix: All panels returned 0/empty when Server=All** (commit 912742f)
+  - Root cause: rawSql had `'${server:raw}' = '$__all'` -- but when allValue=`%`, Grafana resolves `${server:raw}` to `%`, not the literal `$__all`. So `'%' = '$__all'` is always FALSE.
+  - Replaced 18 occurrences of `= '$__all'` with `= '%'` across 3 dashboards: scom_incident.json (12), scom_event_log.json (5), scom_health_state.json (1)
+  - Event Log went from showing 0/0/0 events to 82/152/560 (Error/Warning/Info)
+
+- **CLAUDE.md token optimization** (from another agent, committed alongside fixes)
+
+- **Chrome review verified 7 dashboards rendering correctly:**
+  1. Server Fleet -- 72 servers, role summary, drill-down links (View Server Detail + Investigate)
+  2. Incident Investigation -- all 17 panels now working (3 fixed this session)
+  3. Alerts -- donut pie chart, active alerts table, drill-down links
+  4. Operations Analytics -- stats, trends, bar gauges, maintenance/resolver tables
+  5. Fleet Overview -- fleet summary, per-site table, top problem servers
+  6. Health State -- 66/5/1/1 stats, server health table with Investigate links
+  7. Event Log -- 82/152/560 events, stacked bar timeline, searchable event table
+
+### In Progress
+
+- **Remaining dashboard verification**: Server Overview, AD/DC, IIS, DHCP, DNS, DFS, Exchange not Chrome-verified this session. They use the same query patterns now fixed and should work correctly.
+
+### Blockers
+
+- **DBA action**: Create `svc-grafana-ro` SQL login with db_datareader on OperationsManagerDW
+- **Network path**: Verify Docker host in Denver DC can reach SCOM DW SQL Server
+- **Traefik**: DNS hostname and TLS cert for Grafana reverse proxy
+- **GitHub repo visibility**: May still be public
+
+### Decisions
+
+- **`$__all` vs `%` in SQL**: The pattern `'${var:raw}' = '$__all'` is fundamentally broken because Grafana resolves `${var:raw}` to the allValue (%) not the internal `$__all` token. The correct pattern is `'${var:raw}' = '%'` to match the allValue. All dashboards now use this pattern.
+- **`fields: "/.*/"` for string stat panels**: Grafana's stat panel defaults to Numeric Fields when `fields: ""`. String-returning queries (CASE...WHEN 'Healthy'/'Warning'/etc.) require explicit `fields: "/.*/"` to include all field types.
+- **vStateHourly over vStateRaw for timeline**: Seed data in vStateRaw has sparse timestamps (days apart), while vStateHourly has 4-hour resolution through current time. For the state-timeline visualization with a 24h window, vStateHourly provides reliable coverage.
+
+### Next Session
+
+1. **Deploy to Denver DC Docker host** -- pull latest code (912742f), docker compose up
+2. **Create SQL login** -- DBA creates svc-grafana-ro, update .env with credentials
+3. **Change encrypt to "true"** in configs/grafana/datasources/scom_dw.yml for production
+4. **Verify with production data** -- validate counter names, site extraction, query performance
+5. **Chrome-verify remaining 8 dashboards** if time permits (Server Overview, role dashboards)
+
+### Context
+
+- The `$__all` bug only manifested when BOTH site and server were set to "All". With a specific server selected, `${server:raw}` resolved to the actual server name and the `= '${server:raw}'` fallback in the OR clause matched correctly. This is why Incident Investigation appeared to work when drilled-down from Server Fleet (server was pre-set) but Event Log failed on default load (server=All).
+- dashboardScene cold-start rendering remains a Grafana v11.5 issue -- not fixable on our end. One page refresh or clicking Refresh always resolves it.
+- Total commits this session: 2 (058fe49, 912742f). Both pushed to master.
+
+---

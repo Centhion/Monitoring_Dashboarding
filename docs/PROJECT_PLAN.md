@@ -1980,7 +1980,7 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 **Goal**: Replace SquaredUp immediately by connecting Grafana to the existing SCOM Data Warehouse SQL database. No new agents required. Team sees the same SCOM-collected data in Grafana dashboards instead of SquaredUp.
 
-**Status**: In Progress (15A-15F complete, 15G partial, 15H pending deployment)
+**Status**: In Progress (15A-15G complete, dashboard bugs fixed 2026-03-31, pending production deployment)
 
 **Context**: SquaredUp costs $26K/year and reads from the SCOM Data Warehouse to render dashboards. Grafana can do exactly the same thing via the Microsoft SQL Server datasource. This eliminates SquaredUp while keeping SCOM agents and alerting intact. Alloy agent deployment (Phase 14) happens later as a separate migration.
 
@@ -2105,6 +2105,17 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
   - Note: SQL Server MP perf counters NOT available in production DW -- SQL monitoring is via Windows OS counters only
 - [x] 16. Remove SQL Server perf counter dashboard -- Simple (completed 2026-03-25)
   - `scom_sql_server.json` deleted -- counters don't exist in production DW
+
+### 15H: Dashboard Bug Fixes (added 2026-03-31)
+
+- [x] 17. Fix stat panels returning strings ("No data" for Health State, In Maintenance) -- Simple (completed 2026-03-31)
+  - Changed `reduceOptions.fields` from `""` (Numeric Fields) to `"/.*/"` (All Fields) for 2 string-returning stat panels
+- [x] 18. Fix Health State Timeline ("Data does not have a time field") -- Simple (completed 2026-03-31)
+  - Switched from `State.vStateRaw` to `State.vStateHourly` for current data coverage
+- [x] 19. Fix Server=All returning 0 results across 3 dashboards -- Medium (completed 2026-03-31)
+  - Replaced 18 occurrences of `= '$__all'` with `= '%'` in rawSql (Incident, Event Log, Health State)
+  - Root cause: Grafana resolves `${server:raw}` to allValue `%`, not the literal `$__all`
+- [x] 20. Chrome-verified 7 of 15 dashboards rendering with data (completed 2026-03-31)
 
 ### Human Actions Required
 
