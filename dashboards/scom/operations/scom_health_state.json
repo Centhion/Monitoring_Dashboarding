@@ -828,7 +828,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  hso.OutageStartDateTime AS \"Outage Start\",\n  hso.OutageEndDateTime AS \"Outage End\",\n  DATEDIFF(minute, hso.OutageStartDateTime, ISNULL(hso.OutageEndDateTime, GETUTCDATE())) AS \"Duration (min)\"\nFROM dbo.vHealthServiceOutage hso\nINNER JOIN vManagedEntity me ON hso.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName LIKE 'VM-${site:raw}-%'\nAND ('${server:raw}' = '$__all' OR me.DisplayName = '${server:raw}')\nAND $__timeFilter(hso.OutageStartDateTime)\nORDER BY hso.OutageStartDateTime DESC",
+          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  hso.OutageStartDateTime AS \"Outage Start\",\n  hso.OutageEndDateTime AS \"Outage End\",\n  DATEDIFF(minute, hso.OutageStartDateTime, ISNULL(hso.OutageEndDateTime, GETUTCDATE())) AS \"Duration (min)\"\nFROM dbo.vHealthServiceOutage hso\nINNER JOIN vManagedEntity me ON hso.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName LIKE 'VM-${site:raw}-%'\nAND ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}')\nAND $__timeFilter(hso.OutageStartDateTime)\nORDER BY hso.OutageStartDateTime DESC",
           "refId": "A"
         }
       ]
