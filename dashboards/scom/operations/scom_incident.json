@@ -9,7 +9,7 @@
     "incident"
   ],
   "schemaVersion": 39,
-  "version": 3,
+  "version": 4,
   "timezone": "browser",
   "editable": true,
   "graphTooltip": 2,
@@ -153,7 +153,7 @@
       "id": 2,
       "type": "stat",
       "title": "Health State",
-      "description": "Current health state from the most recent SCOM state rollup.",
+      "description": "Current SCOM health state. Driven by monitors -- not by alerts or events. When Warning or Critical, see the \"Root Cause\" section immediately below to identify which monitor is failing.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -240,7 +240,7 @@
       "id": 3,
       "type": "stat",
       "title": "Active Alerts",
-      "description": "Count of unresolved alerts for this server. Not time-filtered -- reflects current state regardless of when alerts were raised.",
+      "description": "Count of unresolved SCOM alerts. Zero does NOT mean the server is healthy -- monitors drive health state independently from alerts. A monitor can transition to Warning or Critical with alerting disabled for that monitor. If health state is degraded but this shows 0, check \"Monitors Failing\" and the \"Root Cause\" section below.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -454,8 +454,8 @@
     {
       "id": 6,
       "type": "stat",
-      "title": "Error Events (24h)",
-      "description": "Count of error-level events logged by this server in the selected time range.",
+      "title": "Monitors Failing",
+      "description": "Count of SCOM monitors currently in Warning or Critical state for this server. This is the direct driver of the Health State shown to the left. See the \"Root Cause\" section immediately below for monitor names and details. Events and alerts are separate -- a monitor can fail with zero active alerts.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -479,7 +479,7 @@
               },
               {
                 "color": "red",
-                "value": 5
+                "value": 3
               }
             ]
           }
@@ -493,8 +493,8 @@
         "y": 1
       },
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
+        "colorMode": "background",
+        "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
@@ -515,7 +515,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT COUNT(*) AS \"Errors\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE el.EventLevelName = 'Error'\nAND ('${server:raw}' = '%' OR elc.LoggingComputerName = '${server:raw}')\nAND elc.LoggingComputerName LIKE 'VM-${site:raw}-%'\nAND $__timeFilter(e.DateTime)",
+          "rawSql": "SELECT COUNT(*) AS \"Failing\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND sh.NewHealthState IN (2, 3)\nAND ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}' OR me.DisplayName LIKE '${server:raw} -%')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'",
           "refId": "A"
         }
       ]
@@ -598,12 +598,160 @@
       ]
     },
     {
-      "collapsed": false,
+      "id": 20,
+      "type": "row",
+      "title": "Root Cause -- What Is Driving This Health State",
+      "description": "SCOM monitors determine health state. The table below shows every monitor currently in Warning or Critical state for this server. This is the answer to why Health State is not Healthy.",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 4
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 17,
+      "type": "table",
+      "title": "Failed Health Monitors (Root Cause)",
+      "description": "Every SCOM monitor in Warning or Critical state for this server. This is what caused the Health State color. Events and active alerts are separate concerns -- the monitor state here is the definitive root cause. Select a specific server from the variable above for per-monitor detail.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Warning": {
+                        "color": "yellow",
+                        "index": 0,
+                        "text": "Warning"
+                      },
+                      "Critical": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "Critical"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Monitor"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 300
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Server"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Drill Down",
+                    "url": "/d/scom-incident?var-server=${__value.text}&var-site=${site}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ]
+        },
+        "sortBy": [
+          {
+            "displayName": "State",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  m.MonitorDefaultName AS \"Monitor\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' END AS \"State\",\n  sh.DateTime AS \"Last Changed\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntityMonitor mem ON sh.ManagedEntityRowId = mem.ManagedEntityRowId AND sh.MonitorRowId = mem.MonitorRowId\nINNER JOIN dbo.vMonitor m ON mem.MonitorRowId = m.MonitorRowId\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}' OR me.DisplayName LIKE '${server:raw} -%')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND sh.NewHealthState > 1\nAND sh.DateTime = (SELECT MAX(s2.DateTime) FROM State.vStateHourly s2 WHERE s2.ManagedEntityRowId = sh.ManagedEntityRowId AND s2.MonitorRowId = sh.MonitorRowId)\nORDER BY sh.NewHealthState DESC, m.MonitorDefaultName",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 13
       },
       "id": 18,
       "title": "Active Alerts",
@@ -833,7 +981,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 14
       },
       "options": {
         "showHeader": true,
@@ -872,7 +1020,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 20
       },
       "id": 8,
       "title": "Performance Timeline",
@@ -952,7 +1100,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 12
+        "y": 21
       },
       "options": {
         "legend": {
@@ -1053,7 +1201,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 12
+        "y": 21
       },
       "options": {
         "legend": {
@@ -1097,7 +1245,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 19
+        "y": 28
       },
       "id": 11,
       "title": "Correlated Events & Alerts",
@@ -1270,7 +1418,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 20
+        "y": 29
       },
       "options": {
         "showHeader": true,
@@ -1381,7 +1529,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 20
+        "y": 29
       },
       "options": {
         "showHeader": true,
@@ -1413,7 +1561,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 37
       },
       "id": 14,
       "title": "State & Resolution History",
@@ -1476,7 +1624,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 29
+        "y": 38
       },
       "options": {
         "showValue": "auto",
@@ -1579,7 +1727,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 29
+        "y": 38
       },
       "options": {
         "showHeader": true,
@@ -1601,140 +1749,6 @@
           "editorMode": "code",
           "format": "table",
           "rawSql": "SELECT\n  ars.StateSetDateTime AS \"Time\",\n  a.AlertName AS \"Alert\",\n  CASE ars.ResolutionState WHEN 0 THEN 'New' WHEN 255 THEN 'Closed' ELSE CAST(ars.ResolutionState AS VARCHAR) END AS \"State\",\n  ars.StateSetByUserId AS \"By\",\n  ars.TimeInStateSeconds / 60 AS \"Duration (min)\"\nFROM Alert.vAlertResolutionState ars\nINNER JOIN Alert.vAlert a ON ars.AlertGuid = a.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}' OR me.DisplayName LIKE '${server:raw} -%')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND $__timeFilter(ars.StateSetDateTime)\nORDER BY ars.StateSetDateTime DESC",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "id": 17,
-      "type": "table",
-      "title": "Failed Health Monitors",
-      "description": "Shows which SCOM monitors are in Warning or Critical state for this server, with the most recent state change time. Select a specific server for per-monitor detail.",
-      "datasource": {
-        "type": "mssql",
-        "uid": "scom-dw"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "State"
-            },
-            "properties": [
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "Warning": {
-                        "color": "yellow",
-                        "index": 0,
-                        "text": "Warning"
-                      },
-                      "Critical": {
-                        "color": "red",
-                        "index": 1,
-                        "text": "Critical"
-                      }
-                    }
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Monitor"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 300
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Server"
-            },
-            "properties": [
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "Drill Down",
-                    "url": "/d/scom-incident?var-server=${__value.text}&var-site=${site}",
-                    "targetBlank": false
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 37
-      },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm",
-        "footer": {
-          "show": false,
-          "reducer": [
-            "sum"
-          ]
-        },
-        "sortBy": [
-          {
-            "displayName": "State",
-            "desc": true
-          }
-        ]
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "mssql",
-            "uid": "scom-dw"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  m.MonitorDefaultName AS \"Monitor\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' END AS \"State\",\n  sh.DateTime AS \"Last Changed\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntityMonitor mem ON sh.ManagedEntityRowId = mem.ManagedEntityRowId AND sh.MonitorRowId = mem.MonitorRowId\nINNER JOIN dbo.vMonitor m ON mem.MonitorRowId = m.MonitorRowId\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}' OR me.DisplayName LIKE '${server:raw} -%')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND sh.NewHealthState > 1\nAND sh.DateTime = (SELECT MAX(s2.DateTime) FROM State.vStateHourly s2 WHERE s2.ManagedEntityRowId = sh.ManagedEntityRowId AND s2.MonitorRowId = sh.MonitorRowId)\nORDER BY sh.NewHealthState DESC, m.MonitorDefaultName",
           "refId": "A"
         }
       ]
