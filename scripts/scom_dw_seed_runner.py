@@ -515,16 +515,39 @@ def main():
     # =========================================================================
     # Seed state data (every 4 hours for 7 days)
     # =========================================================================
+    # Production SCOM DW has one row per (entity, monitor, hour). We seed two
+    # monitor types per entity:
+    #   MonitorRowId=1 (System.Health.AvailabilityState) -- aggregate rollup
+    #   A role-appropriate unit monitor -- the actionable root cause
+    # The unit monitor IDs match the dbo.vMonitor seed below:
+    #   7 = FreeSpaceMonitor, 8 = MemoryUsageMonitor,
+    #   9 = CPUUsageMonitor,  10 = ServiceMonitor
+    ROLE_UNIT_MONITOR = {
+        "DC":   7,   # domain controller -- SYSVOL disk space
+        "SQL":  8,   # SQL server -- memory pressure
+        "IIS":  10,  # IIS server -- W3SVC service state
+        "FS":   7,   # file server -- disk free space
+        "APP":  9,   # app server -- CPU utilization
+        "DHCP": 10,  # DHCP server -- DHCP service state
+    }
     print("  Seeding health state data...")
     batch = []
     for hour in range(0, 168, 4):
         dt = now - timedelta(hours=hour)
         dt_str = dt.strftime("%Y-%m-%d %H:%M:%S")
-        for sid, _ in all_servers:
+        for sid, name in all_servers:
             r = random.random()
             health = 3 if r < 0.02 else (2 if r < 0.07 else 1)
             maint = 1 if random.random() < 0.03 else 0
+            # Aggregate monitor (always present -- rollup of all unit monitors)
             batch.append((dt_str, sid, 1, 1, health, maint))
+            # Unit monitor row -- only seed when degraded so the table shows
+            # actionable failures rather than noise from healthy unit checks
+            if health > 1:
+                parts = name.split("-")
+                role_str = "".join(c for c in parts[2] if not c.isdigit()) if len(parts) >= 3 else "DC"
+                unit_mid = ROLE_UNIT_MONITOR.get(role_str, 7)
+                batch.append((dt_str, sid, unit_mid, 1, health, maint))
 
     cursor.executemany(
         "INSERT INTO State.vStateHourly (DateTime, ManagedEntityRowId, MonitorRowId, OldHealthState, NewHealthState, InMaintenanceMode) VALUES (%s, %s, %s, %s, %s, %s)",
@@ -972,13 +995,21 @@ def main():
     if cursor.fetchone()[0] == 0:
         print("  Seeding State.vStateRaw...")
         batch = []
-        for sid, _ in all_servers:
+        for sid, name in all_servers:
+            parts = name.split("-")
+            role_str = "".join(c for c in parts[2] if not c.isdigit()) if len(parts) >= 3 else "DC"
+            unit_mid = ROLE_UNIT_MONITOR.get(role_str, 7)
             # Generate 5-15 state changes per server over 7 days
             for _ in range(random.randint(5, 15)):
                 dt = (now - timedelta(hours=random.randint(1, 168))).strftime("%Y-%m-%d %H:%M:%S")
                 old_state = random.choice([1, 1, 1, 2])
                 new_state = random.choice([1, 1, 1, 2, 3]) if old_state == 1 else 1
+                # Aggregate row
                 batch.append((dt, sid, 1, old_state, new_state, 0))
+                # Unit monitor row when degraded -- provides the root-cause detail
+                # that production SCOM DW stores per-monitor
+                if new_state > 1:
+                    batch.append((dt, sid, unit_mid, 1, new_state, 0))
         cursor.executemany(
             "INSERT INTO State.vStateRaw VALUES (%s,%s,%s,%s,%s,%s)", batch)
         conn.commit()

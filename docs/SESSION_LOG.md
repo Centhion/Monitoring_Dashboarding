@@ -1110,3 +1110,61 @@ Total: 15 dashboards, 199 panels
 - Total commits this session: 2 (058fe49, 912742f). Both pushed to master.
 
 ---
+
+## Session: 2026-03-31 21:00
+
+### Completed
+
+**Child-entity alert blindness fix -- all 3 affected dashboards patched and simulator-validated.**
+
+- **BUG-001: Child-entity alert blindness in `scom_incident.json` (v1 -> v3)** (commit b2798ef)
+  - Root cause: SCOM raises alerts against child managed entities (e.g., `VM-alpha-fs1 - Logical Disk C:`) which have distinct `ManagedEntityRowId` values. Queries using exact-match `DisplayName = '${server:raw}'` silently missed all child-entity alerts. Symptom: health state showed Critical, alert panels showed 0.
+  - Fix: Extended WHERE clause on annotation + 5 alert panels to `(me.DisplayName = '${server:raw}' OR me.DisplayName LIKE '${server:raw} -%')`
+  - Panels intentionally NOT changed: Health State (panel 2), In Maintenance (panel 7), Health State Timeline (panel 15) -- server-only matching required to prevent duplicate rows per server
+  - Simulator-validated: injected synthetic child entity `VM-FOXTROT-FS1 - Logical Disk C:` + alert; panel returned 2 alerts vs 1 before fix
+
+- **BUG-001: Child-entity alert count in `scom_server_fleet.json` (v1 -> v2)** (commit b2798ef)
+  - Alert count column in "All Servers" table replaced simple JOIN with CASE WHEN rollup subquery
+  - Child entity alerts (TypeRowId != 1) roll up to parent server row via `DisplayName LIKE parent_me.DisplayName + ' -%'` join
+  - Simulator-validated: VM-FOXTROT-FS1 count went from 1 to 2; all other servers unchanged
+
+- **BUG-003: Hardcoded date ranges in `scom_alerts.json` (v1 -> v2)** (commit b2798ef)
+  - Panel 6 "Alerts Raised (24h)" -- renamed to "Alerts Raised (Time Range)" -- `DATEADD(hour, -24, ...)` replaced with `$__timeFilter(a.RaisedDateTime)`
+  - Panel 12 "Recently Resolved" -- `DATEADD(day, -7, ...)` replaced with `$__timeFilter(a.ResolvedDateTime)`
+  - Both panels now respond to dashboard time picker; confirmed with 3-day vs 7-day window returning different row counts
+
+- **Phase 15I documented in `docs/PROJECT_PLAN.md`**
+  - All 3 fixes documented with root cause, approach, and simulator validation notes
+  - DB queries (vRelationship direction, FullName format) marked contingency-only
+
+### In Progress
+
+- Nothing in progress -- session ended cleanly with full commit and push.
+
+### Blockers
+
+- **Demo deployment process**: User references a prior workflow of downloading a zip from the public GitHub repo to deploy to a demo/work environment. That workflow is not captured in memory. User confirmed the correct repo is `Monitoring_Dashboarding-master` (this repo) not `scom-grafana`. Clarify this process at the start of next session before attempting to help with deployment.
+- **DBA action**: Create `svc-grafana-ro` SQL login with db_datareader on OperationsManagerDW (unchanged from prior session)
+- **Network path**: Verify Docker host in Denver DC can reach SCOM DW SQL Server (unchanged)
+
+### Decisions
+
+- **DisplayName LIKE over vRelationship**: Rather than querying `vRelationship` to find child entities (which would have required production DB access to validate join direction), used SCOM's universal naming convention: child entities are always named `<ParentDisplayName> - <ComponentType>`. This is consistent across all SCOM management packs and eliminates 2 mandatory production DB queries, making them contingency-only.
+- **Site-level dashboards are NOT affected by BUG-001**: Their LIKE filters (`LIKE 'VM-${site:raw}-%'`) incidentally match child entities because child DisplayNames also start with the parent server name prefix. Only server-specific drill-down queries using exact match were broken.
+- **Server-only panels must stay server-only**: Health State, In Maintenance, and Health State Timeline panels use exact-match on purpose. Adding child-entity OR clause would cause multiple rows per server in state tables and duplicate series in the timeline.
+
+### Next Session
+
+1. **Clarify the demo deployment workflow** -- user has a prior process involving downloading a zip from the public GitHub repo to deploy at their work environment. Get the correct steps before touching anything.
+2. **Production validation after deployment** -- navigate to Incident Investigation in deployed Grafana, select a server known to be Critical, confirm child-entity alerts now appear. This is the definitive real-world test.
+3. **Contingency query A** (run only if step 2 fails): `SELECT TOP 20 me.DisplayName, me.ManagedEntityTypeRowId FROM vManagedEntity me WHERE me.ManagedEntityTypeRowId != 1 AND me.DisplayName LIKE 'VM-%'` -- check if child entities follow the `<ParentName> - <Component>` convention
+4. **Chrome-verify remaining role dashboards**: Server Overview, AD/DC, IIS, DHCP, DNS, DFS, Exchange not yet verified this sprint
+
+### Context
+
+- Site-level dashboards (fleet, site overview, etc.) were never affected by BUG-001. Only the Incident Investigation (server drill-down) and Server Fleet (alert count column) were broken.
+- The `mon-scom-dw-sim` container shows as "unhealthy" in `docker ps` -- this is a healthcheck path issue with Azure SQL Edge (sqlcmd path differs), not an actual engine failure. The simulator is running and accepting connections on port 1433.
+- All 3 fixes are simulator-validated. The only remaining uncertainty is whether production SCOM follows the standard child-entity naming convention -- it should, but production validation is the final confirmation.
+- Working tree is clean. master branch is up to date with origin.
+
+---

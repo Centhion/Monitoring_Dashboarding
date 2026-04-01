@@ -1980,7 +1980,7 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 **Goal**: Replace SquaredUp immediately by connecting Grafana to the existing SCOM Data Warehouse SQL database. No new agents required. Team sees the same SCOM-collected data in Grafana dashboards instead of SquaredUp.
 
-**Status**: In Progress (15A-15I complete, child-entity alert blindness fixed 2026-03-31, pending production deployment)
+**Status**: In Progress (15A-15J complete, child-entity alert blindness and unit monitor queries fixed 2026-03-31, pending production deployment)
 
 **Context**: SquaredUp costs $26K/year and reads from the SCOM Data Warehouse to render dashboards. Grafana can do exactly the same thing via the Microsoft SQL Server datasource. This eliminates SquaredUp while keeping SCOM agents and alerting intact. Alloy agent deployment (Phase 14) happens later as a separate migration.
 
@@ -2149,6 +2149,23 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
   - Child entity injection confirmed: `VM-FOXTROT-FS1 - Logical Disk C:` alert surfaces in incident dashboard
   - Time filter confirmed: 3-day vs 7-day window returns different row counts for resolved alerts
 
+### 15J: Unit Monitor Query Enhancements (added 2026-03-31)
+
+**Context**: SCOM monitors (e.g., "Disk Space", "Service Health") are instances of monitor rules that run per-unit (per disk, per service). Each has a distinct MonitorRowId. The system also tracks an aggregate MonitorRowId=1 for rollup states. Queries had been filtering by exact `MonitorRowId = 1` (aggregate only), which meant per-unit monitor states were invisible. The DW also seeds Monitor state rows per-unit, not just aggregates.
+
+- [x] 26. Update scom_incident.json v5 for unit monitor queries (completed 2026-03-31)
+  - Panel 6 (Monitors Failing stat): added join to `vManagedEntityMonitor` + `vMonitor` to enumerate all monitors per entity, filtering out rollup monitors (System.Health.* and *Rollup suffixes)
+  - Panel 17 (Failed Health Monitors table): added "What to Check" CASE WHEN remediation column based on MonitorSystemName patterns; filtered to unit monitors only (MonitorRowId != 1)
+  - Panel 19 (Active Alerts table): added "What to Do" CASE WHEN column based on AlertName patterns for operator guidance
+- [x] 27. Fix simulator seed data for per-unit-monitor state rows (completed 2026-03-31)
+  - Updated `scripts/scom_dw_seed_runner.py` to inject State.vStateRaw rows for each individual monitor (not just aggregate MonitorRowId=1)
+  - Added ROLE_UNIT_MONITOR mapping per server role (e.g., Disk Space [%] for file servers, Service for all servers)
+  - Seeded state rows for all 6 currently degraded entities so new queries return data immediately in live simulator
+- [x] 28. Validate unit monitor queries against live simulator (completed 2026-03-31)
+  - Panel 6 now returns count of failing monitors per server vs. "1" aggregate only
+  - Panel 17 returns full list of individual monitor failures with remediation guidance
+  - Panel 19 includes "What to Do" context for on-call operators
+
 **DB Queries Status**: Originally planned 2 mandatory production queries (`vRelationship` direction, `FullName` format). The DisplayName LIKE approach eliminates both. They are now **contingency-only** -- needed only if production SCOM violates the child-entity naming convention (`<ParentDisplayName> - <ComponentType>`), which is standard across all SCOM management packs.
 
 ### Human Actions Required
@@ -2171,6 +2188,18 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 | No CI/CD pipeline | Can't update post-deploy | Validate all queries against production discovery data before deployment |
 | SQL Server MP missing perf counters | No SQL-specific dashboard | Use Windows OS counters for SQL servers, build AG/cluster status from group data |
 
+### Notes
+
+**Technical decisions and lessons learned**:
+
+1. **Unit monitor queries require explicit joins**: SCOM stores monitor instances (e.g., "Disk Space [%] for C:" as distinct MonitorRowId values). Aggregate MonitorRowId=1 is a separate rollup monitor. Queries must join `vManagedEntity -> vManagedEntityMonitor -> vMonitor` to enumerate all actual monitors per server, then filter out system health rollup monitors by pattern (System.Health.*, *Rollup suffixes).
+
+2. **Simulator data must match DW schema**: Initially, simulator seeded only aggregate MonitorRowId=1 state rows. This caused dashboards to return "No Data". Fixed by seeding per-unit-monitor state rows for each role's monitors (e.g., Disk Space for file servers, Service Health for all servers). Simulator now matches production schema and all queries return data immediately.
+
+3. **Operator guidance columns are essential**: Added "What to Check" and "What to Do" columns to monitor and alert panels. These CASE WHEN rules map MonitorSystemName and AlertName patterns to remediation steps. Critical for supporting operators migrating from SquaredUp.
+
+4. **Child entity naming convention is standard**: SCOM names child entities as `<ParentDisplayName> - <ComponentType>`. This allows a single LIKE filter to surface both parent and child entity alerts without complex vRelationship queries. Validated against production discovery.
+
 ### Success Criteria
 
 - Grafana shows the same server performance data that SquaredUp shows
@@ -2181,6 +2210,7 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 - SquaredUp can be decommissioned without loss of visibility
 - No new agents deployed -- purely reading existing SCOM data
 - Zero post-deployment query fixes needed (validated against production discovery data)
+- Unit monitor failures and alerts surface with operator remediation guidance
 
 ---
 
