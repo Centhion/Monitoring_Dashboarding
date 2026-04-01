@@ -9,7 +9,7 @@
     "incident"
   ],
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "timezone": "browser",
   "editable": true,
   "graphTooltip": 2,
@@ -75,6 +75,19 @@
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "mssql",
+          "uid": "scom-dw"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "red",
+        "name": "Alert Raised",
+        "rawQuery": true,
+        "rawSql": "SELECT\n  a.RaisedDateTime AS time,\n  a.AlertName AS text,\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS tags\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND $__timeFilter(a.RaisedDateTime)\nAND a.Severity >= 1\nORDER BY a.RaisedDateTime",
         "type": "dashboard"
       }
     ]
@@ -227,7 +240,7 @@
       "id": 3,
       "type": "stat",
       "title": "Active Alerts",
-      "description": "Count of unresolved alerts for this server.",
+      "description": "Count of unresolved alerts for this server. Not time-filtered -- reflects current state regardless of when alerts were raised.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -592,6 +605,275 @@
         "x": 0,
         "y": 4
       },
+      "id": 18,
+      "title": "Active Alerts",
+      "type": "row"
+    },
+    {
+      "id": 19,
+      "type": "table",
+      "title": "Active Alerts -- Requires Attention",
+      "description": "All unresolved alerts for this server. Not time-filtered -- any alert that has not been closed appears here regardless of when it was raised.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Severity"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Critical": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "Critical"
+                      },
+                      "Warning": {
+                        "color": "yellow",
+                        "index": 1,
+                        "text": "Warning"
+                      },
+                      "Info": {
+                        "color": "blue",
+                        "index": 2,
+                        "text": "Info"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "New": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "New"
+                      },
+                      "Acknowledged": {
+                        "color": "orange",
+                        "index": 1,
+                        "text": "Acknowledged"
+                      },
+                      "Assigned": {
+                        "color": "orange",
+                        "index": 2,
+                        "text": "Assigned"
+                      },
+                      "Investigating": {
+                        "color": "yellow",
+                        "index": 3,
+                        "text": "Investigating"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Open (min)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 60
+                    },
+                    {
+                      "color": "red",
+                      "value": 480
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Repeats"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 5
+                    },
+                    {
+                      "color": "red",
+                      "value": 20
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Description"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 500
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Server"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Drill Down",
+                    "url": "/d/scom-incident?var-server=${__value.text}&var-site=${site}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "Severity",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  CASE a.ResolutionState WHEN 0 THEN 'New' WHEN 247 THEN 'Acknowledged' WHEN 248 THEN 'Assigned' WHEN 249 THEN 'Investigating' WHEN 254 THEN 'Resolved' ELSE CAST(a.ResolutionState AS VARCHAR) END AS \"State\",\n  me.DisplayName AS \"Server\",\n  a.RaisedDateTime AS \"Raised\",\n  DATEDIFF(minute, a.RaisedDateTime, GETUTCDATE()) AS \"Open (min)\",\n  ad.RepeatCount AS \"Repeats\",\n  a.AlertDescription AS \"Description\"\nFROM Alert.vAlert a\nLEFT JOIN Alert.vAlertDetail ad ON a.AlertGuid = ad.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND a.ResolutionState <> 255\nORDER BY a.Severity DESC, a.RaisedDateTime ASC",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 11
+      },
       "id": 8,
       "title": "Performance Timeline",
       "type": "row"
@@ -600,7 +882,7 @@
       "id": 9,
       "type": "timeseries",
       "title": "CPU & Memory",
-      "description": "CPU and memory utilization over time from SCOM raw performance data. Shared crosshair enables correlation with other panels.",
+      "description": "CPU and memory utilization over time from SCOM raw performance data. Red annotation markers indicate when alerts were raised. Shared crosshair enables correlation with other panels.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -670,7 +952,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 5
+        "y": 12
       },
       "options": {
         "legend": {
@@ -712,7 +994,7 @@
       "id": 10,
       "type": "timeseries",
       "title": "Disk & Queue",
-      "description": "Disk free space and processor queue length over time. Queue spikes correlated with CPU indicate saturation.",
+      "description": "Disk free space and processor queue length over time. Queue spikes correlated with CPU indicate saturation. Red annotation markers indicate when alerts were raised.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -771,7 +1053,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 5
+        "y": 12
       },
       "options": {
         "legend": {
@@ -815,7 +1097,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 19
       },
       "id": 11,
       "title": "Correlated Events & Alerts",
@@ -824,8 +1106,8 @@
     {
       "id": 12,
       "type": "table",
-      "title": "Recent Alerts",
-      "description": "All alerts raised for this server in the selected time range, ordered by most recent.",
+      "title": "Alert History (Time Window)",
+      "description": "Alerts raised within the selected time window. Active alerts outside the window appear in the Active Alerts section above. Active alerts sort first within this view.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -988,7 +1270,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 13
+        "y": 20
       },
       "options": {
         "showHeader": true,
@@ -1009,7 +1291,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT TOP 20\n  a.RaisedDateTime AS \"Raised\",\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  CASE a.ResolutionState WHEN 0 THEN 'Active' WHEN 255 THEN 'Closed' ELSE 'Other' END AS \"Status\",\n  ad.RepeatCount AS \"Repeats\",\n  a.AlertDescription AS \"Description\"\nFROM Alert.vAlert a\nLEFT JOIN Alert.vAlertDetail ad ON a.AlertGuid = ad.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND $__timeFilter(a.RaisedDateTime)\nORDER BY a.RaisedDateTime DESC",
+          "rawSql": "SELECT TOP 20\n  a.RaisedDateTime AS \"Raised\",\n  a.AlertName AS \"Alert\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  CASE a.ResolutionState WHEN 0 THEN 'Active' WHEN 255 THEN 'Closed' ELSE 'Other' END AS \"Status\",\n  ad.RepeatCount AS \"Repeats\",\n  a.AlertDescription AS \"Description\"\nFROM Alert.vAlert a\nLEFT JOIN Alert.vAlertDetail ad ON a.AlertGuid = ad.AlertGuid\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND (a.ResolutionState <> 255 OR $__timeFilter(a.RaisedDateTime))\nORDER BY a.ResolutionState ASC, a.Severity DESC, a.RaisedDateTime DESC",
           "refId": "A"
         }
       ]
@@ -1099,7 +1381,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 13
+        "y": 20
       },
       "options": {
         "showHeader": true,
@@ -1131,7 +1413,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 28
       },
       "id": 14,
       "title": "State & Resolution History",
@@ -1194,7 +1476,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 22
+        "y": 29
       },
       "options": {
         "showValue": "auto",
@@ -1297,7 +1579,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 22
+        "y": 29
       },
       "options": {
         "showHeader": true,
@@ -1327,7 +1609,7 @@
       "id": 17,
       "type": "table",
       "title": "Failed Health Monitors",
-      "description": "Shows which SCOM monitors are in Warning or Critical state for this server, with the most recent state change time.",
+      "description": "Shows which SCOM monitors are in Warning or Critical state for this server, with the most recent state change time. Select a specific server for per-monitor detail.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"
@@ -1401,14 +1683,32 @@
                 "value": 300
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Server"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Drill Down",
+                    "url": "/d/scom-incident?var-server=${__value.text}&var-site=${site}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
           }
         ]
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 30
+        "y": 37
       },
       "options": {
         "showHeader": true,
@@ -1419,7 +1719,12 @@
             "sum"
           ]
         },
-        "sortBy": []
+        "sortBy": [
+          {
+            "displayName": "State",
+            "desc": true
+          }
+        ]
       },
       "targets": [
         {
@@ -1429,7 +1734,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  m.MonitorDefaultName AS \"Monitor\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' END AS \"State\",\n  sh.DateTime AS \"Last Changed\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntityMonitor mem ON sh.ManagedEntityRowId = mem.ManagedEntityRowId AND sh.MonitorRowId = mem.MonitorRowId\nINNER JOIN dbo.vMonitor m ON mem.MonitorRowId = m.MonitorRowId\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.DisplayName = '${server:raw}'\nAND sh.NewHealthState > 1\nAND sh.DateTime = (SELECT MAX(s2.DateTime) FROM State.vStateHourly s2 WHERE s2.ManagedEntityRowId = sh.ManagedEntityRowId AND s2.MonitorRowId = sh.MonitorRowId)\nORDER BY sh.NewHealthState DESC, m.MonitorDefaultName",
+          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  m.MonitorDefaultName AS \"Monitor\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' END AS \"State\",\n  sh.DateTime AS \"Last Changed\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntityMonitor mem ON sh.ManagedEntityRowId = mem.ManagedEntityRowId AND sh.MonitorRowId = mem.MonitorRowId\nINNER JOIN dbo.vMonitor m ON mem.MonitorRowId = m.MonitorRowId\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE ('${server:raw}' = '%' OR me.DisplayName = '${server:raw}')\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nAND sh.NewHealthState > 1\nAND sh.DateTime = (SELECT MAX(s2.DateTime) FROM State.vStateHourly s2 WHERE s2.ManagedEntityRowId = sh.ManagedEntityRowId AND s2.MonitorRowId = sh.MonitorRowId)\nORDER BY sh.NewHealthState DESC, m.MonitorDefaultName",
           "refId": "A"
         }
       ]

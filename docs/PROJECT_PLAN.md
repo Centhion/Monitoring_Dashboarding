@@ -2116,6 +2116,14 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
   - Replaced 18 occurrences of `= '$__all'` with `= '%'` in rawSql (Incident, Event Log, Health State)
   - Root cause: Grafana resolves `${server:raw}` to allValue `%`, not the literal `$__all`
 - [x] 20. Chrome-verified 7 of 15 dashboards rendering with data (completed 2026-03-31)
+- [x] 21. SCOM Incident Investigation dashboard -- actionability overhaul (completed 2026-03-31)
+  - Root cause fixed: active alerts raised outside the time window were silently hidden (stat showed count, detail table showed nothing)
+  - Added "Active Alerts -- Requires Attention" full-width panel with no time filter -- always surfaces unresolved alerts
+  - Fixed "Alert History" query to include still-active alerts regardless of when raised (OR ResolutionState <> 255)
+  - Added alert-raised annotations to performance timeseries panels (correlate spikes with alert events)
+  - Fixed "Failed Health Monitors" wildcard handling (= vs LIKE, handles server=All correctly)
+  - Expanded Failed Health Monitors to full-width with Server column and drill-down link
+  - Added "Open (min)" column to surface how long each alert has been unresolved
 
 ### Human Actions Required
 
