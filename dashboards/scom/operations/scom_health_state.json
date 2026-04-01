@@ -527,7 +527,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"Health\",\n  CASE sh.InMaintenanceMode WHEN 1 THEN 'Yes' ELSE 'No' END AS \"Maintenance\",\n  sh.DateTime AS \"Last Updated\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nORDER BY sh.NewHealthState DESC, me.DisplayName",
+          "rawSql": "SELECT\n  me.DisplayName AS \"Server\",\n  CASE sh.NewHealthState WHEN 1 THEN 'Healthy' WHEN 2 THEN 'Warning' WHEN 3 THEN 'Critical' ELSE 'Unknown' END AS \"Health\",\n  CASE sh.InMaintenanceMode WHEN 1 THEN 'Yes' ELSE 'No' END AS \"Maintenance\",\n  sh.DateTime AS \"Last Updated\"\nFROM State.vStateHourly sh\nINNER JOIN vManagedEntity me ON sh.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE me.ManagedEntityTypeRowId = 1\nAND sh.DateTime = (SELECT MAX(DateTime) FROM State.vStateHourly)\nAND sh.MonitorRowId = 1\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nORDER BY sh.NewHealthState DESC, me.DisplayName",
           "refId": "A"
         }
       ]

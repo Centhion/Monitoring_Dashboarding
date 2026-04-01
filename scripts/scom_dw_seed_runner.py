@@ -127,6 +127,33 @@ COUNTERS = [
     ("ASP.NET Applications", "Requests/Sec", "__Total__", "IIS"),
     ("ASP.NET Applications", "Request Execution Time", "__Total__", "IIS"),
     ("ASP.NET", "Application Restarts", "", "IIS"),
+    # Disk latency read/write -- Server Overview Disk Latency panel
+    ("LogicalDisk", "Avg. Disk sec/Read", "C:", None),
+    ("LogicalDisk", "Avg. Disk sec/Read", "D:", None),
+    ("LogicalDisk", "Avg. Disk sec/Write", "C:", None),
+    ("LogicalDisk", "Avg. Disk sec/Write", "D:", None),
+    # DRA replication sub-counters -- AD/DC DRA Replication Detail panels
+    ("DirectoryServices", "DRA Inbound Bytes Compressed (Between Sites, After Compression)/sec", "", "DC"),
+    ("DirectoryServices", "DRA Inbound Bytes Not Compressed (Within Site)/sec", "", "DC"),
+    ("DirectoryServices", "DRA Outbound Bytes Compressed (Between Sites, After Compression)/sec", "", "DC"),
+    ("DirectoryServices", "DRA Outbound Bytes Not Compressed (Within Site)/sec", "", "DC"),
+    # DHCP Scope counters -- DHCP Scope Address Usage panel
+    ("Scopes", "IPV4Scope-AddressesInUse", "10.1.0.0/24", "DHCP"),
+    ("Scopes", "IPV4Scope-AddressesAvailable", "10.1.0.0/24", "DHCP"),
+    ("Scopes", "IPV4Scope-AddressesInUse", "10.2.0.0/24", "DHCP"),
+    ("Scopes", "IPV4Scope-AddressesAvailable", "10.2.0.0/24", "DHCP"),
+    ("Scopes", "IPV4Scope-AddressesInUse", "192.168.1.0/24", "DHCP"),
+    ("Scopes", "IPV4Scope-AddressesAvailable", "192.168.1.0/24", "DHCP"),
+    # Exchange Server counters -- Exchange dashboard
+    ("Exchange Server", "Messages Received/sec", "", "SQL"),
+    ("Exchange Server", "Messages Sent/Sec", "", "SQL"),
+    ("Exchange Server", "Queue Length", "", "SQL"),
+    ("Exchange Server", "Client Connections Count", "", "SQL"),
+    ("Exchange Server", "Avg. RPC Latency (ms)", "", "SQL"),
+    # Exchange Mailbox Database counters
+    ("Exchange Mailbox Database", "I/O Database Reads Average Latency (ms)", "", "SQL"),
+    ("Exchange Mailbox Database", "I/O Database Writes Average Latency (ms)", "", "SQL"),
+    ("Exchange Mailbox Database", "Database Size (MB)", "", "SQL"),
 ]
 
 
@@ -200,6 +227,26 @@ def gen_value(counter_name):
         "Not Found Errors/sec": lambda: random.random() * 5,
         "Request Execution Time": lambda: 10 + random.random() * 490,
         "Application Restarts": lambda: random.random() * 2,
+        # Disk latency read/write
+        "Avg. Disk sec/Read": lambda: 0.001 + random.random() * 0.015,
+        "Avg. Disk sec/Write": lambda: 0.002 + random.random() * 0.025,
+        # DRA replication sub-counters
+        "DRA Inbound Bytes Compressed (Between Sites, After Compression)/sec": lambda: 5000 + random.random() * 95000,
+        "DRA Inbound Bytes Not Compressed (Within Site)/sec": lambda: 5000 + random.random() * 95000,
+        "DRA Outbound Bytes Compressed (Between Sites, After Compression)/sec": lambda: 5000 + random.random() * 95000,
+        "DRA Outbound Bytes Not Compressed (Within Site)/sec": lambda: 5000 + random.random() * 95000,
+        # DHCP Scope counters
+        "IPV4Scope-AddressesInUse": lambda: 20 + random.randint(0, 200),
+        "IPV4Scope-AddressesAvailable": lambda: 10 + random.randint(0, 40),
+        # Exchange counters
+        "Messages Received/sec": lambda: 5 + random.random() * 95,
+        "Messages Sent/Sec": lambda: 3 + random.random() * 80,
+        "Queue Length": lambda: random.randint(0, 15),
+        "Client Connections Count": lambda: 20 + random.random() * 480,
+        "Avg. RPC Latency (ms)": lambda: 1 + random.random() * 25,
+        "I/O Database Reads Average Latency (ms)": lambda: 5 + random.random() * 45,
+        "I/O Database Writes Average Latency (ms)": lambda: 10 + random.random() * 90,
+        "Database Size (MB)": lambda: 5000 + random.random() * 45000,
     }
     return generators.get(counter_name, lambda: random.random() * 100)()
 
@@ -537,8 +584,9 @@ def main():
         dt_str = dt.strftime("%Y-%m-%d %H:%M:%S")
         for sid, name in all_servers:
             r = random.random()
-            health = 3 if r < 0.02 else (2 if r < 0.07 else 1)
-            maint = 1 if random.random() < 0.03 else 0
+            # ~5% critical, ~12% warning for realistic fleet monitoring visibility
+            health = 3 if r < 0.05 else (2 if r < 0.17 else 1)
+            maint = 1 if random.random() < 0.04 else 0
             # Aggregate monitor (always present -- rollup of all unit monitors)
             batch.append((dt_str, sid, 1, 1, health, maint))
             # Unit monitor row -- only seed when degraded so the table shows
@@ -569,29 +617,37 @@ def main():
         "Health Service Heartbeat Failure",
     ]
 
-    # Active alerts
-    for sid, name in random.sample(all_servers, min(15, len(all_servers))):
-        alert = random.choice(alert_names)
-        sev = random.choice([1, 1, 2])
-        hours_ago = random.randint(1, 72)
-        dt = (now - timedelta(hours=hours_ago)).strftime("%Y-%m-%d %H:%M:%S")
-        cursor.execute(
-            "INSERT INTO Alert.vAlert (AlertName, AlertDescription, Severity, Priority, ResolutionState, RaisedDateTime, ManagedEntityRowId) VALUES (%s, %s, %s, 1, 0, %s, %s)",
-            (alert, f"Threshold exceeded on {name}", sev, dt, sid)
-        )
+    # Active alerts -- ensure broad coverage so every server drill-down
+    # demonstrates alert panels. Target ~60% of servers with active alerts.
+    servers_for_alerts = random.sample(all_servers, min(45, len(all_servers)))
+    for sid, name in servers_for_alerts:
+        # 1-3 alerts per server for realistic density
+        num_alerts = random.choices([1, 2, 3], weights=[50, 35, 15])[0]
+        for _ in range(num_alerts):
+            alert = random.choice(alert_names)
+            sev = random.choice([1, 1, 1, 2, 2])
+            hours_ago = random.randint(1, 120)
+            dt = (now - timedelta(hours=hours_ago)).strftime("%Y-%m-%d %H:%M:%S")
+            cursor.execute(
+                "INSERT INTO Alert.vAlert (AlertName, AlertDescription, Severity, Priority, ResolutionState, RaisedDateTime, ManagedEntityRowId) VALUES (%s, %s, %s, 1, 0, %s, %s)",
+                (alert, f"Threshold exceeded on {name}", sev, dt, sid)
+            )
 
-    # Resolved alerts
-    for sid, name in random.sample(all_servers, min(50, len(all_servers))):
-        alert = random.choice(alert_names)
-        sev = random.choice([1, 1, 2])
-        hours_ago = random.randint(1, 168)
-        duration = random.randint(10, 240)
-        raised = now - timedelta(hours=hours_ago)
-        resolved = raised + timedelta(minutes=duration)
-        cursor.execute(
-            "INSERT INTO Alert.vAlert (AlertName, AlertDescription, Severity, Priority, ResolutionState, RaisedDateTime, ResolvedDateTime, ManagedEntityRowId) VALUES (%s, %s, %s, 1, 255, %s, %s, %s)",
-            (alert, f"Resolved on {name}", sev, raised.strftime("%Y-%m-%d %H:%M:%S"), resolved.strftime("%Y-%m-%d %H:%M:%S"), sid)
-        )
+    # Resolved alerts -- every server should have alert history to demonstrate
+    # the Alert History panel on drill-down
+    for sid, name in all_servers:
+        num_resolved = random.randint(2, 6)
+        for _ in range(num_resolved):
+            alert = random.choice(alert_names)
+            sev = random.choice([1, 1, 2])
+            hours_ago = random.randint(1, 168)
+            duration = random.randint(10, 480)
+            raised = now - timedelta(hours=hours_ago)
+            resolved = raised + timedelta(minutes=duration)
+            cursor.execute(
+                "INSERT INTO Alert.vAlert (AlertName, AlertDescription, Severity, Priority, ResolutionState, RaisedDateTime, ResolvedDateTime, ManagedEntityRowId) VALUES (%s, %s, %s, 1, 255, %s, %s, %s)",
+                (alert, f"Resolved on {name}", sev, raised.strftime("%Y-%m-%d %H:%M:%S"), resolved.strftime("%Y-%m-%d %H:%M:%S"), sid)
+            )
     conn.commit()
 
     # =========================================================================
@@ -611,17 +667,24 @@ def main():
         print("  Seeding Perf.vPerfRaw (5-min granularity)...")
         batch = []
         raw_total = 0
-        # Seed 3 days at 5-min intervals (864 intervals) for key counters only
-        # Using a subset of counters to keep row count manageable
-        key_instances = list(instance_map.items())[:8]  # CPU, memory, disk, network
+        # Seed 3 days at 5-min intervals for key counters.
+        # Include CPU, memory, disk (free space + latency), network, and queue
+        # so the Server Overview "Recent Performance" section is fully populated.
+        raw_counter_names = [
+            "% Processor Time", "PercentMemoryUsed", "% Free Space",
+            "Avg. Disk sec/Read", "Avg. Disk sec/Write",
+            "Bytes Total/sec", "Processor Queue Length", "Disk Bytes/sec",
+        ]
+        raw_instances = [(k, v) for k, v in instance_map.items() if k[1] in raw_counter_names]
         for interval in range(864):
             dt = (now - timedelta(minutes=interval * 5)).strftime("%Y-%m-%d %H:%M:%S")
-            for (obj, ctr, inst), pri_id in key_instances:
-                for sid, _ in random.sample(all_servers, min(20, len(all_servers))):
+            for (obj, ctr, inst), pri_id in raw_instances:
+                # Cover all servers for a realistic environment
+                for sid, _ in all_servers:
                     val = gen_value(ctr)
                     batch.append((dt, pri_id, sid, 1, val, val * 0.8, val * 1.2, 1.0))
                     raw_total += 1
-                    if len(batch) >= 2000:
+                    if len(batch) >= 5000:
                         cursor.executemany(
                             "INSERT INTO Perf.vPerfRaw (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                             batch
