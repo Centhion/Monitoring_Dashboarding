@@ -9,7 +9,7 @@
     "analytics"
   ],
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "timezone": "browser",
   "editable": true,
   "graphTooltip": 1,
@@ -330,7 +330,14 @@
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
-      }
+      },
+      "links": [
+        {
+          "title": "View All Alerts",
+          "url": "/d/scom-alerts?var-site=${site}",
+          "targetBlank": false
+        }
+      ]
     },
     {
       "id": 5,

@@ -874,7 +874,7 @@
       "id": 14,
       "type": "table",
       "title": "Mailbox Database Summary",
-      "description": "Exchange mailbox database sizes and mailbox counts from the SCOM Exchange 2013 management pack views. Column names are conventional for the Exchange MP schema -- if they differ in production the panel will show an error that can be diagnosed against the actual view definition.",
+      "description": "Exchange mailbox database sizes and mailbox counts from the SCOM Exchange 2013 management pack views. NOTE: This panel shows all databases fleet-wide. A per-server filter requires knowing whether Exchange2013.vMailboxDatabase exposes ManagedEntityRowId -- verify on production before adding the WHERE clause. Column names are conventional for the Exchange MP schema -- if they differ in production the panel will show an error that can be diagnosed against the actual view definition.",
       "datasource": {
         "type": "mssql",
         "uid": "scom-dw"

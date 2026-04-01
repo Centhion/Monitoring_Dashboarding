@@ -39,7 +39,7 @@
 | Phase 13: Alert Strategy | In Progress | Alert fatigue reduction, threshold tuning, notification design -- critical for platform adoption |
 | Phase 13B: Operator Documentation | Completed | Sysadmin-focused docs for 10-year supportability -- KB/Wiki ready, 10 docs in docs/operations/ |
 | Phase 14: Production Rollout | Pending | Pilot site deployment, security hardening, fleet rollout, operations handoff |
-| Phase 15: SCOM Data Warehouse Integration | Pending | Grafana SQL datasource to SCOM DW for immediate SquaredUp replacement without new agents |
+| Phase 15: SCOM Data Warehouse Integration | In Progress | 15A-15J complete; 15K operator actionability fixes in progress |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
 
@@ -2167,6 +2167,30 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
   - Panel 19 includes "What to Do" context for on-call operators
 
 **DB Queries Status**: Originally planned 2 mandatory production queries (`vRelationship` direction, `FullName` format). The DisplayName LIKE approach eliminates both. They are now **contingency-only** -- needed only if production SCOM violates the child-entity naming convention (`<ParentDisplayName> - <ComponentType>`), which is standard across all SCOM management packs.
+
+### 15K: Operator Actionability -- Systematic Dashboard Fixes (added 2026-03-31)
+
+**Context**: Systematic audit of all 14 SCOM dashboards identified panels that surface data without enabling operator action. Root cause: aggregate stats with no server breakdown, missing hostname columns on event tables, and missing drill-down paths from summary views to per-server investigation. Two confirmed critical gaps, one high-priority gap.
+
+- [ ] 29. Fix Event Log missing hostname column (C1) -- Simple
+  - File: `dashboards/scom/operations/scom_event_log.json`
+  - Panel 8 "Event Log": add `INNER JOIN dbo.vEventLoggingComputer lc ON e.LoggingComputerRowId = lc.LoggingComputerRowId`
+  - Add `lc.LoggingComputerName AS "Server"` as first data column after Time
+  - Add per-row panel link "Investigate Server" to scom-incident filtered by server name
+- [ ] 30. Add Critical Alerts server breakdown table to Fleet Overview (C2) -- Medium
+  - File: `dashboards/scom/operations/scom_fleet_overview.json`
+  - New table panel below existing Panel 6 stat: columns Server | Alert Name | Severity | Since | [Investigate]
+  - SQL: `Alert.vAlert + vManagedEntity` filtered to `ResolutionState = 0 AND Severity = 2`
+  - Per-row link to scom-incident filtered to that server
+- [ ] 31. Fix Exchange Mailbox DB summary panel server filter (C3) -- Simple
+  - File: `dashboards/scom/servers/scom_exchange.json`
+  - Panel 14 SQL: verify join path to `vManagedEntity` and add `$server` template variable filter
+- [ ] 32. Ensure Site Overview "All Servers" table sorts by health state descending (H1) -- Simple
+  - File: `dashboards/scom/operations/scom_site_overview.json`
+  - Default sort on health state column so Critical/Warning servers appear first without operator effort
+- [ ] 33. Add drill-down link to Operations Active Alerts stat (H3) -- Simple
+  - File: `dashboards/scom/operations/scom_operations.json`
+  - Panel 4 "Active Alerts": add panel link to scom-alerts dashboard
 
 ### Human Actions Required
 

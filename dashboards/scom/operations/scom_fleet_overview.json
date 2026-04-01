@@ -9,7 +9,7 @@
     "overview"
   ],
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "timezone": "browser",
   "editable": true,
   "graphTooltip": 1,
@@ -403,6 +403,162 @@
       ]
     },
     {
+      "id": 22,
+      "type": "table",
+      "title": "Active Critical Alerts -- Server Breakdown",
+      "description": "Unresolved critical alerts by server. Click Investigate to open the Incident Investigation dashboard for that server.",
+      "datasource": {
+        "type": "mssql",
+        "uid": "scom-dw"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false,
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Server"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Investigate",
+                    "url": "/d/scom-incident?var-site=${__data.fields.Site}&var-server=${__data.fields.Server}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Alert Name"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 300
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Severity"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Critical": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "Critical"
+                      },
+                      "Warning": {
+                        "color": "yellow",
+                        "index": 1,
+                        "text": "Warning"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Site"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Raised"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 160
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": [
+          {
+            "displayName": "Raised",
+            "desc": false
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mssql",
+            "uid": "scom-dw"
+          },
+          "format": "table",
+          "editorMode": "code",
+          "rawSql": "SELECT\n  SUBSTRING(me.DisplayName, 4, CHARINDEX('-', me.DisplayName, 4) - 4) AS \"Site\",\n  -- Extract the parent server name: child entities are named '<Server> - <Component>'\n  -- so strip the component suffix for display, keeping just the server hostname.\n  CASE\n    WHEN me.DisplayName LIKE '% - %'\n      THEN SUBSTRING(me.DisplayName, 1, CHARINDEX(' - ', me.DisplayName) - 1)\n    ELSE me.DisplayName\n  END AS \"Server\",\n  a.AlertName AS \"Alert Name\",\n  CASE a.Severity WHEN 2 THEN 'Critical' WHEN 1 THEN 'Warning' ELSE 'Info' END AS \"Severity\",\n  a.RaisedDateTime AS \"Raised\"\nFROM Alert.vAlert a\nINNER JOIN vManagedEntity me ON a.ManagedEntityRowId = me.ManagedEntityRowId\nWHERE a.ResolutionState <> 255\nAND a.Severity = 2\nAND me.DisplayName LIKE 'VM-${site:raw}-%'\nORDER BY a.RaisedDateTime ASC"
+        }
+      ]
+    },
+    {
       "id": 20,
       "type": "row",
       "title": "Site Overview",
@@ -411,7 +567,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 4
+        "y": 12
       },
       "panels": []
     },
@@ -424,7 +580,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 13
       },
       "datasource": {
         "type": "mssql",
@@ -612,7 +768,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 21
       },
       "panels": []
     },
@@ -625,7 +781,7 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 14
+        "y": 22
       },
       "datasource": {
         "type": "mssql",
@@ -778,7 +934,7 @@
         "h": 10,
         "w": 8,
         "x": 8,
-        "y": 14
+        "y": 22
       },
       "datasource": {
         "type": "mssql",
@@ -915,7 +1071,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 14
+        "y": 22
       },
       "datasource": {
         "type": "mssql",
@@ -1054,7 +1210,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 32
       },
       "panels": []
     },
@@ -1067,7 +1223,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 33
       },
       "datasource": {
         "type": "mssql",

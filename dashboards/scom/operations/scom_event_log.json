@@ -9,7 +9,7 @@
     "troubleshooting"
   ],
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "timezone": "browser",
   "editable": true,
   "graphTooltip": 1,
@@ -577,6 +577,28 @@
           {
             "matcher": {
               "id": "byName",
+              "options": "Server"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 160
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Investigate Server",
+                    "url": "/d/scom-incident?var-site=${site}&var-server=${__data.fields.Server}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
               "options": "Source"
             },
             "properties": [
@@ -625,7 +647,7 @@
             "type": "mssql",
             "uid": "scom-dw"
           },
-          "rawSql": "SELECT TOP 200\n  e.DateTime AS \"Time\",\n  el.EventLevelName AS \"Level\",\n  ep.EventPublisherName AS \"Source\",\n  ec.EventChannelName AS \"Channel\",\n  e.EventDisplayNumber AS \"Event ID\",\n  e.RawDescription AS \"Description\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventPublisher ep ON e.EventPublisherRowId = ep.EventPublisherRowId\nINNER JOIN dbo.vEventChannel ec ON e.EventChannelRowId = ec.EventChannelRowId\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE ('${server:raw}' = '%' OR elc.LoggingComputerName = '${server:raw}')\nAND elc.LoggingComputerName LIKE 'VM-${site:raw}-%'\nAND ('${event_level:raw}' = 'All' OR el.EventLevelName = '${event_level:raw}')\nAND $__timeFilter(e.DateTime)\nORDER BY e.DateTime DESC",
+          "rawSql": "SELECT TOP 200\n  e.DateTime AS \"Time\",\n  elc.LoggingComputerName AS \"Server\",\n  el.EventLevelName AS \"Level\",\n  ep.EventPublisherName AS \"Source\",\n  ec.EventChannelName AS \"Channel\",\n  e.EventDisplayNumber AS \"Event ID\",\n  e.RawDescription AS \"Description\"\nFROM Event.vEvent e\nINNER JOIN dbo.vEventPublisher ep ON e.EventPublisherRowId = ep.EventPublisherRowId\nINNER JOIN dbo.vEventChannel ec ON e.EventChannelRowId = ec.EventChannelRowId\nINNER JOIN dbo.vEventLevel el ON e.EventLevelId = el.EventLevelId\nINNER JOIN dbo.vEventLoggingComputer elc ON e.LoggingComputerRowId = elc.LoggingComputerRowId\nWHERE ('${server:raw}' = '%' OR elc.LoggingComputerName = '${server:raw}')\nAND elc.LoggingComputerName LIKE 'VM-${site:raw}-%'\nAND ('${event_level:raw}' = 'All' OR el.EventLevelName = '${event_level:raw}')\nAND $__timeFilter(e.DateTime)\nORDER BY e.DateTime DESC",
           "format": "table"
         }
       ]
