@@ -1168,3 +1168,108 @@ Total: 15 dashboards, 199 panels
 - Working tree is clean. master branch is up to date with origin.
 
 ---
+
+## Session: 2026-03-31 (Phase 15K -- Operator Actionability Fixes)
+
+### Completed
+
+- **Phase 15K systematic audit**: Audited all 14 SCOM dashboards for actionability gaps. Categorized: 2 Critical (C1 event log no hostname, C2 fleet overview no server breakdown), 1 High (H3 active alerts stat no drill-down), remainder Mitigated or deferred.
+- **Item 29 -- Event Log hostname (C1)**: Added `elc.LoggingComputerName AS "Server"` column to Panel 8 in `scom_event_log.json`. Added column override with 160px width and per-row "Investigate Server" data link to scom-incident dashboard.
+  - Key fix: initial implementation used a hidden SQL-derived Site column in the link URL (`${__data.fields.Site}`). This failed when event level filter was set to "Error" -- Grafana does not reliably expose hidden columns in data link templates across all filter states. Final approach uses `${site}` (dashboard template variable) for the site parameter, eliminating the hidden column entirely.
+- **Item 30 -- Fleet Overview critical alerts breakdown (C2)**: Inserted new Panel id=22 "Active Critical Alerts -- Server Breakdown" into `scom_fleet_overview.json`. Python-assisted y-coordinate shifting of all existing panels at y>=4 down by 8 grid units. SQL strips ` - <Component>` suffix from child-entity DisplayNames using CASE WHEN to show parent server name. Per-row link uses `${__data.fields.Site}` (safe -- Site is a visible column here, not hidden).
+- **Item 31 (description only)**: Updated Panel 14 description in `scom_exchange.json` to note the server filter deferral. No SQL change -- requires production schema query on `Exchange2013.vMailboxDatabase`.
+- **Item 32 -- Site Overview sort (H1)**: Verified already correct. No change needed.
+- **Item 33 -- Operations Active Alerts drill-down (H3)**: Added panel-level link to `scom_operations.json` Panel 4 pointing to scom-alerts dashboard.
+- **Commit `debbacf`** pushed to origin/master: "fix: add server context and drill-down links to event log, fleet overview, and operations dashboards"
+
+### In Progress
+
+- Nothing in progress -- session ended cleanly.
+
+### Blockers
+
+- **Item 31 (Exchange Mailbox DB server filter)**: Cannot add server filter to `Exchange2013.vMailboxDatabase` without querying production schema to determine if `ManagedEntityRowId` or equivalent join column exists. Human action required first.
+- **DBA action**: Create `svc-grafana-ro` SQL login with db_datareader on OperationsManagerDW (unchanged)
+- **Network path**: Verify Docker host in Denver DC can reach SCOM DW SQL Server (unchanged)
+- **Production validation**: Phase 15K panels (especially fleet overview critical alerts breakdown and event log hostname) need verification against real SCOM data after deployment.
+
+### Decisions
+
+- **Use `${site}` (dashboard variable) not a derived hidden column for site context in data links**: Hidden columns (`custom.hidden: true`) in Grafana table panels are unreliable for data link template resolution -- they may not be accessible in `${__data.fields.X}` when row-level filters are active. The dashboard template variable `${site}` is always resolved from the variable context and never fails.
+- **`${__data.fields.Site}` IS safe when Site is a visible (non-hidden) column**: Fleet overview critical alerts panel uses this correctly because Site is a projected, visible column. The restriction only applies to hidden columns.
+- **Child-entity DisplayName stripping in Fleet Overview**: Used `CASE WHEN DisplayName LIKE '% - %' THEN SUBSTRING(...)` rather than a hard split, to handle servers that don't follow the convention gracefully.
+
+### Next Session
+
+1. **Deploy to Denver DC Docker host** -- pull commit `debbacf`, `docker compose pull && docker compose up -d`, verify Grafana auto-reloads provisioned dashboards
+2. **Production validation** -- confirm fleet overview critical alerts table populates, event log shows hostnames with working drill-down links, operations active alerts link navigates correctly
+3. **Exchange Mailbox DB (Item 31)** -- on production SCOM DW, run: `SELECT TOP 5 COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'Exchange2013' AND TABLE_NAME = 'vMailboxDatabase'` to determine server join path
+4. **Phase 15D** (still pending) -- side-by-side SquaredUp vs new dashboard comparison guide + decommission plan
+
+### Context
+
+- Grafana provisioning picks up dashboard JSON changes within 30 seconds (`updateIntervalSeconds: 30`) -- no Docker restart needed for dashboard-only changes.
+- The event log link bug (site variable filled with full hostname instead of site code) was caught by user during testing. Root cause: `${__data.fields.Site}` where Site was a hidden column. This pattern is now documented as an anti-pattern and must not be used again.
+- Phase 15K item 31 is the only remaining Critical gap. All other actionability items are resolved or verified.
+- Working tree is clean. master branch is up to date with origin.
+
+---
+
+## Session: 2026-04-01 (Visual Review and Readability Pass)
+
+### Completed
+
+- **Visual review of SCOM Incident Investigation dashboard via Chrome** (commit 12870fe)
+  - Reviewed 5 server views: VM-BRAVO-SQL2, VM-ALPHA-DC1, VM-ALPHA-FS1, VM-FOXTROT-FS1, and All servers
+  - Tested at both 24h and 7d time ranges to see state timeline behavior with many transitions
+
+- **Column truncation fixes across 6 panels**:
+  - Panel 17 (Root Cause): Monitor width 300->250px, added Remediation column 400px with inspect, cellHeight sm->md
+  - Panel 19 (Active Alerts): Alert width 220px, Remediation 350px with inspect, Description 300px with inspect (was hidden, un-hidden per user feedback), cellHeight sm->md
+  - Panel 12 (Alert History): Alert width 200px, Description 400->250px with inspect, cellHeight sm->md
+  - Panel 13 (Error Events): Source width 180px, Description 400->250px with inspect
+  - Panel 16 (Resolution Timeline): Alert width 200px, cellHeight sm->md
+
+- **Health State Timeline text overlap fix** (panel 15):
+  - Changed `showValue` from `"auto"` to `"never"` -- eliminates overlapping text ("CrHealthy", "Warni", "HeaHealthy") when state segments are narrow
+  - Colors (green/yellow/red) are self-explanatory with the legend below
+
+- **Remediation guidance rewrite**:
+  - Renamed "What to Check" / "What to Do" columns to "Remediation" across panels 17 and 19
+  - Rewrote CASE WHEN text from generic hints to concise actionable steps (one tool, one action)
+  - Examples: "TreeSize to find large folders. Purge temp/logs." instead of "Disk space low -- free up space or expand the volume"
+  - ELSE fallback points operators to SCOM Console Knowledge tab
+  - Discussed adding event log IDs but decided against it -- only Service (7034/7031) and HealthService are 100% reliable, everything else varies by Windows version
+
+- **Dashboard version**: v5 -> v6
+
+### In Progress
+
+- Nothing in progress -- session ended cleanly with commit and push.
+
+### Blockers
+
+- **DBA action**: Create `svc-grafana-ro` SQL login with db_datareader on OperationsManagerDW (unchanged)
+- **Network path**: Verify Docker host in Denver DC can reach SCOM DW SQL Server (unchanged)
+- **Phase 15K item 31**: Exchange Mailbox DB panel server filter -- deferred, needs production schema verification
+
+### Decisions
+
+- **Remediation text is heuristic, not authoritative**: The CASE WHEN patterns match on alert/monitor names via LIKE. They are not 100% accurate for all SCOM management pack alerts. Accepted trade-off: concise first-step guidance with SCOM Console fallback for anything the patterns miss. User explicitly approved keeping it simple rather than trying to be comprehensive.
+- **Description column kept accessible**: Initially hidden to reclaim space, but user pointed out operators need the raw SCOM alert description. Changed to `inspect: true` so it's one click away without stealing horizontal space.
+- **No event log IDs in remediation text**: Only Service Control Manager 7034/7031 and HealthService are 100% reliable across all Windows versions. User decided "if it's not 100% accurate, don't include it" -- operators can check SCOM Console Knowledge tab.
+- **showValue "never" for state timeline**: The color bands alone communicate state clearly with the legend. Text labels were causing visual noise and overlap on narrow segments.
+
+### Next Session
+
+1. Phase 15K item 31 (Exchange panel) requires production SCOM DW access to verify schema
+2. Consider Chrome-verifying remaining dashboards (Server Overview, AD/DC, IIS, DHCP, DNS, DFS, Exchange) -- they use the same query patterns but haven't been visually reviewed this session
+3. Production deployment preparation when DBA creates the SQL login
+
+### Context
+
+- The SCOM Incident Investigation dashboard (scom_incident.json) is now at v6 with all visual issues addressed
+- The remediation CASE patterns cover 7 categories: disk, memory, CPU, service, heartbeat, DNS, certificate. Everything else falls through to "See SCOM Console Knowledge tab"
+- `custom.inspect: true` on Description columns adds an eye icon that opens a side pane with full cell content -- this is the mechanism for accessing long SCOM alert descriptions without wasting table width
+
+---

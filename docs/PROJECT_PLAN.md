@@ -39,7 +39,7 @@
 | Phase 13: Alert Strategy | In Progress | Alert fatigue reduction, threshold tuning, notification design -- critical for platform adoption |
 | Phase 13B: Operator Documentation | Completed | Sysadmin-focused docs for 10-year supportability -- KB/Wiki ready, 10 docs in docs/operations/ |
 | Phase 14: Production Rollout | Pending | Pilot site deployment, security hardening, fleet rollout, operations handoff |
-| Phase 15: SCOM Data Warehouse Integration | In Progress | 15A-15J complete; 15K operator actionability fixes in progress |
+| Phase 15: SCOM Data Warehouse Integration | In Progress | 15A-15K complete (except 15K.31 deferred); visual readability pass on incident dashboard done 2026-04-01 |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
 
@@ -1980,7 +1980,7 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 **Goal**: Replace SquaredUp immediately by connecting Grafana to the existing SCOM Data Warehouse SQL database. No new agents required. Team sees the same SCOM-collected data in Grafana dashboards instead of SquaredUp.
 
-**Status**: In Progress (15A-15J complete, child-entity alert blindness and unit monitor queries fixed 2026-03-31, pending production deployment)
+**Status**: In Progress (15A-15K complete except 15K.31 deferred; incident dashboard visual readability pass 2026-04-01; pending production deployment)
 
 **Context**: SquaredUp costs $26K/year and reads from the SCOM Data Warehouse to render dashboards. Grafana can do exactly the same thing via the Microsoft SQL Server datasource. This eliminates SquaredUp while keeping SCOM agents and alerting intact. Alloy agent deployment (Phase 14) happens later as a separate migration.
 
@@ -2172,23 +2172,23 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 
 **Context**: Systematic audit of all 14 SCOM dashboards identified panels that surface data without enabling operator action. Root cause: aggregate stats with no server breakdown, missing hostname columns on event tables, and missing drill-down paths from summary views to per-server investigation. Two confirmed critical gaps, one high-priority gap.
 
-- [ ] 29. Fix Event Log missing hostname column (C1) -- Simple
+- [x] 29. Fix Event Log missing hostname column (C1) -- Simple
   - File: `dashboards/scom/operations/scom_event_log.json`
   - Panel 8 "Event Log": add `INNER JOIN dbo.vEventLoggingComputer lc ON e.LoggingComputerRowId = lc.LoggingComputerRowId`
   - Add `lc.LoggingComputerName AS "Server"` as first data column after Time
   - Add per-row panel link "Investigate Server" to scom-incident filtered by server name
-- [ ] 30. Add Critical Alerts server breakdown table to Fleet Overview (C2) -- Medium
+- [x] 30. Add Critical Alerts server breakdown table to Fleet Overview (C2) -- Medium
   - File: `dashboards/scom/operations/scom_fleet_overview.json`
   - New table panel below existing Panel 6 stat: columns Server | Alert Name | Severity | Since | [Investigate]
   - SQL: `Alert.vAlert + vManagedEntity` filtered to `ResolutionState = 0 AND Severity = 2`
   - Per-row link to scom-incident filtered to that server
-- [ ] 31. Fix Exchange Mailbox DB summary panel server filter (C3) -- Simple
+- [ ] 31. Fix Exchange Mailbox DB summary panel server filter (C3) -- Simple (deferred -- production schema verification required)
   - File: `dashboards/scom/servers/scom_exchange.json`
   - Panel 14 SQL: verify join path to `vManagedEntity` and add `$server` template variable filter
-- [ ] 32. Ensure Site Overview "All Servers" table sorts by health state descending (H1) -- Simple
+- [x] 32. Ensure Site Overview "All Servers" table sorts by health state descending (H1) -- Simple (already correct -- no change needed)
   - File: `dashboards/scom/operations/scom_site_overview.json`
   - Default sort on health state column so Critical/Warning servers appear first without operator effort
-- [ ] 33. Add drill-down link to Operations Active Alerts stat (H3) -- Simple
+- [x] 33. Add drill-down link to Operations Active Alerts stat (H3) -- Simple
   - File: `dashboards/scom/operations/scom_operations.json`
   - Panel 4 "Active Alerts": add panel link to scom-alerts dashboard
 
