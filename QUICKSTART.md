@@ -32,8 +32,13 @@ python scripts/stack_manage.py
 # 4. (Optional) Start with demo data -- dashboards populate immediately
 python scripts/stack_manage.py --demo-data
 
-# 5. Open Grafana
-#    http://localhost:3000  (admin / admin)
+# 5. (Optional) Include SCOM DW simulator -- SCOM dashboards populate with synthetic data
+python scripts/stack_manage.py --scom-demo
+
+# 6. (Optional) Both demo data sources at once
+python scripts/stack_manage.py --scom-demo --demo-data
+
+# Open Grafana at http://localhost:3000 (admin / admin)
 ```
 
 The deployment wrapper generates `.env`, `alertmanager.yml`, `notifiers.yml`, and `inventory/sites.yml` from your inputs. The setup script starts all containers, waits for health checks, and validates the stack. With `--demo-data`, synthetic metrics and logs are pushed continuously so all 19 dashboards populate without deploying real agents.
@@ -79,8 +84,15 @@ docker compose -f deploy/docker/docker-compose.yml restart prometheus # Restart 
 Optional profiles (disabled by default):
 
 ```bash
-docker compose -f deploy/docker/docker-compose.yml --profile snmp up -d       # SNMP trap receiver
+docker compose -f deploy/docker/docker-compose.yml --profile scom-demo up -d   # SCOM DW simulator (Azure SQL Edge + seed)
+docker compose -f deploy/docker/docker-compose.yml --profile snmp up -d        # SNMP trap receiver
 docker compose -f deploy/docker/docker-compose.yml --profile hardware up -d    # Redfish exporter
+```
+
+To tear down a profile cleanly (removes containers and volumes):
+
+```bash
+docker compose -f deploy/docker/docker-compose.yml --profile scom-demo down -v --remove-orphans
 ```
 
 ### Memory Budget
@@ -223,12 +235,11 @@ Dashboard JSON files live in `dashboards/`:
 
 | Directory | Dashboards |
 |-----------|-----------|
-| `dashboards/windows/` | Windows Server Overview, IIS Overview |
-| `dashboards/linux/` | Linux Server Overview |
-| `dashboards/overview/` | Enterprise NOC, Site Overview, Infrastructure Overview, SLA Availability, Probing Overview, Audit Trail, Log Explorer |
-| `dashboards/network/` | Network Infrastructure |
-| `dashboards/hardware/` | Hardware Health |
-| `dashboards/certs/` | Certificate Overview |
+| `dashboards/enterprise/` | Enterprise NOC, SLA Availability, Probing Overview, Audit Trail |
+| `dashboards/servers/` | Windows, Linux, IIS, SQL, DC, DHCP, CA, File Server, Docker, Log Explorer |
+| `dashboards/infrastructure/` | Site Overview, Infrastructure Overview, Network, Physical Server Health, Certificate Overview |
+| `dashboards/scom/operations/` | SCOM Operations, Fleet Overview, Site Overview, Alerts, Health State, Event Log, Incident Investigation |
+| `dashboards/scom/servers/` | SCOM Server Overview, Server Fleet, AD/DC, DHCP, DNS, DFS, Exchange, IIS |
 
 Edit in Grafana UI, then export JSON and save to the appropriate directory.
 
