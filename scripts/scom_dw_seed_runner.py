@@ -251,7 +251,7 @@ def gen_value(counter_name):
     return generators.get(counter_name, lambda: random.random() * 100)()
 
 
-def bulk_insert(cursor, sql_prefix, rows, chunk_size=1000):
+def bulk_insert(cursor, conn, sql_prefix, rows, chunk_size=200):
     """
     Insert rows using multi-row VALUES clauses instead of executemany.
     pymssql's executemany sends one INSERT per row over the wire, which is
@@ -260,7 +260,8 @@ def bulk_insert(cursor, sql_prefix, rows, chunk_size=1000):
 
     sql_prefix: e.g. "INSERT INTO Perf.vPerfHourly (col1, col2) VALUES"
     rows: list of tuples
-    chunk_size: rows per INSERT statement (1000 is safe for SQL Server)
+    conn: database connection (for intermediate commits on large batches)
+    chunk_size: rows per INSERT statement (200 balances speed vs SQL Server limits)
     """
     if not rows:
         return
@@ -283,6 +284,9 @@ def bulk_insert(cursor, sql_prefix, rows, chunk_size=1000):
             value_strings.append("(" + ",".join(formatted) + ")")
         sql = sql_prefix + " " + ",".join(value_strings)
         cursor.execute(sql)
+        # Commit every 10k rows to avoid connection timeouts on constrained hosts
+        if (i // chunk_size) % 50 == 49:
+            conn.commit()
 
 
 def wait_for_sql():
@@ -576,13 +580,13 @@ def main():
                 total_rows += 1
 
         if (hour + 1) % 24 == 0:
-            bulk_insert(cursor, PERF_PREFIX, batch)
+            bulk_insert(cursor, conn, PERF_PREFIX, batch)
             batch = []
             conn.commit()
             print(f"    Day {(hour+1)//24}/7 complete ({total_rows:,} rows)")
 
     if batch:
-        bulk_insert(cursor, PERF_PREFIX, batch)
+        bulk_insert(cursor, conn, PERF_PREFIX, batch)
     conn.commit()
     print(f"  Perf data: {total_rows:,} rows")
 
@@ -624,7 +628,7 @@ def main():
                 unit_mid = ROLE_UNIT_MONITOR.get(role_str, 7)
                 batch.append((dt_str, sid, unit_mid, 1, health, maint))
 
-    bulk_insert(cursor,
+    bulk_insert(cursor, conn,
         "INSERT INTO State.vStateHourly (DateTime, ManagedEntityRowId, MonitorRowId, OldHealthState, NewHealthState, InMaintenanceMode) VALUES",
         batch
     )
@@ -714,12 +718,12 @@ def main():
                     raw_total += 1
             # Flush and commit once per day boundary
             if (interval + 1) % intervals_per_day == 0:
-                bulk_insert(cursor, RAW_PREFIX, batch)
+                bulk_insert(cursor, conn, RAW_PREFIX, batch)
                 batch = []
                 conn.commit()
                 print(f"    Raw Day {(interval+1)//intervals_per_day}/3 complete ({raw_total:,} rows)")
         if batch:
-            bulk_insert(cursor, RAW_PREFIX, batch)
+            bulk_insert(cursor, conn, RAW_PREFIX, batch)
         conn.commit()
         print(f"  Perf.vPerfRaw: {raw_total:,} rows")
 
@@ -831,11 +835,11 @@ def main():
                     batch.append((dt, pub_id, chan_id, level, comp_id, evt_num, evt_num, desc))
                     evt_total += 1
             if (hour + 1) % 24 == 0:
-                bulk_insert(cursor, EVT_PREFIX, batch)
+                bulk_insert(cursor, conn, EVT_PREFIX, batch)
                 batch = []
                 conn.commit()
         if batch:
-            bulk_insert(cursor, EVT_PREFIX, batch)
+            bulk_insert(cursor, conn, EVT_PREFIX, batch)
         conn.commit()
         print(f"  Events: {evt_total:,} rows")
 
@@ -1055,7 +1059,7 @@ def main():
                     val = gen_value(ctr)
                     batch.append((dt, pri_id, sid, 288, val, val * 0.5, val * 1.5, 2.0))
                     daily_total += 1
-        bulk_insert(cursor, DAILY_PREFIX, batch)
+        bulk_insert(cursor, conn, DAILY_PREFIX, batch)
         conn.commit()
         print(f"  Perf.vPerfDaily: {daily_total:,} rows")
 
@@ -1087,7 +1091,7 @@ def main():
                 # that production SCOM DW stores per-monitor
                 if new_state > 1:
                     batch.append((dt, sid, unit_mid, 1, new_state, 0))
-        bulk_insert(cursor,
+        bulk_insert(cursor, conn,
             "INSERT INTO State.vStateRaw (DateTime, ManagedEntityRowId, MonitorRowId, OldHealthState, NewHealthState, InMaintenanceMode) VALUES",
             batch)
         conn.commit()
