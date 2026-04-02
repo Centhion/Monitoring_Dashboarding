@@ -33,10 +33,16 @@ python scripts/stack_manage.py
 # Start with demo data (dashboards populate with synthetic multi-site data)
 python scripts/stack_manage.py --demo-data
 
+# Start SCOM DW simulator (seeds 1.2M+ rows of synthetic SCOM data)
+cd deploy/docker
+docker compose --profile scom-demo up -d
+
 # Open Grafana at http://localhost:3000 (admin / admin)
 ```
 
 The deployment wrapper generates all config files (`.env`, alertmanager routing, Grafana notifiers, site inventory) from interactive prompts. Re-run to add sites or change settings. See `deploy/site_config.example.yml` for the config schema.
+
+The SCOM demo profile starts an Azure SQL Edge container and seeds it with production-aligned schema. SCOM dashboards populate automatically. Use `docker compose --profile scom-demo down -v --remove-orphans` to tear down.
 
 ## Structure
 
@@ -83,7 +89,9 @@ The deployment wrapper generates all config files (`.env`, alertmanager routing,
 - **Validation Tooling**: Python scripts to lint and validate configs before deployment
 - **Fleet Inventory System**: YAML-based site/host registry with CSV import, Ansible playbook for bulk Alloy deployment, and Prometheus tag compliance auditing
 - **RBAC and LDAP/AD Integration**: Grafana folder-based access control with LDAP config template, team provisioning, and API-driven permission management scripts
-- **Full Docker Compose Stack**: Blackbox exporter, snmptrapd, and Redfish exporter services alongside core Prometheus/Loki/Alertmanager/Grafana
+- **SCOM Data Warehouse Integration**: Read-only connection to SCOM DW SQL Server replaces SquaredUp dashboarding -- 15 dashboards covering fleet, site, server, alerts, events, health state, and role-specific views (AD/DC, DHCP, DNS, DFS, Exchange, IIS)
+- **SCOM DW Simulator**: Azure SQL Edge container with production-aligned schema and synthetic data for demo and development without production access
+- **Full Docker Compose Stack**: Blackbox exporter, snmptrapd, Redfish exporter, and SCOM DW simulator services alongside core Prometheus/Loki/Alertmanager/Grafana
 - **Complete Helm Chart**: Kubernetes deployment with templates for all services, value overlays for dev/staging/production, and optional SNMP/Redfish/LDAP components
 
 ## Dashboards
@@ -122,7 +130,27 @@ The deployment wrapper generates all config files (`.env`, alertmanager routing,
 | Physical Server Health | `hardware-overview` | Redfish BMC health, temperatures, power, component status |
 | Certificate Overview | `cert-overview` | SSL/TLS certificate expiry tracking with probe health |
 
-All dashboards include a cross-navigation link bar. Template variables (`environment`, `datacenter`, `hostname`) propagate between dashboards for seamless drill-down. Navigation flow: Enterprise NOC -> Site Overview -> role-specific dashboard.
+### SCOM Data Warehouse (operations views reading from SCOM DW SQL Server)
+
+| Dashboard | UID | Purpose |
+|-----------|-----|---------|
+| SCOM Operations | `scom-operations` | Fleet-wide SCOM health summary with active alerts and site breakdown |
+| SCOM Fleet Overview | `scom-fleet-overview` | Top servers by CPU/memory/disk from SCOM perf data, per-site summary |
+| SCOM Site Overview | `scom-site-overview` | Per-site server inventory with health state, alerts, and maintenance mode |
+| SCOM Alerts | `scom-alerts` | Active and resolved SCOM alerts with severity breakdown and timeline |
+| SCOM Health State | `scom-health-state` | Current and historical health state per server and monitor |
+| SCOM Event Log | `scom-event-log` | Windows Event Log entries from SCOM DW with severity and source filtering |
+| SCOM Incident Investigation | `scom-incident` | Per-server drill-down with alerts, perf, health, events, and remediation guidance |
+| SCOM Server Overview | `scom-server-overview` | Per-server performance detail (CPU, memory, disk, network) from SCOM hourly data |
+| SCOM Server Fleet | `scom-server-fleet` | All servers table with health, alerts, CPU/memory/disk at a glance |
+| SCOM AD/DC | `scom-ad-dc` | Domain Controller metrics: LDAP, Kerberos, DNS, DRA replication |
+| SCOM DHCP | `scom-dhcp` | DHCP Server metrics: requests, acks, queue, scope utilization |
+| SCOM DNS | `scom-dns` | DNS query rates, recursive queries, dynamic updates |
+| SCOM DFS | `scom-dfs` | DFS Replication staging, conflicts, bandwidth savings |
+| SCOM Exchange | `scom-exchange` | Exchange message rates, queue, RPC latency, mailbox DB I/O |
+| SCOM IIS | `scom-iis` | IIS connections, requests, bandwidth, ASP.NET metrics from SCOM |
+
+All dashboards include a cross-navigation link bar. Template variables (`environment`, `datacenter`, `hostname`) propagate between dashboards for seamless drill-down. Navigation flow: Enterprise NOC -> Site Overview -> role-specific dashboard. SCOM dashboards use site/server variables derived from SCOM DW hostname patterns.
 
 ## Scripts
 
@@ -156,11 +184,13 @@ Python tooling in `scripts/` for validation, deployment, fleet management, and t
 | `fleet_inventory.py` | Manages host inventory (`sites.yml`/`hosts.yml`) -- validates, reports, imports from CSV, generates Ansible inventory |
 | `lansweeper_sync.py` | Syncs asset data from Lansweeper Cloud GraphQL API into `inventory/hosts.yml` |
 
-### Testing
+### Testing and Demo Data
 
 | Script | Purpose |
 |--------|---------|
-| `demo_data_generator.py` | Pushes synthetic metrics and logs into Prometheus and Loki to populate dashboards with realistic demo data |
+| `demo_data_generator.py` | Pushes synthetic metrics and logs into Prometheus and Loki to populate all Alloy-based dashboards with realistic demo data |
+| `scom_dw_seed_runner.py` | Seeds the SCOM DW Simulator (Azure SQL Edge) with production-aligned schema and 1.2M+ rows of synthetic performance, state, alert, and event data |
+| `scom_dw_discovery.sql` | SQL queries for discovering production SCOM DW schema (entity types, counter names, management packs) |
 
 ## Documentation
 
@@ -187,6 +217,12 @@ Python tooling in `scripts/` for validation, deployment, fleet management, and t
 - See `docs/DEPLOYMENT_VALUES.md` for production configuration value reference
 - See `docs/BRANCHING_STRATEGY.md` for public template vs internal fork branch model
 - See `docs/TESTING_CHECKLIST.md` for post-deployment validation checklist
+- See `docs/SCOM_SCHEMA_REFERENCE.md` for SCOM DW table structure and query patterns
+- See `docs/SQUARED_UP_REFERENCE.md` for SquaredUp-to-Grafana dashboard mapping
+- See `docs/THRESHOLD_GUIDE.md` for alert threshold tuning and severity definitions
+- See `docs/ALERT_SEVERITY_CONTRACT.md` for alert severity classification standards
+- See `docs/ALERT_CATALOG.md` for complete alert rule inventory with descriptions
+- See `docs/INTERNAL_PROPOSAL.md` for stakeholder-facing project justification
 
 ## Development
 
