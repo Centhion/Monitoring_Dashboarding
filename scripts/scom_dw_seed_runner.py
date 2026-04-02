@@ -251,44 +251,6 @@ def gen_value(counter_name):
     return generators.get(counter_name, lambda: random.random() * 100)()
 
 
-def bulk_insert(cursor, conn, sql_prefix, rows, chunk_size=200):
-    """
-    Insert rows using multi-row VALUES clauses instead of executemany.
-    pymssql's executemany sends one INSERT per row over the wire, which is
-    extremely slow for large datasets. This builds a single INSERT with up to
-    chunk_size value tuples, reducing round-trips by orders of magnitude.
-
-    sql_prefix: e.g. "INSERT INTO Perf.vPerfHourly (col1, col2) VALUES"
-    rows: list of tuples
-    conn: database connection (for intermediate commits on large batches)
-    chunk_size: rows per INSERT statement (200 balances speed vs SQL Server limits)
-    """
-    if not rows:
-        return
-    for i in range(0, len(rows), chunk_size):
-        chunk = rows[i:i + chunk_size]
-        # Build value tuples as SQL-safe strings
-        value_strings = []
-        for row in chunk:
-            formatted = []
-            for val in row:
-                if val is None:
-                    formatted.append("NULL")
-                elif isinstance(val, str):
-                    # Escape single quotes for SQL safety
-                    formatted.append("'" + val.replace("'", "''") + "'")
-                elif isinstance(val, (int, float)):
-                    formatted.append(str(val))
-                else:
-                    formatted.append("'" + str(val).replace("'", "''") + "'")
-            value_strings.append("(" + ",".join(formatted) + ")")
-        sql = sql_prefix + " " + ",".join(value_strings)
-        cursor.execute(sql)
-        # Commit every 10k rows to avoid connection timeouts on constrained hosts
-        if (i // chunk_size) % 50 == 49:
-            conn.commit()
-
-
 def wait_for_sql():
     """Wait for SQL Server to accept connections."""
     print(f"Waiting for SQL Server at {HOST}:{PORT} (max {MAX_WAIT}s)...")
@@ -439,49 +401,87 @@ def main():
 
     print("  Tables created")
 
-    # Check if already seeded
+    # Check if base entities already exist (supports resuming after partial seed)
     cursor.execute("SELECT COUNT(*) FROM vManagedEntity")
-    if cursor.fetchone()[0] > 0:
-        print("  Already seeded -- showing counts:")
-        for tbl in ["vManagedEntity", "vPerformanceRule", "vPerformanceRuleInstance", "Perf.vPerfHourly", "State.vStateHourly", "Alert.vAlert"]:
-            cursor.execute(f"SELECT COUNT(*) FROM {tbl}")
-            print(f"    {tbl}: {cursor.fetchone()[0]}")
-        conn.close()
-        return
+    entity_count = cursor.fetchone()[0]
 
-    # =========================================================================
-    # Seed entity types
-    # =========================================================================
-    cursor.execute("""
-        INSERT INTO vManagedEntityType (ManagedEntityTypeSystemName) VALUES
-        ('Microsoft.Windows.Computer'),
-        ('System.Group')
-    """)
+    if entity_count == 0:
+        # =====================================================================
+        # Seed entity types
+        # =====================================================================
+        cursor.execute("""
+            INSERT INTO vManagedEntityType (ManagedEntityTypeSystemName) VALUES
+            ('Microsoft.Windows.Computer'),
+            ('System.Group')
+        """)
 
-    # =========================================================================
-    # Seed servers: VM-<SITE>-<ROLE><NUM>
-    # =========================================================================
-    servers = []  # (ManagedEntityRowId will be assigned, track hostname and role)
-    for site in SITES:
-        for role in ROLES:
-            hostname = f"VM-{site}-{role}1"
+        # =====================================================================
+        # Seed servers: VM-<SITE>-<ROLE><NUM>
+        # =====================================================================
+        for site in SITES:
+            for role in ROLES:
+                hostname = f"VM-{site}-{role}1"
+                cursor.execute(
+                    "INSERT INTO vManagedEntity (ManagedEntityTypeRowId, Path, Name, DisplayName, FullName) VALUES (1, %s, %s, %s, %s)",
+                    (hostname, hostname, hostname, hostname)
+                )
+            # Second DC and SQL per site
+            for extra_role in ["DC", "SQL"]:
+                hostname = f"VM-{site}-{extra_role}2"
+                cursor.execute(
+                    "INSERT INTO vManagedEntity (ManagedEntityTypeRowId, Path, Name, DisplayName, FullName) VALUES (1, %s, %s, %s, %s)",
+                    (hostname, hostname, hostname, hostname)
+                )
+        conn.commit()
+
+        # Seed groups (role-based, matching production)
+        groups = [
+            "AD Domain Controller Group (Windows Server 2016)",
+            "IIS 10.0 Web Server Group",
+            "DHCP Server Group",
+            "All Windows Computers",
+        ]
+        for g in groups:
             cursor.execute(
-                "INSERT INTO vManagedEntity (ManagedEntityTypeRowId, Path, Name, DisplayName, FullName) VALUES (1, %s, %s, %s, %s)",
-                (hostname, hostname, hostname, hostname)
+                "INSERT INTO vManagedEntity (ManagedEntityTypeRowId, Path, Name, DisplayName, FullName) VALUES (2, %s, %s, %s, %s)",
+                (g, g, g, g)
             )
-        # Second DC and SQL per site
-        for extra_role in ["DC", "SQL"]:
-            hostname = f"VM-{site}-{extra_role}2"
-            cursor.execute(
-                "INSERT INTO vManagedEntity (ManagedEntityTypeRowId, Path, Name, DisplayName, FullName) VALUES (1, %s, %s, %s, %s)",
-                (hostname, hostname, hostname, hostname)
-            )
-    conn.commit()
+        conn.commit()
+        print("  Groups seeded")
 
-    # Get all server IDs with their hostnames
+        # Seed relationships
+        cursor.execute("SELECT ManagedEntityRowId, DisplayName FROM vManagedEntity WHERE ManagedEntityTypeRowId = 1")
+        tmp_servers = cursor.fetchall()
+        def tmp_role_filter(role_filter):
+            if role_filter is None:
+                return tmp_servers
+            roles = [r.strip() for r in role_filter.split(",")]
+            return [(sid, name) for sid, name in tmp_servers if any(f"-{r}" in name for r in roles)]
+
+        cursor.execute("SELECT ManagedEntityRowId, DisplayName FROM vManagedEntity WHERE ManagedEntityTypeRowId = 2")
+        group_rows = cursor.fetchall()
+        for gid, gname in group_rows:
+            if "Domain Controller" in gname:
+                matched = tmp_role_filter("DC")
+            elif "IIS" in gname:
+                matched = tmp_role_filter("IIS")
+            elif "DHCP" in gname:
+                matched = tmp_role_filter("DHCP")
+            elif "All Windows" in gname:
+                matched = tmp_servers
+            else:
+                matched = []
+            for sid, _ in matched:
+                cursor.execute("INSERT INTO vRelationship (SourceManagedEntityRowId, TargetManagedEntityRowId) VALUES (%s, %s)", (gid, sid))
+        conn.commit()
+        print("  Relationships seeded")
+    else:
+        print(f"  Found {entity_count} existing entities -- resuming incomplete seed...")
+
+    # Get all server IDs with their hostnames (needed by all data phases below)
     cursor.execute("SELECT ManagedEntityRowId, DisplayName FROM vManagedEntity WHERE ManagedEntityTypeRowId = 1")
     all_servers = cursor.fetchall()
-    print(f"  Seeded {len(all_servers)} servers across {len(SITES)} sites")
+    print(f"  Servers: {len(all_servers)} across {len(SITES)} sites")
 
     # Build server lookup by role
     def servers_for_role(role_filter):
@@ -491,104 +491,95 @@ def main():
         roles = [r.strip() for r in role_filter.split(",")]
         return [(sid, name) for sid, name in all_servers if any(f"-{r}" in name for r in roles)]
 
-    # Seed groups (role-based, matching production)
-    groups = [
-        "AD Domain Controller Group (Windows Server 2016)",
-        "IIS 10.0 Web Server Group",
-        "DHCP Server Group",
-        "All Windows Computers",
-    ]
-    for g in groups:
-        cursor.execute(
-            "INSERT INTO vManagedEntity (ManagedEntityTypeRowId, Path, Name, DisplayName, FullName) VALUES (2, %s, %s, %s, %s)",
-            (g, g, g, g)
-        )
-    conn.commit()
-    print("  Groups seeded")
-
-    # Seed relationships
-    cursor.execute("SELECT ManagedEntityRowId, DisplayName FROM vManagedEntity WHERE ManagedEntityTypeRowId = 2")
-    group_rows = cursor.fetchall()
-    for gid, gname in group_rows:
-        if "Domain Controller" in gname:
-            matched = servers_for_role("DC")
-        elif "IIS" in gname:
-            matched = servers_for_role("IIS")
-        elif "DHCP" in gname:
-            matched = servers_for_role("DHCP")
-        elif "All Windows" in gname:
-            matched = all_servers
-        else:
-            matched = []
-        for sid, _ in matched:
-            cursor.execute("INSERT INTO vRelationship (SourceManagedEntityRowId, TargetManagedEntityRowId) VALUES (%s, %s)", (gid, sid))
-    conn.commit()
-    print("  Relationships seeded")
-
     # =========================================================================
-    # Seed performance rules (counter definitions)
+    # Seed performance rules (counter definitions) -- skip if already present
     # =========================================================================
-    # Deduplicate: same ObjectName+CounterName can have multiple instances
     rule_map = {}  # (ObjectName, CounterName) -> RuleRowId
-    for obj, ctr, inst, role_filter in COUNTERS:
-        key = (obj, ctr)
-        if key not in rule_map:
-            cursor.execute(
-                "INSERT INTO vPerformanceRule (ObjectName, CounterName) VALUES (%s, %s)",
-                (obj, ctr)
-            )
-            cursor.execute("SELECT SCOPE_IDENTITY()")
-            rule_map[key] = int(cursor.fetchone()[0])
-    conn.commit()
-    print(f"  Seeded {len(rule_map)} performance rules")
+    cursor.execute("SELECT RuleRowId, ObjectName, CounterName FROM vPerformanceRule")
+    existing_rules = cursor.fetchall()
+    if existing_rules:
+        for rid, obj, ctr in existing_rules:
+            rule_map[(obj, ctr)] = rid
+        print(f"  Performance rules: {len(rule_map)} (existing)")
+    else:
+        for obj, ctr, inst, role_filter in COUNTERS:
+            key = (obj, ctr)
+            if key not in rule_map:
+                cursor.execute(
+                    "INSERT INTO vPerformanceRule (ObjectName, CounterName) VALUES (%s, %s)",
+                    (obj, ctr)
+                )
+                cursor.execute("SELECT SCOPE_IDENTITY()")
+                rule_map[key] = int(cursor.fetchone()[0])
+        conn.commit()
+        print(f"  Seeded {len(rule_map)} performance rules")
 
-    # Seed performance rule instances (rule + instance name)
+    # Seed performance rule instances -- skip if already present
     instance_map = {}  # (ObjectName, CounterName, InstanceName) -> PerformanceRuleInstanceRowId
-    for obj, ctr, inst, role_filter in COUNTERS:
-        key = (obj, ctr, inst)
-        if key not in instance_map:
-            rule_id = rule_map[(obj, ctr)]
-            cursor.execute(
-                "INSERT INTO vPerformanceRuleInstance (RuleRowId, InstanceName) VALUES (%s, %s)",
-                (rule_id, inst)
-            )
-            cursor.execute("SELECT SCOPE_IDENTITY()")
-            instance_map[key] = int(cursor.fetchone()[0])
-    conn.commit()
-    print(f"  Seeded {len(instance_map)} performance rule instances")
+    cursor.execute("SELECT pri.PerformanceRuleInstanceRowId, pr.ObjectName, pr.CounterName, pri.InstanceName FROM vPerformanceRuleInstance pri JOIN vPerformanceRule pr ON pri.RuleRowId = pr.RuleRowId")
+    existing_instances = cursor.fetchall()
+    if existing_instances:
+        for pri_id, obj, ctr, inst in existing_instances:
+            instance_map[(obj, ctr, inst)] = pri_id
+        print(f"  Performance rule instances: {len(instance_map)} (existing)")
+    else:
+        for obj, ctr, inst, role_filter in COUNTERS:
+            key = (obj, ctr, inst)
+            if key not in instance_map:
+                rule_id = rule_map[(obj, ctr)]
+                cursor.execute(
+                    "INSERT INTO vPerformanceRuleInstance (RuleRowId, InstanceName) VALUES (%s, %s)",
+                    (rule_id, inst)
+                )
+                cursor.execute("SELECT SCOPE_IDENTITY()")
+                instance_map[key] = int(cursor.fetchone()[0])
+        conn.commit()
+        print(f"  Seeded {len(instance_map)} performance rule instances")
 
     # =========================================================================
     # Seed performance data (7 days hourly)
     # =========================================================================
-    print("  Seeding 7 days of hourly performance data...")
     now = datetime.now(timezone.utc)
-    batch = []
-    total_rows = 0
-    PERF_PREFIX = "INSERT INTO Perf.vPerfHourly (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES"
-
-    for hour in range(168):
-        dt = now - timedelta(hours=hour)
-        dt_str = dt.strftime("%Y-%m-%d %H:%M:%S")
-
-        for obj, ctr, inst, role_filter in COUNTERS:
-            pri_id = instance_map[(obj, ctr, inst)]
-            target_servers = servers_for_role(role_filter)
-
-            for sid, _ in target_servers:
-                val = gen_value(ctr)
-                batch.append((dt_str, pri_id, sid, 12, val, val * 0.7, val * 1.3, 1.0))
-                total_rows += 1
-
-        # Flush every hour to avoid overwhelming the SQL connection
-        bulk_insert(cursor, conn, PERF_PREFIX, batch)
+    cursor.execute("SELECT COUNT(*) FROM Perf.vPerfHourly")
+    perf_hourly_count = cursor.fetchone()[0]
+    if perf_hourly_count > 0:
+        print(f"  Perf.vPerfHourly: {perf_hourly_count:,} rows (existing, skipping)")
+    else:
+        print("  Seeding 7 days of hourly performance data...")
         batch = []
-        conn.commit()
+        total_rows = 0
 
-        if (hour + 1) % 24 == 0:
-            print(f"    Day {(hour+1)//24}/7 complete ({total_rows:,} rows)")
+        for hour in range(168):
+            dt = now - timedelta(hours=hour)
+            dt_str = dt.strftime("%Y-%m-%d %H:%M:%S")
 
-    conn.commit()
-    print(f"  Perf data: {total_rows:,} rows")
+            for obj, ctr, inst, role_filter in COUNTERS:
+                pri_id = instance_map[(obj, ctr, inst)]
+                target_servers = servers_for_role(role_filter)
+
+                for sid, _ in target_servers:
+                    val = gen_value(ctr)
+                    batch.append((dt_str, pri_id, sid, 12, val, val * 0.7, val * 1.3, 1.0))
+                    total_rows += 1
+
+                    if len(batch) >= 1000:
+                        cursor.executemany(
+                            "INSERT INTO Perf.vPerfHourly (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                            batch
+                        )
+                        conn.commit()
+                        batch = []
+
+            if (hour + 1) % 24 == 0:
+                print(f"    Day {(hour+1)//24}/7 complete ({total_rows:,} rows)")
+
+        if batch:
+            cursor.executemany(
+                "INSERT INTO Perf.vPerfHourly (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                batch
+            )
+            conn.commit()
+        print(f"  Perf data: {total_rows:,} rows")
 
     # =========================================================================
     # Seed state data (every 4 hours for 7 days)
@@ -628,8 +619,8 @@ def main():
                 unit_mid = ROLE_UNIT_MONITOR.get(role_str, 7)
                 batch.append((dt_str, sid, unit_mid, 1, health, maint))
 
-    bulk_insert(cursor, conn,
-        "INSERT INTO State.vStateHourly (DateTime, ManagedEntityRowId, MonitorRowId, OldHealthState, NewHealthState, InMaintenanceMode) VALUES",
+    cursor.executemany(
+        "INSERT INTO State.vStateHourly (DateTime, ManagedEntityRowId, MonitorRowId, OldHealthState, NewHealthState, InMaintenanceMode) VALUES (%s, %s, %s, %s, %s, %s)",
         batch
     )
     conn.commit()
@@ -695,7 +686,7 @@ def main():
 
     cursor.execute("SELECT COUNT(*) FROM Perf.vPerfRaw")
     if cursor.fetchone()[0] == 0:
-        print("  Seeding Perf.vPerfRaw (5-min granularity, 3 days)...")
+        print("  Seeding Perf.vPerfRaw (5-min granularity)...")
         batch = []
         raw_total = 0
         # Seed 3 days at 5-min intervals for key counters.
@@ -707,27 +698,27 @@ def main():
             "Bytes Total/sec", "Processor Queue Length", "Disk Bytes/sec",
         ]
         raw_instances = [(k, v) for k, v in instance_map.items() if k[1] in raw_counter_names]
-        RAW_PREFIX = "INSERT INTO Perf.vPerfRaw (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES"
-        intervals_per_day = 288  # 24h * 60min / 5min
-        # Flush every 12 intervals (1 hour of 5-min data) to stay within
-        # Azure SQL Edge connection limits
         for interval in range(864):
             dt = (now - timedelta(minutes=interval * 5)).strftime("%Y-%m-%d %H:%M:%S")
             for (obj, ctr, inst), pri_id in raw_instances:
+                # Cover all servers for a realistic environment
                 for sid, _ in all_servers:
                     val = gen_value(ctr)
                     batch.append((dt, pri_id, sid, 1, val, val * 0.8, val * 1.2, 1.0))
                     raw_total += 1
-            # Flush every hour (12 x 5-min intervals)
-            if (interval + 1) % 12 == 0:
-                bulk_insert(cursor, conn, RAW_PREFIX, batch)
-                batch = []
-                conn.commit()
-            if (interval + 1) % intervals_per_day == 0:
-                print(f"    Raw Day {(interval+1)//intervals_per_day}/3 complete ({raw_total:,} rows)")
+                    if len(batch) >= 5000:
+                        cursor.executemany(
+                            "INSERT INTO Perf.vPerfRaw (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                            batch
+                        )
+                        conn.commit()
+                        batch = []
         if batch:
-            bulk_insert(cursor, conn, RAW_PREFIX, batch)
-        conn.commit()
+            cursor.executemany(
+                "INSERT INTO Perf.vPerfRaw (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                batch
+            )
+            conn.commit()
         print(f"  Perf.vPerfRaw: {raw_total:,} rows")
 
     # --- Event tables ---
@@ -822,7 +813,6 @@ def main():
 
         batch = []
         evt_total = 0
-        EVT_PREFIX = "INSERT INTO Event.vEvent (DateTime, EventPublisherRowId, EventChannelRowId, EventLevelId, LoggingComputerRowId, EventNumber, EventDisplayNumber, RawDescription) VALUES"
         for hour in range(168):
             dt_base = now - timedelta(hours=hour)
             # Generate 2-10 events per hour per subset of servers
@@ -837,11 +827,19 @@ def main():
                     desc = random.choice(event_descriptions)
                     batch.append((dt, pub_id, chan_id, level, comp_id, evt_num, evt_num, desc))
                     evt_total += 1
-            # Flush every hour
-            bulk_insert(cursor, conn, EVT_PREFIX, batch)
-            batch = []
+                    if len(batch) >= 2000:
+                        cursor.executemany(
+                            "INSERT INTO Event.vEvent (DateTime, EventPublisherRowId, EventChannelRowId, EventLevelId, LoggingComputerRowId, EventNumber, EventDisplayNumber, RawDescription) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                            batch
+                        )
+                        conn.commit()
+                        batch = []
+        if batch:
+            cursor.executemany(
+                "INSERT INTO Event.vEvent (DateTime, EventPublisherRowId, EventChannelRowId, EventLevelId, LoggingComputerRowId, EventNumber, EventDisplayNumber, RawDescription) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                batch
+            )
             conn.commit()
-        conn.commit()
         print(f"  Events: {evt_total:,} rows")
 
     # --- Alert Resolution State ---
@@ -1051,7 +1049,6 @@ def main():
         print("  Seeding Perf.vPerfDaily (30 days)...")
         batch = []
         daily_total = 0
-        DAILY_PREFIX = "INSERT INTO Perf.vPerfDaily (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES"
         key_instances = list(instance_map.items())[:4]  # CPU, memory only
         for day in range(30):
             dt = (now - timedelta(days=day)).strftime("%Y-%m-%d 00:00:00")
@@ -1060,8 +1057,14 @@ def main():
                     val = gen_value(ctr)
                     batch.append((dt, pri_id, sid, 288, val, val * 0.5, val * 1.5, 2.0))
                     daily_total += 1
-        bulk_insert(cursor, conn, DAILY_PREFIX, batch)
-        conn.commit()
+                    if len(batch) >= 2000:
+                        cursor.executemany(
+                            "INSERT INTO Perf.vPerfDaily VALUES (%s,%s,%s,%s,%s,%s,%s,%s)", batch)
+                        conn.commit()
+                        batch = []
+        if batch:
+            cursor.executemany("INSERT INTO Perf.vPerfDaily VALUES (%s,%s,%s,%s,%s,%s,%s,%s)", batch)
+            conn.commit()
         print(f"  Perf.vPerfDaily: {daily_total:,} rows")
 
     # --- State.vStateRaw (precise state changes) ---
@@ -1092,9 +1095,8 @@ def main():
                 # that production SCOM DW stores per-monitor
                 if new_state > 1:
                     batch.append((dt, sid, unit_mid, 1, new_state, 0))
-        bulk_insert(cursor, conn,
-            "INSERT INTO State.vStateRaw (DateTime, ManagedEntityRowId, MonitorRowId, OldHealthState, NewHealthState, InMaintenanceMode) VALUES",
-            batch)
+        cursor.executemany(
+            "INSERT INTO State.vStateRaw VALUES (%s,%s,%s,%s,%s,%s)", batch)
         conn.commit()
         print(f"  State.vStateRaw: {len(batch)} rows")
 
