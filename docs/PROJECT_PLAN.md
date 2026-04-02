@@ -43,6 +43,8 @@
 | Phase 15L: Seed Runner Optimization | Completed | Resume support, bulk insert (local only), executemany fallback for Azure SQL Edge |
 | Phase 15M: Docker Host Deployment | In Progress | Denver DC host deployed, demo data generator running, needs systemd service and operational hardening |
 | Phase 16: Log Explorer Fix | In Progress | Level/priority not promoted to Loki stream labels -- fix committed, pending deployment to Docker host |
+| Phase 17A: Stack Update Management | Pending | stack_manage.py --update for rolling image/config updates with health checks and rollback |
+| Phase 17B: Komodo Container Management | Pending | Deploy Komodo as Docker host management UI for container ops, health visibility, image update detection |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
 
@@ -2309,6 +2311,78 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 - [x] 2. Fix committed: promote `level` and `priority` to stream labels, add Error/Critical event types for both OS
 - [ ] 3. Deploy fix to Docker host (re-download updated script)
 - [ ] 4. Verify all 3 Log Explorer tabs populate (Windows Events, Linux Journal, Unified Search)
+
+---
+
+## Phase 17A: Stack Update Management (added 2026-04-02)
+
+**Goal**: Add `--update` flag to `stack_manage.py` for safe rolling updates -- pull latest container images, apply git-based config/dashboard changes, restart services with health checks, and roll back on failure.
+
+**Status**: Pending
+
+### Tasks
+
+- [ ] 1. Add `--update` flag to argument parser -- Simple
+- [ ] 2. Pin remaining `:latest` images (snmptrapd, redfish, azure-sql-edge) to specific versions -- Simple
+- [ ] 3. Implement `update_stack()`: pull images via `docker compose pull`, detect which images changed -- Medium
+- [ ] 4. Implement rolling restart: stop/start each core service individually, run health check after each -- Medium
+- [ ] 5. Implement rollback: if health check fails after restart, revert to previous image and restart -- Complex
+- [ ] 6. Add `--update-configs` sub-mode: pull configs (git or zip), validate via existing validators, restart only affected services -- Medium
+- [ ] 7. Add dry-run output: `--update --dry-run` shows what would change without applying -- Simple
+- [ ] 8. Add update logging to `/tmp/stack-update.log` for audit trail -- Simple
+
+### Risks
+
+| Risk | Mitigation |
+|------|------------|
+| Rolling restart causes brief panel gaps | Restart Grafana last; Prometheus/Loki retain data in volumes |
+| Image pull fails mid-update | Pull all images before any restarts; abort if pull fails |
+| Config validation passes but service fails | Health check catches this; rollback reverts to previous state |
+| No git on Docker host | `--update-configs` accepts a zip URL (same curl pattern used for deployment) |
+
+### Success Criteria
+
+- `stack_manage.py --update` pulls images, restarts services, confirms health -- zero manual Docker commands
+- Failed health check triggers automatic rollback
+- `--dry-run` shows diff without applying
+
+---
+
+## Phase 17B: Komodo Container Management (added 2026-04-02)
+
+**Goal**: Deploy Komodo as the Docker host management layer for container health visibility, restart controls, log viewing, and automated image update detection.
+
+**Status**: Pending
+
+**Context**: Architect has experience with Komodo. Chosen over Portainer. Komodo handles infrastructure-level container operations while `stack_manage.py --update` handles application-level updates (configs, dashboards). They complement each other without overlap.
+
+### Tasks
+
+- [ ] 1. Add Komodo service to docker-compose.yml as a new profile (`--profile mgmt`) -- Simple
+- [ ] 2. Configure container labels for Komodo grouping (monitoring stack vs management) -- Simple
+- [ ] 3. Configure image update detection and notification (Teams webhook) -- Medium
+- [ ] 4. Configure access control (admin users only, read-only for operators) -- Medium
+- [ ] 5. Document management UI access and operations in `docs/operations/STACK_MANAGEMENT.md` -- Simple
+- [ ] 6. Test: restart individual service from Komodo UI, verify health check passes -- Simple
+
+### Human Actions Required
+
+- [ ] Architect approval on Komodo deployment approach
+- [ ] Network team: open port for Komodo UI (or SSH tunnel)
+- [ ] Decide update policy: auto-pull with notification, or notification-only with manual approval
+
+### Risks
+
+| Risk | Mitigation |
+|------|------------|
+| Management UI adds attack surface | Bind to localhost or internal network only; require auth |
+| Resource overhead | Komodo is lightweight (<100MB RAM); monitor via `docker stats` |
+
+### Success Criteria
+
+- Operators can view container health, logs, and restart services from a browser without SSH
+- Image updates are detected and notified automatically
+- Routine container operations require no CLI access
 
 ---
 
