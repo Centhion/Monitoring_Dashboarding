@@ -999,6 +999,10 @@ def generate_log_entries(hosts: list[SimulatedHost], timestamp_ns: int) -> list[
                  "message": "An account was successfully logged on."},
                 {"level": "warning", "event_id": "1014", "source": "DNS Client Events",
                  "message": "Name resolution timed out after none of the configured DNS servers responded."},
+                {"level": "error", "event_id": "7034", "source": "Service Control Manager",
+                 "message": "The Windows Search service terminated unexpectedly."},
+                {"level": "critical", "event_id": "6008", "source": "EventLog",
+                 "message": "The previous system shutdown was unexpected."},
             ]
         else:
             labels["source"] = "journal"
@@ -1007,13 +1011,21 @@ def generate_log_entries(hosts: list[SimulatedHost], timestamp_ns: int) -> list[
                 {"level": "info", "message": "Started Session 42 of user admin."},
                 {"level": "info", "message": "systemd[1]: Started Docker Application Container Engine."},
                 {"level": "notice", "message": "sshd[12345]: Accepted publickey for admin from 10.0.0.1 port 22."},
+                {"level": "warning", "message": "systemd[1]: docker.service: Current command vanished from the unit file."},
+                {"level": "err", "message": "kernel: Out of memory: Killed process 1234 (java)."},
             ]
 
         event = random.choice(events)
+        # Promote level to a stream label so Loki queries like {level="Error"} work
+        labels["level"] = event["level"].capitalize() if host.os_type == "windows" else event["level"]
+        if host.os_type == "linux":
+            # Linux journal uses numeric priority: 0-3=Error, 4=Warning, 5+=Info
+            priority_map = {"err": "3", "warning": "4", "notice": "5", "info": "6"}
+            labels["priority"] = priority_map.get(event["level"], "6")
         log_line = json.dumps(event)
 
         streams.append({
-            "stream": labels,
+            "stream": dict(labels),  # Copy to avoid label bleed between iterations
             "values": [[str(timestamp_ns), log_line]],
         })
 
