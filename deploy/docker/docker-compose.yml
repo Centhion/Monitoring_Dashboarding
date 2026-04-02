@@ -261,7 +261,9 @@ services:
   # a sidecar alongside the site gateway container.
   #
   # Disabled by default in local testing (most developers don't have SNMP
-  # devices). Uncomment the profiles line to include in `docker compose up`.
+  # devices).
+  # Start with: docker compose --profile snmp up -d
+  # Stop with:  docker compose --profile snmp down -v --remove-orphans
   snmptrapd:
     image: polinux/snmptrapd:latest
     container_name: mon-snmptrapd
@@ -287,7 +289,8 @@ services:
   # this exporter queries the BMC's Redfish API.
   #
   # Disabled by default in local testing (requires BMC network access).
-  # Uncomment the profiles line to include in `docker compose --profile hardware up`.
+  # Start with: docker compose --profile hardware up -d
+  # Stop with:  docker compose --profile hardware down -v --remove-orphans
   redfish-exporter:
     image: jenningsloy318/redfish_exporter:latest
     container_name: mon-redfish
@@ -314,6 +317,7 @@ services:
   # so SCOM dashboards can be reviewed without connecting to production.
   # Uses Azure SQL Edge (ARM64 compatible). Disabled by default.
   # Start with: docker compose --profile scom-demo up -d
+  # Stop with:  docker compose --profile scom-demo down -v --remove-orphans
   #
   # To switch to production SCOM DW:
   #   1. Set SCOM_DW_HOST, SCOM_DW_PASSWORD in .env

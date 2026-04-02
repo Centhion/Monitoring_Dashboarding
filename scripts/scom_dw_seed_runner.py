@@ -251,6 +251,40 @@ def gen_value(counter_name):
     return generators.get(counter_name, lambda: random.random() * 100)()
 
 
+def bulk_insert(cursor, sql_prefix, rows, chunk_size=1000):
+    """
+    Insert rows using multi-row VALUES clauses instead of executemany.
+    pymssql's executemany sends one INSERT per row over the wire, which is
+    extremely slow for large datasets. This builds a single INSERT with up to
+    chunk_size value tuples, reducing round-trips by orders of magnitude.
+
+    sql_prefix: e.g. "INSERT INTO Perf.vPerfHourly (col1, col2) VALUES"
+    rows: list of tuples
+    chunk_size: rows per INSERT statement (1000 is safe for SQL Server)
+    """
+    if not rows:
+        return
+    for i in range(0, len(rows), chunk_size):
+        chunk = rows[i:i + chunk_size]
+        # Build value tuples as SQL-safe strings
+        value_strings = []
+        for row in chunk:
+            formatted = []
+            for val in row:
+                if val is None:
+                    formatted.append("NULL")
+                elif isinstance(val, str):
+                    # Escape single quotes for SQL safety
+                    formatted.append("'" + val.replace("'", "''") + "'")
+                elif isinstance(val, (int, float)):
+                    formatted.append(str(val))
+                else:
+                    formatted.append("'" + str(val).replace("'", "''") + "'")
+            value_strings.append("(" + ",".join(formatted) + ")")
+        sql = sql_prefix + " " + ",".join(value_strings)
+        cursor.execute(sql)
+
+
 def wait_for_sql():
     """Wait for SQL Server to accept connections."""
     print(f"Waiting for SQL Server at {HOST}:{PORT} (max {MAX_WAIT}s)...")
@@ -526,6 +560,7 @@ def main():
     now = datetime.now(timezone.utc)
     batch = []
     total_rows = 0
+    PERF_PREFIX = "INSERT INTO Perf.vPerfHourly (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES"
 
     for hour in range(168):
         dt = now - timedelta(hours=hour)
@@ -540,23 +575,15 @@ def main():
                 batch.append((dt_str, pri_id, sid, 12, val, val * 0.7, val * 1.3, 1.0))
                 total_rows += 1
 
-                if len(batch) >= 1000:
-                    cursor.executemany(
-                        "INSERT INTO Perf.vPerfHourly (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                        batch
-                    )
-                    conn.commit()
-                    batch = []
-
         if (hour + 1) % 24 == 0:
+            bulk_insert(cursor, PERF_PREFIX, batch)
+            batch = []
+            conn.commit()
             print(f"    Day {(hour+1)//24}/7 complete ({total_rows:,} rows)")
 
     if batch:
-        cursor.executemany(
-            "INSERT INTO Perf.vPerfHourly (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-            batch
-        )
-        conn.commit()
+        bulk_insert(cursor, PERF_PREFIX, batch)
+    conn.commit()
     print(f"  Perf data: {total_rows:,} rows")
 
     # =========================================================================
@@ -597,8 +624,8 @@ def main():
                 unit_mid = ROLE_UNIT_MONITOR.get(role_str, 7)
                 batch.append((dt_str, sid, unit_mid, 1, health, maint))
 
-    cursor.executemany(
-        "INSERT INTO State.vStateHourly (DateTime, ManagedEntityRowId, MonitorRowId, OldHealthState, NewHealthState, InMaintenanceMode) VALUES (%s, %s, %s, %s, %s, %s)",
+    bulk_insert(cursor,
+        "INSERT INTO State.vStateHourly (DateTime, ManagedEntityRowId, MonitorRowId, OldHealthState, NewHealthState, InMaintenanceMode) VALUES",
         batch
     )
     conn.commit()
@@ -664,7 +691,7 @@ def main():
 
     cursor.execute("SELECT COUNT(*) FROM Perf.vPerfRaw")
     if cursor.fetchone()[0] == 0:
-        print("  Seeding Perf.vPerfRaw (5-min granularity)...")
+        print("  Seeding Perf.vPerfRaw (5-min granularity, 3 days)...")
         batch = []
         raw_total = 0
         # Seed 3 days at 5-min intervals for key counters.
@@ -676,27 +703,24 @@ def main():
             "Bytes Total/sec", "Processor Queue Length", "Disk Bytes/sec",
         ]
         raw_instances = [(k, v) for k, v in instance_map.items() if k[1] in raw_counter_names]
+        RAW_PREFIX = "INSERT INTO Perf.vPerfRaw (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES"
+        intervals_per_day = 288  # 24h * 60min / 5min
         for interval in range(864):
             dt = (now - timedelta(minutes=interval * 5)).strftime("%Y-%m-%d %H:%M:%S")
             for (obj, ctr, inst), pri_id in raw_instances:
-                # Cover all servers for a realistic environment
                 for sid, _ in all_servers:
                     val = gen_value(ctr)
                     batch.append((dt, pri_id, sid, 1, val, val * 0.8, val * 1.2, 1.0))
                     raw_total += 1
-                    if len(batch) >= 5000:
-                        cursor.executemany(
-                            "INSERT INTO Perf.vPerfRaw (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                            batch
-                        )
-                        conn.commit()
-                        batch = []
+            # Flush and commit once per day boundary
+            if (interval + 1) % intervals_per_day == 0:
+                bulk_insert(cursor, RAW_PREFIX, batch)
+                batch = []
+                conn.commit()
+                print(f"    Raw Day {(interval+1)//intervals_per_day}/3 complete ({raw_total:,} rows)")
         if batch:
-            cursor.executemany(
-                "INSERT INTO Perf.vPerfRaw (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                batch
-            )
-            conn.commit()
+            bulk_insert(cursor, RAW_PREFIX, batch)
+        conn.commit()
         print(f"  Perf.vPerfRaw: {raw_total:,} rows")
 
     # --- Event tables ---
@@ -791,6 +815,7 @@ def main():
 
         batch = []
         evt_total = 0
+        EVT_PREFIX = "INSERT INTO Event.vEvent (DateTime, EventPublisherRowId, EventChannelRowId, EventLevelId, LoggingComputerRowId, EventNumber, EventDisplayNumber, RawDescription) VALUES"
         for hour in range(168):
             dt_base = now - timedelta(hours=hour)
             # Generate 2-10 events per hour per subset of servers
@@ -805,19 +830,13 @@ def main():
                     desc = random.choice(event_descriptions)
                     batch.append((dt, pub_id, chan_id, level, comp_id, evt_num, evt_num, desc))
                     evt_total += 1
-                    if len(batch) >= 2000:
-                        cursor.executemany(
-                            "INSERT INTO Event.vEvent (DateTime, EventPublisherRowId, EventChannelRowId, EventLevelId, LoggingComputerRowId, EventNumber, EventDisplayNumber, RawDescription) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                            batch
-                        )
-                        conn.commit()
-                        batch = []
+            if (hour + 1) % 24 == 0:
+                bulk_insert(cursor, EVT_PREFIX, batch)
+                batch = []
+                conn.commit()
         if batch:
-            cursor.executemany(
-                "INSERT INTO Event.vEvent (DateTime, EventPublisherRowId, EventChannelRowId, EventLevelId, LoggingComputerRowId, EventNumber, EventDisplayNumber, RawDescription) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                batch
-            )
-            conn.commit()
+            bulk_insert(cursor, EVT_PREFIX, batch)
+        conn.commit()
         print(f"  Events: {evt_total:,} rows")
 
     # --- Alert Resolution State ---
@@ -1027,6 +1046,7 @@ def main():
         print("  Seeding Perf.vPerfDaily (30 days)...")
         batch = []
         daily_total = 0
+        DAILY_PREFIX = "INSERT INTO Perf.vPerfDaily (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES"
         key_instances = list(instance_map.items())[:4]  # CPU, memory only
         for day in range(30):
             dt = (now - timedelta(days=day)).strftime("%Y-%m-%d 00:00:00")
@@ -1035,14 +1055,8 @@ def main():
                     val = gen_value(ctr)
                     batch.append((dt, pri_id, sid, 288, val, val * 0.5, val * 1.5, 2.0))
                     daily_total += 1
-                    if len(batch) >= 2000:
-                        cursor.executemany(
-                            "INSERT INTO Perf.vPerfDaily VALUES (%s,%s,%s,%s,%s,%s,%s,%s)", batch)
-                        conn.commit()
-                        batch = []
-        if batch:
-            cursor.executemany("INSERT INTO Perf.vPerfDaily VALUES (%s,%s,%s,%s,%s,%s,%s,%s)", batch)
-            conn.commit()
+        bulk_insert(cursor, DAILY_PREFIX, batch)
+        conn.commit()
         print(f"  Perf.vPerfDaily: {daily_total:,} rows")
 
     # --- State.vStateRaw (precise state changes) ---
@@ -1073,8 +1087,9 @@ def main():
                 # that production SCOM DW stores per-monitor
                 if new_state > 1:
                     batch.append((dt, sid, unit_mid, 1, new_state, 0))
-        cursor.executemany(
-            "INSERT INTO State.vStateRaw VALUES (%s,%s,%s,%s,%s,%s)", batch)
+        bulk_insert(cursor,
+            "INSERT INTO State.vStateRaw (DateTime, ManagedEntityRowId, MonitorRowId, OldHealthState, NewHealthState, InMaintenanceMode) VALUES",
+            batch)
         conn.commit()
         print(f"  State.vStateRaw: {len(batch)} rows")
 
