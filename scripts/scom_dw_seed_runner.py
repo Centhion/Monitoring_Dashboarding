@@ -579,14 +579,14 @@ def main():
                 batch.append((dt_str, pri_id, sid, 12, val, val * 0.7, val * 1.3, 1.0))
                 total_rows += 1
 
+        # Flush every hour to avoid overwhelming the SQL connection
+        bulk_insert(cursor, conn, PERF_PREFIX, batch)
+        batch = []
+        conn.commit()
+
         if (hour + 1) % 24 == 0:
-            bulk_insert(cursor, conn, PERF_PREFIX, batch)
-            batch = []
-            conn.commit()
             print(f"    Day {(hour+1)//24}/7 complete ({total_rows:,} rows)")
 
-    if batch:
-        bulk_insert(cursor, conn, PERF_PREFIX, batch)
     conn.commit()
     print(f"  Perf data: {total_rows:,} rows")
 
@@ -709,6 +709,8 @@ def main():
         raw_instances = [(k, v) for k, v in instance_map.items() if k[1] in raw_counter_names]
         RAW_PREFIX = "INSERT INTO Perf.vPerfRaw (DateTime, PerformanceRuleInstanceRowId, ManagedEntityRowId, SampleCount, AverageValue, MinValue, MaxValue, StandardDeviation) VALUES"
         intervals_per_day = 288  # 24h * 60min / 5min
+        # Flush every 12 intervals (1 hour of 5-min data) to stay within
+        # Azure SQL Edge connection limits
         for interval in range(864):
             dt = (now - timedelta(minutes=interval * 5)).strftime("%Y-%m-%d %H:%M:%S")
             for (obj, ctr, inst), pri_id in raw_instances:
@@ -716,11 +718,12 @@ def main():
                     val = gen_value(ctr)
                     batch.append((dt, pri_id, sid, 1, val, val * 0.8, val * 1.2, 1.0))
                     raw_total += 1
-            # Flush and commit once per day boundary
-            if (interval + 1) % intervals_per_day == 0:
+            # Flush every hour (12 x 5-min intervals)
+            if (interval + 1) % 12 == 0:
                 bulk_insert(cursor, conn, RAW_PREFIX, batch)
                 batch = []
                 conn.commit()
+            if (interval + 1) % intervals_per_day == 0:
                 print(f"    Raw Day {(interval+1)//intervals_per_day}/3 complete ({raw_total:,} rows)")
         if batch:
             bulk_insert(cursor, conn, RAW_PREFIX, batch)
@@ -834,12 +837,10 @@ def main():
                     desc = random.choice(event_descriptions)
                     batch.append((dt, pub_id, chan_id, level, comp_id, evt_num, evt_num, desc))
                     evt_total += 1
-            if (hour + 1) % 24 == 0:
-                bulk_insert(cursor, conn, EVT_PREFIX, batch)
-                batch = []
-                conn.commit()
-        if batch:
+            # Flush every hour
             bulk_insert(cursor, conn, EVT_PREFIX, batch)
+            batch = []
+            conn.commit()
         conn.commit()
         print(f"  Events: {evt_total:,} rows")
 
