@@ -40,6 +40,9 @@
 | Phase 13B: Operator Documentation | Completed | Sysadmin-focused docs for 10-year supportability -- KB/Wiki ready, 10 docs in docs/operations/ |
 | Phase 14: Production Rollout | Pending | Pilot site deployment, security hardening, fleet rollout, operations handoff |
 | Phase 15: SCOM Data Warehouse Integration | In Progress | 15A-15K complete (except 15K.31 deferred); visual readability pass on incident dashboard done 2026-04-01 |
+| Phase 15L: Seed Runner Optimization | Completed | Resume support, bulk insert (local only), executemany fallback for Azure SQL Edge |
+| Phase 15M: Docker Host Deployment | In Progress | Denver DC host deployed, demo data generator running, needs systemd service and operational hardening |
+| Phase 16: Log Explorer Fix | In Progress | Level/priority not promoted to Loki stream labels -- fix committed, pending deployment to Docker host |
 
 **Status Key**: Pending | In Progress | Completed | Blocked
 
@@ -2235,6 +2238,77 @@ None for Phase 9. All work is configuration. Deployment-time customization (prob
 - No new agents deployed -- purely reading existing SCOM data
 - Zero post-deployment query fixes needed (validated against production discovery data)
 - Unit monitor failures and alerts surface with operator remediation guidance
+
+---
+
+## Phase 15L: Seed Runner Optimization (added 2026-04-01)
+
+**Goal**: Reduce SCOM DW seed time and add resilience for partial seed recovery.
+
+**Status**: Completed
+
+### Tasks
+
+- [x] 1. Replace executemany with multi-row VALUES bulk_insert helper -- reduces seed time from 60+ min to ~3 min on local Docker Desktop
+- [x] 2. Add resume support -- seed runner skips already-populated tables (entities, rules, instances, perf hourly) on restart
+- [x] 3. Revert to executemany for Azure SQL Edge compatibility -- bulk INSERT crashes Azure SQL Edge on Docker host with EOF errors
+- [x] 4. Add progress logging to vPerfRaw phase (previously silent during longest insert)
+- [x] 5. Add teardown instructions to all profiled compose services (scom-demo, snmp, hardware)
+
+### Notes
+
+- bulk_insert works on Docker Desktop (Windows) but crashes Azure SQL Edge on Linux Docker host
+- Root cause: large multi-row VALUES statements exceed Azure SQL Edge connection buffer limits
+- executemany is slower (~60 min) but reliable across all environments
+- Resume logic enables recovery: restart the seed container after a crash and it picks up where it left off
+- Grafana volumes (grafana_data) persist admin passwords across rebuilds -- use `docker compose down -v` for clean slate
+
+---
+
+## Phase 15M: Docker Host Deployment (added 2026-04-02)
+
+**Goal**: Deploy the monitoring stack to the Denver DC Docker host for stakeholder demos and architect review.
+
+**Status**: In Progress
+
+### Tasks
+
+- [x] 1. Deploy stack to Denver Docker host (V-DEN-DKRHST-SYS) via GitHub zip download
+- [x] 2. SCOM seed completed with resume support (358k perf hourly rows + all remaining tables)
+- [x] 3. Demo data generator running (Prometheus/Loki synthetic metrics for non-SCOM dashboards)
+- [ ] 4. Create systemd service for demo_data_generator.py (survives SSH disconnect and host reboot)
+- [ ] 5. Deploy Log Explorer fix (promote level/priority to Loki stream labels)
+- [ ] 6. Evaluate container management tooling (Portainer vs Komodo) for Docker host visibility
+- [ ] 7. Document deployment update procedure (curl zip, extract, rebuild seed container)
+
+### Human Actions Required
+
+- [ ] Architect review meeting -- get buy-in on approach, request read-only SCOM DW SQL login
+- [ ] Validate SQL queries against production SCOM DW (proof point for Squared Up replacement)
+- [ ] Decide Docker host resilience strategy (single host vs HA vs NKP)
+- [ ] Decide container management tooling
+
+### Notes
+
+- Docker host uses Azure AD/Entra SSH auth -- no SSH keys for SCP, no GitHub credentials
+- Repo must be public for curl-based deployment (no git clone on host)
+- Demo data generator workflow: `deploy_configure.py` -> `demo_data_generator.py --config deploy/site_config.yml --backfill 60`
+- Do NOT use `stack_manage.py --demo-data` on host with existing SCOM containers -- it runs `docker compose up` and can restart the stack
+
+---
+
+## Phase 16: Log Explorer Fix (added 2026-04-02)
+
+**Goal**: Fix Log Explorer dashboard showing no data for Windows Events, Linux Journal, and Unified Search panels.
+
+**Status**: In Progress
+
+### Tasks
+
+- [x] 1. Root cause identified: demo_data_generator.py puts `level` inside JSON log body but dashboard queries filter on `{level="Error"}` as a Loki stream label
+- [x] 2. Fix committed: promote `level` and `priority` to stream labels, add Error/Critical event types for both OS
+- [ ] 3. Deploy fix to Docker host (re-download updated script)
+- [ ] 4. Verify all 3 Log Explorer tabs populate (Windows Events, Linux Journal, Unified Search)
 
 ---
 
