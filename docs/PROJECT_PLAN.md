@@ -39,10 +39,11 @@
 | Phase 13: Alert Strategy | In Progress | Alert fatigue reduction, threshold tuning, notification design -- critical for platform adoption |
 | Phase 13B: Operator Documentation | Completed | Sysadmin-focused docs for 10-year supportability -- KB/Wiki ready, 10 docs in docs/operations/ |
 | Phase 14: Production Rollout | Pending | Pilot site deployment, security hardening, fleet rollout, operations handoff |
-| Phase 15: SCOM Data Warehouse Integration | In Progress | 15A-15K complete (except 15K.31 deferred); visual readability pass on incident dashboard done 2026-04-01 |
-| Phase 15L: Seed Runner Optimization | Completed | Resume support, bulk insert (local only), executemany fallback for Azure SQL Edge |
+| Phase 15: SCOM Data Warehouse Integration | Completed | 15A-15K code complete (15K.31 deferred); extracted to standalone Centhion/scom-grafana repo |
+| Phase 15L: Seed Runner Optimization | Completed | Resume support, bulk insert (local only), executemany fallback for Azure SQL Edge (now in scom-grafana) |
 | Phase 15M: Docker Host Deployment | In Progress | Denver DC host deployed, demo data generator running, needs systemd service and operational hardening |
 | Phase 16: Log Explorer Fix | In Progress | Level/priority not promoted to Loki stream labels -- fix committed, pending deployment to Docker host |
+| Phase 16B: SCOM Repo Extraction | Completed | SCOM extracted to Centhion/scom-grafana; enterprise repo cleaned |
 | Phase 17A: Stack Update Management | Pending | stack_manage.py --update for rolling image/config updates with health checks and rollback |
 | Phase 17B: Komodo Container Management | Pending | Deploy Komodo as Docker host management UI for container ops, health visibility, image update detection |
 
@@ -2532,5 +2533,64 @@ All monitoring at each site uses two distinct Alloy deployment patterns:
 
 ---
 
-*Document Version: 2.0*
-*Last Updated: 2026-03-09*
+## Phase 16: SCOM Repo Extraction
+
+**Goal**: Extract the SCOM dashboard project into a standalone `scom-grafana` repo at `/Users/et/Development/scom-grafana`. Clean SCOM artifacts from this enterprise repo. Two independent products, two independent repos.
+
+**Status**: Completed (2026-04-03)
+
+**Context**: The SCOM dashboards (Grafana + MSSQL) have zero dependency on Prometheus/Loki/Alloy. The enterprise monitoring stack has zero dependency on SCOM. They share a Grafana instance and nothing else. Splitting into separate repos reflects reality -- these are two different products.
+
+**Decision**: New repo (not branch). Rationale: total architectural independence, cleaner clone/deploy, independent versioning and issue tracking.
+
+### Phase A: Create scom-grafana Repo
+
+- [x] A1. Init repo at `/Users/et/Development/scom-grafana` -- `.gitignore`, `.env.example` -- Simple
+- [x] A2. Copy 15 dashboard JSONs into `dashboards/operations/` (7) and `dashboards/servers/` (8) -- flatten `scom/` prefix since it is the whole repo -- Simple
+- [x] A3. Copy `configs/grafana/datasources/scom_dw.yml` -- Simple
+- [x] A4. Write new `configs/grafana/dashboards/dashboards.yml` -- 2 providers (operations + servers), updated container paths -- Simple
+- [x] A5. Write new `deploy/docker-compose.yml` -- Grafana + scom-dw-sim + scom-dw-seed only. No Prometheus, Loki, Alertmanager, Blackbox, Redfish, SNMP -- Medium
+- [x] A6. Copy seed scripts (`scripts/scom_dw_seed_runner.py`, `scripts/scom_dw_discovery.sql`, `scripts/Dockerfile.scom-seed`) -- Simple
+- [x] A7. Copy docs (`docs/SCOM_SCHEMA_REFERENCE.md`, `docs/SQUARED_UP_REFERENCE.md`) -- Simple
+- [x] A8. Write new `README.md` -- what it does, prerequisites, quickstart, production wiring -- Medium
+- [x] A9. Write new `ARCHITECTURE.md` -- Grafana + MSSQL data flow, no Prometheus/Alloy -- Simple
+- [x] A10. Set up lean `.claude/` -- CLAUDE.md rewritten for SCOM scope, settings.json, pre-commit + dashboard-reviewer agents, skills -- Medium
+- [x] A11. Copy `skills/` (commit, status, doc_sync) and slim `tests/` (dashboard fixtures only) -- Simple
+- [x] A12. Write `requirements.txt` (pymssql, pyyaml, pytest) -- Simple
+- [x] A13. Validate: `docker compose up -d` starts clean, dashboards provision, seed populates -- Medium
+
+### Phase B: Clean Enterprise Repo
+
+- [x] B1. Delete `dashboards/scom/` directory -- Simple
+- [x] B2. Delete `configs/grafana/datasources/scom_dw.yml` -- Simple
+- [x] B3. Remove SCOM providers from `configs/grafana/dashboards/dashboards.yml` -- Simple
+- [x] B4. Remove `scom-dw-sim`, `scom-dw-seed` services, `scom_dw_data` volume, and SCOM env vars from `deploy/docker/docker-compose.yml` -- Medium
+- [x] B5. Delete `scripts/scom_dw_seed_runner.py`, `scripts/scom_dw_discovery.sql`, `scripts/Dockerfile.scom-seed` -- Simple
+- [x] B6. Delete `docs/SCOM_SCHEMA_REFERENCE.md`, `docs/SQUARED_UP_REFERENCE.md` -- Simple
+- [x] B7. Update Phase 15 notes -- mark "extracted to scom-grafana repo" -- Simple
+- [x] B8. Update `README.md` and `ARCHITECTURE.md` -- remove SCOM references -- Simple
+- [x] B9. Validate: enterprise `docker compose up -d` still works without SCOM services -- Simple
+
+### Risks
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Dashboard JSON has hardcoded paths assuming `scom/` subfolder | Broken provisioning | Dashboard paths are set in `dashboards.yml`, not JSON. Safe to flatten. |
+| Cross-dashboard links use UIDs | Broken navigation | UIDs are embedded in JSON, not path-dependent. Links survive. |
+| Seed script assumes repo layout | Broken build | Self-contained (pymssql + env vars). No repo-relative imports. |
+
+### Human Actions Required
+
+- [ ] Create `scom-grafana` GitHub repo (or confirm local-only for now)
+- [ ] Decide on repo visibility (public vs private)
+
+### Success Criteria
+
+- `scom-grafana`: `docker compose up -d` brings up Grafana with 15 dashboards reading from SCOM DW simulator. Zero Prometheus/Loki/Alloy components.
+- Enterprise repo: `docker compose up -d` works unchanged minus SCOM services. No broken references.
+- Each repo is independently deployable with no cross-dependencies.
+
+---
+
+*Document Version: 2.1*
+*Last Updated: 2026-04-03*

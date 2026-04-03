@@ -6,15 +6,8 @@ One-command startup for the Docker Compose monitoring stack. Validates
 prerequisites, starts services, waits for health checks, and verifies
 the full stack is operational.
 
-Supports two deployment modes:
-  - Production: Grafana connects to real SCOM DW via .env configuration.
-                Prometheus/Loki dashboards populate when Alloy agents are deployed.
-  - SCOM Demo:  Includes Azure SQL Edge simulator with auto-seeded synthetic data.
-                All SCOM dashboards render immediately. No production access needed.
-
 Usage:
-    python scripts/stack_manage.py                  Start stack (production mode)
-    python scripts/stack_manage.py --scom-demo      Start stack with SCOM simulator
+    python scripts/stack_manage.py                  Start stack
     python scripts/stack_manage.py --status          Check health of running stack
     python scripts/stack_manage.py --stop            Stop stack (preserve data)
     python scripts/stack_manage.py --reset           Stop stack and delete all data
@@ -36,8 +29,6 @@ COMPOSE_FILE = PROJECT_ROOT / "deploy" / "docker" / "docker-compose.yml"
 ENV_FILE = PROJECT_ROOT / ".env"
 
 # Service endpoints for health checking.
-# Core services are always started. SCOM simulator services are only
-# started when --scom-demo is used.
 CORE_SERVICES = {
     "Prometheus": {
         "url": "http://localhost:9090/-/healthy",
@@ -99,7 +90,7 @@ def check_prerequisites() -> bool:
     version_line = output.strip().split("\n")[0] if output else "unknown"
     print(f"  Compose: {version_line}")
 
-    # .env file exists (optional but recommended for production SCOM DW connection)
+    # .env file exists (optional, for overriding service defaults)
     if ENV_FILE.exists():
         print("  .env: found")
     else:
@@ -108,37 +99,19 @@ def check_prerequisites() -> bool:
     return True
 
 
-def _compose_base_cmd(scom_demo: bool = False) -> list[str]:
-    """Build the base docker compose command with file, env-file, and profile flags.
-
-    Args:
-        scom_demo: If True, include the scom-demo profile which starts the
-                   Azure SQL Edge simulator and auto-seed container alongside
-                   the core monitoring stack.
-    """
+def _compose_base_cmd() -> list[str]:
+    """Build the base docker compose command with file and env-file flags."""
     cmd = ["docker", "compose", "-f", str(COMPOSE_FILE)]
     if ENV_FILE.exists():
         cmd.extend(["--env-file", str(ENV_FILE)])
-    if scom_demo:
-        cmd.extend(["--profile", "scom-demo"])
     return cmd
 
 
-def start_stack(scom_demo: bool = False) -> bool:
-    """Start the Docker Compose stack.
+def start_stack() -> bool:
+    """Start the Docker Compose stack."""
+    print("\nStarting monitoring stack...")
 
-    Args:
-        scom_demo: If True, include the SCOM DW simulator (Azure SQL Edge)
-                   and the auto-seed container. The seed container waits for
-                   SQL Edge to be ready, then populates synthetic data for
-                   all SCOM dashboards (~8 minutes for 411K rows).
-    """
-    if scom_demo:
-        print("\nStarting monitoring stack with SCOM simulator...")
-    else:
-        print("\nStarting monitoring stack...")
-
-    cmd = _compose_base_cmd(scom_demo=scom_demo) + ["up", "-d"]
+    cmd = _compose_base_cmd() + ["up", "-d"]
     code, output = run_command(cmd, cwd=PROJECT_ROOT)
     if code != 0:
         print(f"  ERROR: Failed to start stack:\n{output}")
@@ -147,13 +120,8 @@ def start_stack(scom_demo: bool = False) -> bool:
     return True
 
 
-def wait_for_health(timeout_seconds: int = 120, scom_demo: bool = False) -> bool:
-    """Wait for all services to pass health checks.
-
-    Checks core services (Prometheus, Loki, Alertmanager, Grafana). When
-    scom_demo is True, also waits for the SCOM seed container to finish
-    populating the simulator database.
-    """
+def wait_for_health(timeout_seconds: int = 120) -> bool:
+    """Wait for all core services to pass health checks."""
     print(f"\nWaiting for services to become healthy (timeout: {timeout_seconds}s)...")
 
     start = time.monotonic()
@@ -187,41 +155,7 @@ def wait_for_health(timeout_seconds: int = 120, scom_demo: bool = False) -> bool
     if unhealthy:
         return False
 
-    # If SCOM demo mode, check the seed container status
-    if scom_demo:
-        print("\n  SCOM simulator seeding in progress...")
-        print("  (This takes ~8 minutes on first run. Dashboards will populate when complete.)")
-        _check_scom_seed_status()
-
     return True
-
-
-def _check_scom_seed_status() -> None:
-    """Check if the SCOM seed container has finished populating data.
-
-    Non-blocking -- reports current status but does not wait for completion.
-    The seed runs in the background and dashboards will show data once it finishes.
-    """
-    code, output = run_command([
-        "docker", "inspect", "mon-scom-dw-seed",
-        "--format", "{{.State.Status}} {{.State.ExitCode}}"
-    ])
-    if code != 0:
-        print("  SCOM seed container: not found (may still be starting)")
-        return
-
-    parts = output.strip().split()
-    status = parts[0] if parts else "unknown"
-    exit_code = parts[1] if len(parts) > 1 else "?"
-
-    if status == "exited" and exit_code == "0":
-        print("  SCOM seed: complete")
-    elif status == "running":
-        print("  SCOM seed: still running (dashboards will populate when done)")
-        print("  Monitor progress: docker logs -f mon-scom-dw-seed")
-    else:
-        print(f"  SCOM seed: {status} (exit code {exit_code})")
-        print("  Check logs: docker logs mon-scom-dw-seed")
 
 
 def validate_prometheus_rules() -> bool:
@@ -278,10 +212,6 @@ def validate_grafana_datasources() -> bool:
             print(f"  WARNING: Missing expected datasources: {missing}")
             return False
 
-        # Report SCOM DW datasource if present
-        if "scom-dw" in actual_uids:
-            print("  SCOM Data Warehouse: provisioned")
-
         print(f"  All expected datasources provisioned")
         return True
 
@@ -309,17 +239,6 @@ def print_status() -> None:
             print(f"  {name:15s}  DOWN")
             all_healthy = False
 
-    # Check SCOM simulator containers (may not be running in production mode)
-    for container in ["mon-scom-dw-sim", "mon-scom-dw-seed"]:
-        code, output = run_command([
-            "docker", "inspect", container,
-            "--format", "{{.State.Status}}"
-        ])
-        if code == 0:
-            status = output.strip()
-            label = container.replace("mon-", "")
-            print(f"  {label:15s}  {status.upper()}")
-
     print("=" * 50)
     if all_healthy:
         print("  All services healthy")
@@ -328,16 +247,14 @@ def print_status() -> None:
         print(f"    docker compose -f {COMPOSE_FILE} logs <service-name>")
 
 
-def stop_stack(remove_volumes: bool = False, scom_demo: bool = False) -> None:
+def stop_stack(remove_volumes: bool = False) -> None:
     """Stop the Docker Compose stack.
 
     Args:
         remove_volumes: If True, also delete persistent data volumes.
                         Use this for a full reset (fresh start).
-        scom_demo: If True, include the scom-demo profile so simulator
-                   containers are also stopped and removed.
     """
-    cmd = _compose_base_cmd(scom_demo=scom_demo) + ["down"]
+    cmd = _compose_base_cmd() + ["down"]
     if remove_volumes:
         cmd.append("-v")
         print("Stopping stack and removing volumes...")
@@ -368,57 +285,40 @@ def main() -> int:
         help="Stop the stack and delete all data volumes"
     )
     parser.add_argument(
-        "--scom-demo", action="store_true",
-        help="Include SCOM DW simulator with synthetic data (for demos without production access)"
-    )
-    parser.add_argument(
         "--demo-data", action="store_true",
         help="After startup, backfill and stream Prometheus/Loki demo data for showcasing dashboards"
     )
     args = parser.parse_args()
-
-    # Determine if SCOM demo mode is active.
-    # For stop/reset, we always include the profile so simulator containers
-    # are also cleaned up if they were running.
-    scom_demo = args.scom_demo
 
     if args.status:
         print_status()
         return 0
 
     if args.stop:
-        # Include scom-demo profile on stop so simulator containers are also stopped
-        stop_stack(remove_volumes=False, scom_demo=True)
+        stop_stack(remove_volumes=False)
         return 0
 
     if args.reset:
-        # Include scom-demo profile on reset so simulator volumes are also removed
-        stop_stack(remove_volumes=True, scom_demo=True)
+        stop_stack(remove_volumes=True)
         return 0
 
     # --- Full startup flow ---
     print("=" * 50)
-    if scom_demo:
-        print("  Monitoring Stack Setup (SCOM Demo Mode)")
-    else:
-        print("  Monitoring Stack Setup")
+    print("  Monitoring Stack Setup")
     print("=" * 50)
 
     if not check_prerequisites():
         return 1
 
-    if not start_stack(scom_demo=scom_demo):
+    if not start_stack():
         return 1
 
-    if not wait_for_health(timeout_seconds=120, scom_demo=scom_demo):
+    if not wait_for_health(timeout_seconds=120):
         print("\nSome services failed to start. Check logs:")
         compose_cmd = f"docker compose -f {COMPOSE_FILE}"
         print(f"  {compose_cmd} logs prometheus")
         print(f"  {compose_cmd} logs loki")
         print(f"  {compose_cmd} logs grafana")
-        if scom_demo:
-            print(f"  {compose_cmd} logs scom-dw-sim")
-            print(f"  {compose_cmd} logs scom-dw-seed")
         return 1
 
     # Deep validation
@@ -433,13 +333,6 @@ def main() -> int:
     print(f"  Prometheus:   http://localhost:9090")
     print(f"  Alertmanager: http://localhost:9093")
     print(f"  Loki API:     http://localhost:3100")
-
-    if scom_demo:
-        print()
-        print("  SCOM Demo:")
-        print("    SCOM dashboards in 'SCOM Monitoring' folder")
-        print("    Synthetic data seeding in background (~8 min)")
-        print("    Monitor: docker logs -f mon-scom-dw-seed")
 
     print()
 
@@ -481,11 +374,8 @@ def main() -> int:
         print("  Next steps:")
         print("    1. Open Grafana at http://localhost:3000")
         print("    2. Check dashboards under Dashboards menu")
-        if not scom_demo:
-            print("    3. (Optional) Run with SCOM demo data:")
-            print("       python scripts/stack_manage.py --scom-demo")
-            print("    4. (Optional) Run with Prometheus/Loki demo data:")
-            print("       python scripts/stack_manage.py --demo-data")
+        print("    3. (Optional) Run with Prometheus/Loki demo data:")
+        print("       python scripts/stack_manage.py --demo-data")
         print(f"    Stop stack: python scripts/stack_manage.py --stop")
         print(f"    Full reset: python scripts/stack_manage.py --reset")
 

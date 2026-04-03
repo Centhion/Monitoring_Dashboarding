@@ -54,33 +54,3 @@ providers:
       foldersFromFilesStructure: false
     folder: "Infrastructure"
 
-  # ---------------------------------------------------------------------------
-  # SCOM -- Dashboards reading from SCOM Data Warehouse (SQL Server datasource)
-  # ---------------------------------------------------------------------------
-  # ---------------------------------------------------------------------------
-  # SCOM Operations -- Fleet-wide and site-level views
-  # ---------------------------------------------------------------------------
-  - name: "SCOM Operations"
-    orgId: 1
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 30
-    allowUiUpdates: false
-    options:
-      path: /var/lib/grafana/dashboards/scom/operations
-      foldersFromFilesStructure: false
-    folder: "SCOM Operations"
-
-  # ---------------------------------------------------------------------------
-  # SCOM Servers -- Per-server and role-specific detail views
-  # ---------------------------------------------------------------------------
-  - name: "SCOM Servers"
-    orgId: 1
-    type: file
-    disableDeletion: false
-    updateIntervalSeconds: 30
-    allowUiUpdates: false
-    options:
-      path: /var/lib/grafana/dashboards/scom/servers
-      foldersFromFilesStructure: false
-    folder: "SCOM Servers"
