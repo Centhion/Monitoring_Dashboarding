@@ -1273,3 +1273,60 @@ Total: 15 dashboards, 199 panels
 - `custom.inspect: true` on Description columns adds an eye icon that opens a side pane with full cell content -- this is the mechanism for accessing long SCOM alert descriptions without wasting table width
 
 ---
+
+## Session: 2026-04-03 -- SCOM Repo Extraction (Phase 16)
+
+### Completed
+
+- **Phase 16A: Created standalone `scom-grafana` repo** (Centhion/scom-grafana, private)
+  - 15 SCOM dashboard JSONs (7 operations, 8 servers) -- flattened from `dashboards/scom/` to `dashboards/operations/` and `dashboards/servers/`
+  - Simplified docker-compose: Grafana + scom-dw-sim + scom-dw-seed (3 services, zero Prometheus/Loki/Alloy)
+  - SCOM DW datasource config, dashboard provisioning (2 providers)
+  - Seed scripts (scom_dw_seed_runner.py, scom_dw_discovery.sql, Dockerfile.scom-seed)
+  - Docs (SCOM_SCHEMA_REFERENCE.md, SQUARED_UP_REFERENCE.md)
+  - Lean `.claude/` config: CLAUDE.md rewritten for SCOM scope, settings.json, pre-commit + dashboard-reviewer agents
+  - Skills (commit, status, doc_sync), dashboard validator, test suite (3/3 pass)
+  - New README.md and ARCHITECTURE.md focused on Grafana + MSSQL
+  - All 15 dashboards validated, initial commit pushed
+
+- **Phase 16B: Cleaned enterprise repo** (Centhion/Monitoring_Dashboarding)
+  - Deleted: 15 SCOM dashboards, scom_dw.yml datasource, seed scripts, SCOM docs (21 files, 17,700+ lines)
+  - Edited: dashboards.yml (removed SCOM providers), docker-compose.yml (removed SCOM services/volumes/env vars), stack_manage.py (removed --scom-demo), validate_dashboards.py (removed scom-dw UID), scripts/README.md, DASHBOARD_GUIDE.md, README.md
+  - Merged with remote changes (15L, 15M, Phase 16 Log Explorer, 17A, 17B) -- rebase conflict resolved cleanly
+  - All validators pass (19 dashboards, 24 Alloy, 23 Prometheus). 12/12 tests pass.
+
+- **Safety branch**: `pre-scom-extraction` on enterprise repo (local only, points at 8c03bf2). Restore with `git reset --hard pre-scom-extraction`.
+
+- **Cleaned up**: Deleted `.claude/worktrees/lucid-leakey/` leftover from prior session.
+
+### In Progress
+
+- Nothing -- both repos are clean and pushed.
+
+### Blockers
+
+- **scom-grafana production deployment**: Needs read-only SQL login on OperationsManagerDW (DBA action), network path from Denver Docker host to SCOM DW SQL Server.
+- **Phase 15K.31**: Exchange panel fix still deferred -- needs production schema verification.
+
+### Decisions
+
+- **New repo over branch**: SCOM project is architecturally independent (Grafana + MSSQL, zero Prometheus/Loki/Alloy). Two separate repos reflects reality -- two different products.
+- **Docker Compose only for scom-grafana**: No Helm chart. Single Docker host deployment. Keeps it minimal.
+- **Flattened dashboard paths**: Dropped `scom/` prefix in new repo since the entire repo is SCOM. `dashboards/operations/` and `dashboards/servers/` directly.
+- **Phase numbering**: Our extraction became Phase 16B to avoid collision with remote's Phase 16 (Log Explorer Fix).
+- **GitHub repos created directly via `gh` CLI**: User feedback -- do not treat repo creation as a human action. Personal, private by default.
+
+### Next Session
+
+1. Deploy scom-grafana to Denver Docker host (once SQL login and network path are confirmed)
+2. Write Phase 15D migration docs in scom-grafana repo (side-by-side comparison guide, SquaredUp decommission plan)
+3. Delete safety branch `pre-scom-extraction` from enterprise repo once confident split is stable
+
+### Context
+
+- The data boundary between repos is total: all 15 SCOM dashboards use only the `scom-dw` MSSQL datasource (293 references). Zero use of Prometheus or Loki. Conversely, zero enterprise dashboards reference `scom-dw`.
+- The scom-grafana docker-compose uses `--profile demo` for the simulator (not `--profile scom-demo` like the old enterprise compose).
+- Remote had several new phases (15L Seed Runner Optimization, 15M Docker Host Deployment, 16 Log Explorer Fix, 17A Stack Update, 17B Komodo) that were merged during rebase.
+- Feedback memory updated: always use `/commit` workflow, no exceptions for "small fixes."
+
+---
