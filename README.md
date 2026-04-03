@@ -189,8 +189,6 @@ Python tooling in `scripts/` for validation, deployment, fleet management, and t
 | Script | Purpose |
 |--------|---------|
 | `demo_data_generator.py` | Pushes synthetic metrics and logs into Prometheus and Loki to populate all Alloy-based dashboards with realistic demo data |
-| `scom_dw_seed_runner.py` | Seeds the SCOM DW Simulator (Azure SQL Edge) with production-aligned schema and 1.2M+ rows of synthetic performance, state, alert, and event data |
-| `scom_dw_discovery.sql` | SQL queries for discovering production SCOM DW schema (entity types, counter names, management packs) |
 
 ## Documentation
 
@@ -217,8 +215,6 @@ Python tooling in `scripts/` for validation, deployment, fleet management, and t
 - See `docs/DEPLOYMENT_VALUES.md` for production configuration value reference
 - See `docs/BRANCHING_STRATEGY.md` for public template vs internal fork branch model
 - See `docs/TESTING_CHECKLIST.md` for post-deployment validation checklist
-- See `docs/SCOM_SCHEMA_REFERENCE.md` for SCOM DW table structure and query patterns
-- See `docs/SQUARED_UP_REFERENCE.md` for SquaredUp-to-Grafana dashboard mapping
 - See `docs/THRESHOLD_GUIDE.md` for alert threshold tuning and severity definitions
 - See `docs/ALERT_SEVERITY_CONTRACT.md` for alert severity classification standards
 - See `docs/ALERT_CATALOG.md` for complete alert rule inventory with descriptions
